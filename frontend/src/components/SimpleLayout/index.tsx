@@ -10,7 +10,7 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
   return (
     <>
       <Header />
-      <main className="container mx-auto flex grow flex-col">
+      <main className="mx-auto flex w-full max-w-screen-3xl grow flex-col px-5">
         <Breadcrumbs />
         {children}
       </main>
