@@ -1,8 +1,8 @@
 import { Paragraph } from "@/components/Paragraph";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
 import { getModuleVersionDataQuery } from "../query";
 import { EmptyState } from "../components/EmptyState";
+import { useModuleParams } from "../hooks/useModuleParams";
 
 interface ProviderDependencyProps {
   provider: string;
@@ -30,12 +30,7 @@ function ProviderDependency({
 }
 
 export function ModuleDependencies() {
-  const { namespace, name, target, version } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    version: string;
-  }>();
+  const { namespace, name, target, version } = useModuleParams();
 
   const { data } = useSuspenseQuery(
     getModuleVersionDataQuery(namespace, name, target, version),

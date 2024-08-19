@@ -1,15 +1,13 @@
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { PageTitle } from "@/components/PageTitle";
-import { Paragraph } from "@/components/Paragraph";
-import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
 import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { ReactNode } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import { formatDate } from "@/utils/formatDate";
 import { getModuleDataQuery } from "@/routes/Module/query";
 import { Icon } from "@/components/Icon";
 import { arrow } from "@/icons/arrow";
+import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 
 interface WrapperProps {
   children: ReactNode;
@@ -24,16 +22,9 @@ function Wrapper({ children }: WrapperProps) {
 }
 
 export function ModuleExampleHeader() {
-  const { namespace, name, target, example } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    example: string;
-  }>();
+  const { namespace, name, target, example } = useModuleExampleParams();
 
-  const { data } = useSuspenseQuery(
-    getModuleDataQuery(namespace, name, target),
-  );
+  useSuspenseQuery(getModuleDataQuery(namespace, name, target));
 
   return (
     <Wrapper>

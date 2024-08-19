@@ -3,7 +3,7 @@ export interface Crumb {
   label: string;
 }
 
-export function createCrumb(to: string, label: string): Crumb {
+export function createCrumb(to: string, label: string | undefined = ""): Crumb {
   return {
     to,
     label,

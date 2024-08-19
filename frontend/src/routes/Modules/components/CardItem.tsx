@@ -23,7 +23,7 @@ export function ModulesCardItem({
     <CardItem>
       <CardItemTitle
         linkProps={{
-          to: `/module/${addr.namespace}/${addr.name}/${addr.target}/${latestVersion.id}`,
+          to: `/module/${addr.namespace}/${addr.name}/${addr.target}/latest`,
         }}
       >
         {addr.namespace}/{addr.name}

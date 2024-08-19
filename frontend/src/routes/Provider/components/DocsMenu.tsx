@@ -4,7 +4,7 @@ import { chevron } from "@/icons/chevron";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useState, useTransition } from "react";
-import { useHref, useLinkClickHandler, useParams } from "react-router-dom";
+import { useHref, useLinkClickHandler } from "react-router-dom";
 
 import { NestedItem, transformStructure } from "../docsSidebar";
 import { useProviderParams } from "../hooks/useProviderParams";
@@ -98,10 +98,7 @@ function DocsTreeViewItem({
 }
 
 export function ProviderDocsMenu() {
-  const { namespace, provider, version, doc } = useProviderParams();
-  const { type } = useParams<{
-    type: string;
-  }>();
+  const { namespace, provider, version, doc, type } = useProviderParams();
 
   const { data } = useSuspenseQuery(
     getProviderVersionDataQuery(namespace, provider, version),

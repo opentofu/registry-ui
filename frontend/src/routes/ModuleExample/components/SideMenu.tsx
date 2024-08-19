@@ -3,19 +3,15 @@ import { TreeView } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import clsx from "clsx";
-import { NavLink, useParams } from "react-router-dom";
-import { ModuleTabLink } from "../TabLink";
+import { NavLink } from "react-router-dom";
+import { ModuleTabLink } from "./TabLink";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "@/routes/Module/query";
+import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 
 export function ModuleExampleSideMenu() {
-  const { namespace, name, target, version, example } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    version: string;
-    example: string;
-  }>();
+  const { namespace, name, target, version, example } =
+    useModuleExampleParams();
 
   const { data } = useSuspenseQuery(
     getModuleVersionDataQuery(namespace, name, target, version),
