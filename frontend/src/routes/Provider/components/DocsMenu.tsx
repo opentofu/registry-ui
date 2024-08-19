@@ -1,46 +1,21 @@
-import { useHref, useLinkClickHandler, useParams } from "react-router-dom";
-import { TreeView, TreeViewItem } from "@/components/TreeView";
-import { useState, useTransition } from "react";
 import { Icon } from "@/components/Icon";
+import { TreeView, TreeViewItem } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
-import clsx from "clsx";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getProviderVersionDataQuery } from "../query";
+import clsx from "clsx";
+import { useState, useTransition } from "react";
+import { useHref, useLinkClickHandler, useParams } from "react-router-dom";
+
+import { NestedItem, transformStructure } from "../docsSidebar";
 import { useProviderParams } from "../hooks/useProviderParams";
-import { transformStructure } from "../docsSidebar";
+import { getProviderVersionDataQuery } from "../query";
 
-type Item = {
-  name: string;
-  title: string;
-  subcategory?: string;
-  path: string;
-};
-
-type OriginalStructure = {
-  resources: Item[];
-  datasources: Item[];
-  functions: Item[];
-  guides: Item[];
-};
-
-type NestedItem = {
-  name: string;
-  label: string;
-  items?: NestedItem[];
-  open?: boolean;
-  type?: string;
-  active?: boolean;
-};
-
-function TabLink({
-  to,
-  label,
-  active,
-}: {
+type TabLinkProps = {
   to: string;
   label: string;
   active?: boolean;
-}) {
+};
+function TabLink({ to, label, active }: TabLinkProps) {
   const href = useHref(to);
   const handleClick = useLinkClickHandler(to);
   const [isPending, startTransition] = useTransition();
@@ -67,15 +42,16 @@ function TabLink({
   );
 }
 
+type DocsTreeViewItemProps = {
+  item: NestedItem;
+  isOpenByDefault?: boolean;
+  nested?: boolean;
+};
 function DocsTreeViewItem({
   item,
   isOpenByDefault = false,
   nested = false,
-}: {
-  item: NestedItem;
-  isOpenByDefault?: boolean;
-  nested?: boolean;
-}) {
+}: DocsTreeViewItemProps) {
   const [open, setOpen] = useState(isOpenByDefault);
   let button;
 
@@ -96,7 +72,7 @@ function DocsTreeViewItem({
     button = (
       <TabLink
         to={`docs/${item.type}/${item.name}`}
-        label={item.label}
+        label={item.name}
         active={item.active}
       />
     );
