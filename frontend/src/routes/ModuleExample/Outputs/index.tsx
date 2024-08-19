@@ -1,11 +1,15 @@
-import { EmptyState } from "@/routes/Module/components/EmptyState";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getModuleExampleDataQuery } from "../query";
+import { ModuleOutputs as ModuleOutputsComponent } from "@/components/ModuleOutputs";
+import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 
 export function ModuleExampleOutputs() {
-  return (
-    <div className="p-5">
-      <h3 className="mb-6 text-3xl font-semibold">Outputs</h3>
+  const { namespace, name, target, version, example } =
+    useModuleExampleParams();
 
-      <EmptyState text="This module does not have any outputs." />
-    </div>
+  const { data } = useSuspenseQuery(
+    getModuleExampleDataQuery(namespace, name, target, version, example),
   );
+
+  return <ModuleOutputsComponent outputs={data.outputs} />;
 }

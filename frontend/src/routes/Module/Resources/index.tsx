@@ -1,7 +1,7 @@
 import { Paragraph } from "@/components/Paragraph";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "../query";
-import { EmptyState } from "../components/EmptyState";
+import { EmptyState } from "@/components/EmptyState";
 import { useModuleParams } from "../hooks/useModuleParams";
 
 interface ResourceProps {
