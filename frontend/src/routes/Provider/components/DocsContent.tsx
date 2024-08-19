@@ -1,16 +1,28 @@
 import { Markdown } from "@/components/Markdown";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getProviderDocsQuery } from "../query";
+import { useSuspenseQueries } from "@tanstack/react-query";
+import { getProviderDocsQuery, getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
+import { ProviderDocsEditLink } from "./DocsEditLink";
+import { getProviderDoc } from "../utils/getProviderDoc";
 
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
 
-  const { data } = useSuspenseQuery(
-    getProviderDocsQuery(namespace, provider, version, type, doc, lang),
-  );
+  const [{ data: docs }, { data: versionData }] = useSuspenseQueries({
+    queries: [
+      getProviderDocsQuery(namespace, provider, version, type, doc, lang),
+      getProviderVersionDataQuery(namespace, provider, version),
+    ],
+  });
 
-  return <Markdown text={data} />;
+  const editLink = getProviderDoc(versionData.docs, type, doc)?.edit_link;
+
+  return (
+    <>
+      <Markdown text={docs} />
+      {editLink && <ProviderDocsEditLink url={editLink} />}
+    </>
+  );
 }
 
 export function ProviderDocsContentSkeleton() {
