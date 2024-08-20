@@ -5,21 +5,25 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import clsx from "clsx";
 import { NavLink } from "react-router-dom";
 import { ModuleTabLink } from "./TabLink";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "@/routes/Module/query";
 import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
+import { getModuleExampleDataQuery } from "../query";
 
 export function ModuleExampleSideMenu() {
   const { namespace, name, target, version, example } =
     useModuleExampleParams();
 
-  const { data } = useSuspenseQuery(
-    getModuleVersionDataQuery(namespace, name, target, version),
-  );
+  const [{ data }, { data: exampleData }] = useSuspenseQueries({
+    queries: [
+      getModuleVersionDataQuery(namespace, name, target, version),
+      getModuleExampleDataQuery(namespace, name, target, version, example),
+    ],
+  });
 
   const examples = Object.keys(data.examples);
-  const inputsCount = Object.keys(data.variables).length;
-  const outputsCount = Object.keys(data.outputs).length;
+  const inputsCount = Object.keys(exampleData.variables).length;
+  const outputsCount = Object.keys(exampleData.outputs).length;
 
   return (
     <>
