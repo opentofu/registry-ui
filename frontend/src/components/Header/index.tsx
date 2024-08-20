@@ -7,14 +7,10 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-10 flex h-20 items-center border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-blue-950">
+    <header className="flex h-20 items-center border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-blue-950">
       <div className="mx-auto flex w-full max-w-screen-3xl items-end px-5">
         <h1 className="flex items-end">
-          <a
-            href="/"
-            aria-label="Home"
-            target="_blank"
-          >
+          <a href="/" aria-label="Home" target="_blank">
             <HeaderLogo />
           </a>
           <span className="text-2xl tracking-wide">Registry</span>
