@@ -1,17 +1,12 @@
-import { useParams } from "react-router-dom";
 import { VersionsSidebarBlock } from "@/components/VersionsSidebarBlock";
 
 import { SidebarBlock } from "@/components/SidebarBlock";
 import { getModuleDataQuery } from "../query";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useModuleParams } from "../hooks/useModuleParams";
 
 export function ModuleVersionsSidebarBlock() {
-  const { namespace, name, target, version } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    version: string;
-  }>();
+  const { namespace, name, target, version } = useModuleParams();
 
   const { data } = useSuspenseQuery(
     getModuleDataQuery(namespace, name, target),

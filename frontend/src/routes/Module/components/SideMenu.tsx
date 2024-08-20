@@ -2,15 +2,10 @@ import { TreeView } from "@/components/TreeView";
 import { ModuleTabLink } from "../TabLink";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "../query";
-import { useParams } from "react-router-dom";
+import { useModuleParams } from "../hooks/useModuleParams";
 
 export function ModuleSideMenu() {
-  const { namespace, name, target, version } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    version: string;
-  }>();
+  const { namespace, name, target, version } = useModuleParams();
 
   const { data } = useSuspenseQuery(
     getModuleVersionDataQuery(namespace, name, target, version),

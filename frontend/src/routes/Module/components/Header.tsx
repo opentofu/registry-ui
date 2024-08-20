@@ -1,4 +1,3 @@
-import { useParams } from "react-router-dom";
 import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
 import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
@@ -7,6 +6,7 @@ import { ReactNode } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleDataQuery } from "../query";
 import { formatDate } from "@/utils/formatDate";
+import { useModuleParams } from "../hooks/useModuleParams";
 
 interface WrapperProps {
   children: ReactNode;
@@ -21,17 +21,11 @@ function Wrapper({ children }: WrapperProps) {
 }
 
 export function ModuleHeader() {
-  const { namespace, name, target } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-  }>();
+  const { namespace, name, target } = useModuleParams();
 
   const { data } = useSuspenseQuery(
     getModuleDataQuery(namespace, name, target),
   );
-
-  console.log(data);
 
   return (
     <Wrapper>

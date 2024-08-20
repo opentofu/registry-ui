@@ -1,17 +1,12 @@
-import { useParams } from "react-router-dom";
 import { OldVersionBanner } from "@/components/OldVersionBanner";
 
 import { VersionInfo } from "@/components/VersionInfo";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleDataQuery } from "../query";
+import { useModuleParams } from "../hooks/useModuleParams";
 
 export function ModuleVersionInfo() {
-  const { namespace, name, target, version } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    version: string;
-  }>();
+  const { namespace, name, target, version } = useModuleParams();
 
   const { data } = useSuspenseQuery(
     getModuleDataQuery(namespace, name, target),

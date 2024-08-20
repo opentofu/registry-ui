@@ -188,7 +188,7 @@ export function VersionsSidebarBlock({
             label: `${latestVersion.id} (latest)`,
             published: latestVersion.published,
             isActive: currentVersion === latestVersion.id,
-            link: versionLink(latestVersion.id),
+            link: versionLink("latest"),
           }}
         />
 

@@ -2,9 +2,10 @@ import { HeadingLink } from "@/components/HeadingLink";
 import { Paragraph } from "@/components/Paragraph";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "../query";
-import { useParams } from "react-router-dom";
 import { definitions } from "@/api";
 import { EmptyState } from "../components/EmptyState";
+import { useModuleParams } from "../hooks/useModuleParams";
+
 interface InputProps {
   name: string;
   type: string;
@@ -36,12 +37,7 @@ function Input({ name, type, description, defaultValue }: InputProps) {
 }
 
 export function ModuleInputs() {
-  const { namespace, name, target, version } = useParams<{
-    namespace: string;
-    name: string;
-    target: string;
-    version: string;
-  }>();
+  const { namespace, name, target, version } = useModuleParams();
 
   const { data } = useSuspenseQuery(
     getModuleVersionDataQuery(namespace, name, target, version),
