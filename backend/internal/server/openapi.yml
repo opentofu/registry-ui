@@ -1,14 +1,12 @@
 definitions:
     Addr:
         description: |-
-            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
-            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
+            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
+            github.com/NAMESPACE/terraform-provider-NAME .
         properties:
             Name:
                 type: string
             Namespace:
-                type: string
-            TargetSystem:
                 type: string
         type: object
     BaseDetails:

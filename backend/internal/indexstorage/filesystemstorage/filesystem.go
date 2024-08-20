@@ -2,7 +2,10 @@ package filesystemstorage
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"path"
 
@@ -31,6 +34,26 @@ func New(directory string) (indexstorage.API, error) {
 
 type storageAPI struct {
 	directory string
+}
+
+func (s storageAPI) GetFileSHA256(ctx context.Context, storagePath indexstorage.Path) (string, error) {
+	if err := storagePath.Validate(); err != nil {
+		return "", err
+	}
+	absPath := path.Join(s.directory, string(storagePath))
+
+	fh, err := os.Open(absPath)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		_ = fh.Close()
+	}()
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, fh); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(hasher.Sum(nil)), nil
 }
 
 func (s storageAPI) Subdirectory(_ context.Context, storagePath indexstorage.Path) (indexstorage.API, error) {

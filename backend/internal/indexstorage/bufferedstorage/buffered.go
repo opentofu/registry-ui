@@ -2,7 +2,10 @@ package bufferedstorage
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -62,6 +65,38 @@ type buffered struct {
 	parallelism    int
 }
 
+func (b *buffered) GetFileSHA256(ctx context.Context, filePath indexstorage.Path) (string, error) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	if err := filePath.Validate(); err != nil {
+		return "", err
+	}
+	status := b.index.FileStatus(ctx, filePath)
+	localPath := path.Join(b.localDir, string(filePath))
+	switch status {
+	case fileStatusUnknown:
+		return b.backingStorage.GetFileSHA256(ctx, filePath)
+	case fileStatusPresent:
+		fh, err := os.Open(localPath)
+		if err != nil {
+			return "", err
+		}
+		defer func() {
+			_ = fh.Close()
+		}()
+		hasher := sha256.New()
+		if _, err := io.Copy(hasher, fh); err != nil {
+			return "", err
+		}
+		return hex.EncodeToString(hasher.Sum(nil)), nil
+	case fileStatusAbsent:
+		return "", fs.ErrNotExist
+	default:
+		return "", fs.ErrNotExist
+	}
+}
+
 func (b *buffered) Recover(ctx context.Context) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
@@ -113,6 +148,17 @@ func (b *buffered) WriteFile(ctx context.Context, filePath indexstorage.Path, co
 	if err := filePath.Validate(); err != nil {
 		return err
 	}
+
+	hasher := sha256.New()
+	if _, err := hasher.Write(contents); err == nil {
+		checksum := hex.EncodeToString(hasher.Sum(nil))
+
+		existingHash, err := b.GetFileSHA256(ctx, filePath)
+		if err == nil && checksum == existingHash {
+			return nil
+		}
+	}
+
 	localPath := path.Join(b.localDir, string(filePath))
 	if err := os.MkdirAll(path.Dir(localPath), 0755); err != nil {
 		return fmt.Errorf("failed to create directory for %s (%w)", localPath, err)
@@ -299,6 +345,10 @@ func (b *buffered) reset(_ context.Context) error {
 type subdir struct {
 	prefix  indexstorage.Path
 	backing indexstorage.API
+}
+
+func (s *subdir) GetFileSHA256(ctx context.Context, filepath indexstorage.Path) (string, error) {
+	return s.backing.GetFileSHA256(ctx, indexstorage.Path(path.Join(string(s.prefix), string(filepath))))
 }
 
 func (s *subdir) ReadFile(ctx context.Context, filepath indexstorage.Path) ([]byte, error) {

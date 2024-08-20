@@ -23,6 +23,9 @@ func (p Path) Validate() error {
 }
 
 type API interface {
+	// GetFileSHA256 returns the SHA256 hash of a file hex-encoded
+	GetFileSHA256(ctx context.Context, path Path) (string, error)
+
 	// ReadFile reads the given path if found, otherwise returns a not found error.
 	ReadFile(ctx context.Context, path Path) ([]byte, error)
 

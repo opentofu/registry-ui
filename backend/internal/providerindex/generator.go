@@ -24,11 +24,41 @@ import (
 // DocumentationGenerator is a tool to generate all index files for modules.
 type DocumentationGenerator interface {
 	// Generate generates all module index files incrementally and removes items no longer in the registry.
-	Generate(ctx context.Context) error
+	Generate(ctx context.Context, opts ...Opts) error
 
 	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
 	// registry.
-	GenerateNamespace(ctx context.Context, namespace string) error
+	GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error
+
+	// GenerateSingleProvider generates module index files for a single provider only.
+	GenerateSingleProvider(ctx context.Context, addr provider.Addr, opts ...Opts) error
+}
+
+type GenerateConfig struct {
+	Force ForceRegenerate
+}
+
+type noForce struct {
+}
+
+func (n noForce) MustRegenerateProvider(_ context.Context, _ provider.Addr) bool {
+	return false
+}
+
+func (c *GenerateConfig) applyDefaults() error {
+	if c.Force == nil {
+		c.Force = &noForce{}
+	}
+	return nil
+}
+
+type Opts func(ctx context.Context, generateConfig *GenerateConfig) error
+
+func WithForce(force ForceRegenerate) Opts {
+	return func(_ context.Context, generateConfig *GenerateConfig) error {
+		generateConfig.Force = force
+		return nil
+	}
 }
 
 func NewDocumentationGenerator(
@@ -63,7 +93,16 @@ type documentationGenerator struct {
 	destination     providerindexstorage.API
 }
 
-func (d *documentationGenerator) Generate(ctx context.Context) error {
+func (d *documentationGenerator) GenerateSingleProvider(ctx context.Context, addr provider.Addr, opts ...Opts) error {
+	addr = addr.Normalize()
+	if err := d.scrape(ctx, []provider.Addr{addr}, opts); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *documentationGenerator) Generate(ctx context.Context, opts ...Opts) error {
 	d.log.Info(ctx, "Listing all providers...")
 	providerList, err := d.metadataAPI.ListProviders(ctx, true)
 	if err != nil {
@@ -71,7 +110,7 @@ func (d *documentationGenerator) Generate(ctx context.Context) error {
 	}
 	d.log.Info(ctx, "Loaded %d providers", len(providerList))
 
-	err = d.scrape(ctx, providerList)
+	err = d.scrape(ctx, providerList, opts)
 	if err != nil {
 		return err
 	}
@@ -79,7 +118,7 @@ func (d *documentationGenerator) Generate(ctx context.Context) error {
 	return nil
 }
 
-func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespace string) error {
+func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
 	d.log.Info(ctx, "Listing all providers in namespace %s...", namespace)
 	providerList, err := d.metadataAPI.ListProvidersByNamespace(ctx, namespace, true)
 	if err != nil {
@@ -87,7 +126,7 @@ func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespac
 	}
 	d.log.Info(ctx, "Loaded %d providers", len(providerList))
 
-	err = d.scrape(ctx, providerList)
+	err = d.scrape(ctx, providerList, opts)
 	if err != nil {
 		return err
 	}
@@ -95,7 +134,19 @@ func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespac
 	return nil
 }
 
-func (d *documentationGenerator) scrape(ctx context.Context, providers []provider.Addr) error {
+func (d *documentationGenerator) scrape(ctx context.Context, providers []provider.Addr, opts []Opts) error {
+	// TODO add filtering for removals to the function signature similar to modules.
+
+	cfg := GenerateConfig{}
+	for _, opt := range opts {
+		if err := opt(ctx, &cfg); err != nil {
+			return err
+		}
+	}
+	if err := cfg.applyDefaults(); err != nil {
+		return err
+	}
+
 	existingProviders, err := d.destination.GetProviderList(ctx)
 	if err != nil {
 		var notFound *providerindexstorage.ProviderListNotFoundError
@@ -124,7 +175,7 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 			}
 
 			// scrape the docs into their own directory
-			if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry); err != nil {
+			if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry, cfg); err != nil {
 				var notFound *metadata.ProviderNotFoundError
 				if errors.As(err, &notFound) {
 					d.log.Info(ctx, "Provider %s not found, removing from UI... (%v)", addr, err)
@@ -165,7 +216,7 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 	return nil
 }
 
-func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider) error {
+func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider, cfg GenerateConfig) error {
 	d.log.Trace(ctx, "Generating index for provider %s/%s", addr.Namespace, addr.Name)
 
 	canonicalAddr, err := d.metadataAPI.GetProviderCanonicalAddr(ctx, addr.Addr)
@@ -183,12 +234,15 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	slices.Reverse(meta.Versions)
 	repoInfoFetched := false
 	var versionsToAdd []providertypes.ProviderVersionDescriptor
+	var versionsToUpdate []providertypes.ProviderVersionDescriptor
+	forceProvider := cfg.Force.MustRegenerateProvider(ctx, addr.Addr)
 	for _, version := range meta.Versions {
 		if err := version.Version.Validate(); err != nil {
 			d.log.Warn(ctx, "Invalid version number for provider %s: %s, skipping... (%v)", addr, version.Version, err)
 			continue
 		}
-		if providerData.HasVersion(version.Version) {
+		hasVersion := providerData.HasVersion(version.Version)
+		if hasVersion && !forceProvider {
 			d.log.Debug(ctx, "The provider index already has %s version %s, skipping...", addr, version.Version)
 			continue
 		}
@@ -227,10 +281,19 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 			}
 			return err
 		}
-		versionsToAdd = append(versionsToAdd, providerVersion.ProviderVersionDescriptor)
+		if hasVersion {
+			versionsToUpdate = append(versionsToUpdate, providerVersion.ProviderVersionDescriptor)
+			// TODO: currently we don't remove documents that may not be there anymore. This should be addressed by
+			//       diffing the old and new descriptor.
+		} else {
+			versionsToAdd = append(versionsToAdd, providerVersion.ProviderVersionDescriptor)
+		}
 	}
 
 	providerData.AddVersions(versionsToAdd...)
+	providerData.UpdateVersions(versionsToUpdate...)
+
+	// TODO remove versions that no longer exist.
 
 	return nil
 }

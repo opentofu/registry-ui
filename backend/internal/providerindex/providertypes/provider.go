@@ -74,3 +74,14 @@ func (p *Provider) RemoveVersions(in provider.VersionList, notIn provider.Versio
 	p.Versions = newVersions
 	return removedVersions
 }
+
+func (p *Provider) UpdateVersions(updatedVersions ...ProviderVersionDescriptor) {
+	for _, updatedVersion := range updatedVersions {
+		for i, existingVersion := range p.Versions {
+			if existingVersion.ID.Compare(updatedVersion.ID) == 0 {
+				p.Versions[i].ID = updatedVersion.ID
+				p.Versions[i].Published = updatedVersion.Published
+			}
+		}
+	}
+}
