@@ -7,16 +7,22 @@ export const providerMiddleware: LoaderFunction = async (
   { params },
   context,
 ) => {
+  const { namespace, provider, version } = params;
+
   const data = await queryClient.ensureQueryData(
-    getProviderDataQuery(params.namespace, params.provider),
+    getProviderDataQuery(namespace, provider),
   );
 
   const [latestVersion] = data.versions;
 
-  if (params.version === latestVersion.id || !params.version) {
-    return redirect(`/provider/${params.namespace}/${params.provider}/latest`);
+  if (version === latestVersion.id || !version) {
+    return redirect(`/provider/${namespace}/${provider}/latest`);
   }
 
-  (context as ProviderRouteContext).version =
-    params.version === "latest" ? latestVersion.id : params.version;
+  const providerContext = context as ProviderRouteContext;
+
+  providerContext.version = version === "latest" ? latestVersion.id : version;
+  providerContext.rawVersion = version;
+  providerContext.namespace = namespace;
+  providerContext.provider = provider;
 };
