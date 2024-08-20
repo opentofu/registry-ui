@@ -22,10 +22,10 @@ export interface paths {
   "/modules/index.json": {
     get: operations["GetModuleList"];
   };
-  "/providers/{namespace}/{name}/{version}/{kind}s/{name}.md": {
+  "/providers/{namespace}/{name}/{version}/{kind}s/{document}.md": {
     get: operations["GetProviderDocItem"];
   };
-  "/providers/{namespace}/{name}/{version}/cdktf/{language}/{name}.md": {
+  "/providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md": {
     get: operations["GetProviderCDKTFDocItem"];
   };
   "/providers/{namespace}/{name}/{version}/cdktf/{language}/index.md": {
@@ -50,15 +50,29 @@ export interface paths {
 
 export interface definitions {
   /**
-   * @description Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-   * github.com/NAMESPACE/terraform-provider-NAME .
+   * @description Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+   * github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
    */
   Addr: {
     Name?: string;
     Namespace?: string;
+    TargetSystem?: string;
+  };
+  /** BaseDetails is an embedded struct describing a module or a submodule. */
+  BaseDetails: {
+    edit_link?: string;
+    outputs: { [key: string]: definitions["Output"] };
+    /** @description Readme indicates that the submodule has a readme available. */
+    readme: boolean;
+    /**
+     * @description SchemaError contains an error message to show why the schema is not available. This should be shown to the user
+     * as a warning message.
+     */
+    schema_error: string;
+    variables: { [key: string]: definitions["Variable"] };
   };
   DocItemName: string;
-  /** License describe a license found in a repository. */
+  /** License describes a license found in a repository. */
   License: {
     /**
      * Format: float
@@ -74,7 +88,7 @@ export interface definitions {
     /** @description SPDX is the SPDX identifier for the license. */
     spdx?: string;
   };
-  /** List is a list of licenses. */
+  /** List is a list of licenses found in a repository. */
   LicenseList: definitions["License"][];
   Module: {
     addr: definitions["ModuleAddr"];
@@ -101,6 +115,11 @@ export interface definitions {
     /** @description Contains the target system of the addr. */
     target: string;
   };
+  ModuleCall: {
+    module?: definitions["ModuleSchema"];
+    source?: string;
+    version_constraint?: string;
+  };
   /** ModuleDependency describes a module call as a dependency as the UI expects it. */
   ModuleDependency: {
     name: string;
@@ -110,6 +129,7 @@ export interface definitions {
   /** Details is an embedded struct describing a module or a submodule. */
   ModuleDetails: {
     dependencies: definitions["ModuleDependency"][];
+    edit_link?: string;
     outputs: { [key: string]: definitions["Output"] };
     providers: definitions["ProviderDependency"][];
     /** @description Readme indicates that the submodule has a readme available. */
@@ -127,16 +147,63 @@ export interface definitions {
    * corresponding API.
    */
   ModuleExample: {
-    /** @description Files list the files belonging to this module. */
-    files: string[];
-    /** @description Readme indicates that the example has a readme available. */
+    edit_link?: string;
+    outputs: { [key: string]: definitions["Output"] };
+    /** @description Readme indicates that the submodule has a readme available. */
     readme: boolean;
+    /**
+     * @description SchemaError contains an error message to show why the schema is not available. This should be shown to the user
+     * as a warning message.
+     */
+    schema_error: string;
+    variables: { [key: string]: definitions["Variable"] };
+  };
+  ModuleExpression: {
+    references?: string[];
   };
   ModuleList: {
     modules: definitions["Module"][];
   };
+  ModuleOutput: {
+    description?: string;
+    expression?: definitions["ModuleExpression"];
+    sensitive?: boolean;
+  };
+  ModuleProviderConfigSchema: {
+    full_name?: string;
+    name?: string;
+  };
+  ModuleResource: {
+    address?: string;
+    mode?: string;
+    name?: string;
+    provider_config_key?: string;
+    /** Format: int64 */
+    schema_version?: number;
+    type?: string;
+  };
+  ModuleSchema: {
+    module_calls?: { [key: string]: definitions["ModuleCall"] };
+    outputs?: { [key: string]: definitions["ModuleOutput"] };
+    resources?: definitions["ModuleResource"][];
+    variables?: { [key: string]: definitions["ModuleVariable"] };
+  };
+  ModuleSchemaRoot: {
+    provider_config?: {
+      [key: string]: definitions["ModuleProviderConfigSchema"];
+    };
+    root_module?: definitions["ModuleSchema"];
+  };
+  ModuleVariable: {
+    default?: unknown;
+    description?: string;
+    required?: boolean;
+    sensitive?: boolean;
+    type?: string;
+  };
   ModuleVersion: {
     dependencies: definitions["ModuleDependency"][];
+    edit_link?: string;
     /** @description Examples lists all examples for this version. */
     examples: { [key: string]: definitions["ModuleExample"] };
     id: definitions["VersionNumber"];
@@ -146,6 +213,8 @@ export interface definitions {
      */
     incompatible_license: boolean;
     licenses: definitions["LicenseList"];
+    /** @description Link holds the link to the repository browse URL. */
+    link?: string;
     outputs: { [key: string]: definitions["Output"] };
     providers: definitions["ProviderDependency"][];
     /** Format: date-time */
@@ -204,6 +273,7 @@ export interface definitions {
   /** ProviderDocItem describes a single documentation item. */
   ProviderDocItem: {
     description?: string;
+    edit_link?: string;
     name?: definitions["DocItemName"];
     subcategory?: string;
     title?: string;
@@ -227,6 +297,7 @@ export interface definitions {
     docs: definitions["ProviderDocs"];
     id: definitions["VersionNumber"];
     license: definitions["LicenseList"];
+    link?: string;
     /** Format: date-time */
     published: string;
   };
@@ -245,6 +316,7 @@ export interface definitions {
   /** Submodule describes a submodule within a module. */
   Submodule: {
     dependencies: definitions["ModuleDependency"][];
+    edit_link?: string;
     outputs: { [key: string]: definitions["Output"] };
     providers: definitions["ProviderDependency"][];
     /** @description Readme indicates that the submodule has a readme available. */
@@ -385,12 +457,14 @@ export interface operations {
       path: {
         /** Namespace of the provider, all lower case. */
         namespace: string;
-        /** The name of the document without the .md suffix. */
+        /** Name of the provider, all lower case. */
         name: string;
         /** Version number of the provider with the "v" prefix. */
         version: string;
         /** The kind of document to fetch. */
         kind: "resource" | "datasource" | "function" | "guide";
+        /** The name of the document without the .md suffix. */
+        document: string;
       };
     };
     responses: {
@@ -405,14 +479,16 @@ export interface operations {
       path: {
         /** Namespace of the provider, all lower case. */
         namespace: string;
-        /** The name of the document without the .md suffix. */
+        /** Name of the provider, all lower case. */
         name: string;
         /** Version number of the provider with the "v" prefix. */
         version: string;
-        /** The kind of document to fetch. */
-        kind: "resource" | "data-source" | "function" | "guide";
         /** The CDKTF language to fetch. */
         language: "typescript" | "python" | "go" | "csharp" | "java";
+        /** The kind of document to fetch. */
+        kind: "resource" | "datasource" | "function" | "guide";
+        /** The name of the document without the .md suffix. */
+        document: string;
       };
     };
     responses: {
@@ -431,8 +507,6 @@ export interface operations {
         name: string;
         /** Version number of the provider with the "v" prefix. */
         version: string;
-        /** The kind of document to fetch. */
-        kind: "resource" | "data-source" | "function" | "guide";
         /** The CDKTF language to fetch. */
         language: "typescript" | "python" | "go" | "csharp" | "java";
       };
