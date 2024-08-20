@@ -1,16 +1,14 @@
-import { createBrowserRouter, defer, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Home } from "./routes/Home";
 import { Modules } from "./routes/Modules";
 import { Providers } from "./routes/Providers";
 
 import { createCrumb } from "./crumbs";
-import { queryClient } from "./query";
 import { Error } from "./routes/Error";
 import { Module } from "./routes/Module";
 import { ModuleDependencies } from "./routes/Module/Dependencies";
 import { ModuleInputs } from "./routes/Module/Inputs";
 import { ModuleOutputs } from "./routes/Module/Outputs";
-import { getModuleDataQuery } from "./routes/Module/query";
 import { ModuleReadme } from "./routes/Module/Readme";
 import { ModuleResources } from "./routes/Module/Resources";
 import { ModuleExample } from "./routes/ModuleExample";
@@ -18,11 +16,11 @@ import { ModuleExampleInputs } from "./routes/ModuleExample/Inputs";
 import { ModuleExampleOutputs } from "./routes/ModuleExample/Outputs";
 import { ModuleExampleReadme } from "./routes/ModuleExample/Readme";
 import { ModuleSubmodule } from "./routes/ModuleSubmodule";
-import { ModuleSubmoduleDependencies } from "./routes/ModuleSubmodule/dependencies";
-import { ModuleSubmoduleInputs } from "./routes/ModuleSubmodule/inputs";
-import { ModuleSubmoduleOutputs } from "./routes/ModuleSubmodule/outputs";
-import { ModuleSubmoduleReadme } from "./routes/ModuleSubmodule/readme";
-import { ModuleSubmoduleResources } from "./routes/ModuleSubmodule/resources";
+import { ModuleSubmoduleDependencies } from "./routes/ModuleSubmodule/Dependencies";
+import { ModuleSubmoduleInputs } from "./routes/ModuleSubmodule/Inputs";
+import { ModuleSubmoduleOutputs } from "./routes/ModuleSubmodule/Outputs";
+import { ModuleSubmoduleReadme } from "./routes/ModuleSubmodule/Readme";
+import { ModuleSubmoduleResources } from "./routes/ModuleSubmodule/Resources";
 import { Provider } from "./routes/Provider";
 import { ProviderDocs } from "./routes/Provider/Docs";
 import { ProviderOverview } from "./routes/Provider/Overview";
@@ -41,6 +39,10 @@ import { ModuleRouteContext } from "./routes/Module/types";
 import { moduleExampleMiddleware } from "./routes/ModuleExample/middleware";
 import { ModuleExampleRouteContext } from "./routes/ModuleExample/types";
 import { ProviderRouteContext } from "./routes/Provider/types";
+import { moduleSubmoduleLoader } from "./routes/ModuleSubmodule/loader";
+import { ModuleSubmoduleRouteContext } from "./routes/ModuleSubmodule/types";
+import { moduleSubmoduleReadmeLoader } from "./routes/ModuleSubmodule/Readme/loader";
+import { moduleSubmoduleMiddleware } from "./routes/ModuleSubmodule/middleware";
 
 export const router = createBrowserRouter(
   [
@@ -163,62 +165,47 @@ export const router = createBrowserRouter(
                     },
                   ],
                 },
-              ],
-            },
-            {
-              path: ":module/:provider/:version?/submodule/:submodule",
-              element: <ModuleSubmodule />,
-              loader: async ({ params }) => {
-                const data = queryClient.ensureQueryData(
-                  getModuleDataQuery(
-                    params.namespace,
-                    params.module,
-                    params.provider,
-                    "5.51.1",
-                  ),
-                );
-
-                return defer({
-                  data,
-
-                  namespace: params.namespace,
-                  module: params.module,
-                  provider: params.provider,
-                  submodule: params.submodule,
-                });
-              },
-              handle: {
-                crumb: ({ namespace, module, provider, submodule }) => [
-                  createCrumb(
-                    `/module/${namespace}/${module}/${provider}`,
-                    `${namespace}/${module}`,
-                  ),
-                  createCrumb(
-                    `/module/${namespace}/${module}/${provider}/submodule/${submodule}`,
-                    submodule,
-                  ),
-                ],
-              },
-              children: [
                 {
-                  index: true,
-                  element: <ModuleSubmoduleReadme />,
-                },
-                {
-                  path: "inputs",
-                  element: <ModuleSubmoduleInputs />,
-                },
-                {
-                  path: "outputs",
-                  element: <ModuleSubmoduleOutputs />,
-                },
-                {
-                  path: "dependencies",
-                  element: <ModuleSubmoduleDependencies />,
-                },
-                {
-                  path: "resources",
-                  element: <ModuleSubmoduleResources />,
+                  path: "submodule/:submodule",
+                  element: <ModuleSubmodule />,
+                  loader: moduleSubmoduleLoader,
+                  handle: {
+                    middleware: moduleSubmoduleMiddleware,
+                    crumb: ({
+                      namespace,
+                      name,
+                      target,
+                      submodule,
+                      rawVersion,
+                    }: ModuleRouteContext & ModuleSubmoduleRouteContext) =>
+                      createCrumb(
+                        `/module/${namespace}/${name}/${target}/${rawVersion}/submodule/${submodule}`,
+                        submodule,
+                      ),
+                  },
+                  children: [
+                    {
+                      index: true,
+                      element: <ModuleSubmoduleReadme />,
+                      loader: moduleSubmoduleReadmeLoader,
+                    },
+                    {
+                      path: "inputs",
+                      element: <ModuleSubmoduleInputs />,
+                    },
+                    {
+                      path: "outputs",
+                      element: <ModuleSubmoduleOutputs />,
+                    },
+                    {
+                      path: "dependencies",
+                      element: <ModuleSubmoduleDependencies />,
+                    },
+                    {
+                      path: "resources",
+                      element: <ModuleSubmoduleResources />,
+                    },
+                  ],
                 },
               ],
             },
