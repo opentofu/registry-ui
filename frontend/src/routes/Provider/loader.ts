@@ -14,7 +14,5 @@ export const providerLoader: LoaderFunction = async ({ params }, context) => {
 
   return defer({
     versionData,
-    namespace: params.namespace,
-    provider: params.provider,
   });
 };

@@ -26,10 +26,7 @@ import { ModuleSubmoduleResources } from "./routes/ModuleSubmodule/resources";
 import { Provider } from "./routes/Provider";
 import { ProviderDocs } from "./routes/Provider/Docs";
 import { ProviderOverview } from "./routes/Provider/Overview";
-import {
-  namespaceProvidersLoader,
-  providersLoader,
-} from "./routes/Providers/loader";
+import { providersLoader } from "./routes/Providers/loader";
 import { providerOverviewLoader } from "./routes/Provider/Overview/loader";
 import { providerDocsLoader } from "./routes/Provider/Docs/loader";
 import { providerLoader } from "./routes/Provider/loader";
@@ -43,6 +40,7 @@ import { moduleExampleReadmeLoader } from "./routes/ModuleExample/Readme/loader"
 import { ModuleRouteContext } from "./routes/Module/types";
 import { moduleExampleMiddleware } from "./routes/ModuleExample/middleware";
 import { ModuleExampleRouteContext } from "./routes/ModuleExample/types";
+import { ProviderRouteContext } from "./routes/Provider/types";
 
 export const router = createBrowserRouter(
   [
@@ -241,12 +239,7 @@ export const router = createBrowserRouter(
           children: [
             {
               index: true,
-              element: <Providers />,
-              loader: namespaceProvidersLoader,
-              handle: {
-                crumb: ({ namespace }) =>
-                  createCrumb(`/provider/${namespace}`, namespace),
-              },
+              element: <Navigate to="/providers" />,
             },
             {
               path: ":provider/:version?",
@@ -254,12 +247,15 @@ export const router = createBrowserRouter(
               loader: providerLoader,
               handle: {
                 middleware: providerMiddleware,
-                crumb: ({ namespace, provider, version }) => [
+                crumb: ({
+                  namespace,
+                  provider,
+                  version,
+                }: ProviderRouteContext) =>
                   createCrumb(
                     `/provider/${namespace}/${provider}/${version}`,
                     `${namespace}/${provider}`,
                   ),
-                ],
               },
               children: [
                 {
