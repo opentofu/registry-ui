@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/opentofu/libregistry/types/provider"
+
 	"github.com/opentofu/registry-ui/internal/license"
 	"github.com/opentofu/registry-ui/internal/providerindex/providerindexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
@@ -35,10 +36,15 @@ func (d documentation) Store(ctx context.Context, addr provider.Addr, version pr
 }
 
 func (d documentation) ToProviderTypes(ctx context.Context, version providertypes.ProviderVersionDescriptor) providertypes.ProviderVersion {
+	cdktfDocs := map[providertypes.CDKTFLanguage]providertypes.ProviderDocs{}
+	for lang, doc := range d.cdktf {
+		cdktfDocs[providertypes.CDKTFLanguage(lang)] = doc.ToProviderTypes(ctx)
+	}
+
 	return providertypes.ProviderVersion{
 		ProviderVersionDescriptor: version,
 		Docs:                      d.docs.ToProviderTypes(ctx),
-		CDKTFDocs:                 map[providertypes.CDKTFLanguage]providertypes.ProviderDocs{},
+		CDKTFDocs:                 cdktfDocs,
 		Licenses:                  d.licenses,
 		Link:                      d.link,
 	}
