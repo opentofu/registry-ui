@@ -252,6 +252,19 @@ func (d *directory) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (d *directory) uncommittedFiles() int {
+	uncommitted := 0
+	for _, f := range d.Files {
+		if f.IsDirty {
+			uncommitted += 1
+		}
+	}
+	for _, d := range d.Subdirectories {
+		uncommitted += d.uncommittedFiles()
+	}
+	return uncommitted
+}
+
 type file struct {
 	// IsDirty indicates that the file should be re-uploaded.
 	IsDirty bool `json:"is_dirty"`

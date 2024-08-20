@@ -28,7 +28,7 @@ func main() {
 	registryDir := defaults.RegistryDir
 	workDir := defaults.WorkDir
 	destinationDir := defaults.DestinationDir
-	commitParallelism := 25
+	commitParallelism := 100
 	// TODO this is only until these features get released in mainline tofu.
 	binaryName := "tofu"
 	if runtime.GOOS == "windows" {
@@ -60,7 +60,7 @@ func main() {
 	flag.BoolVar(&s3Params.PathStyle, "s3-path-style", s3Params.PathStyle, "Use path-style URLs for S3.")
 	flag.StringVar(&s3Params.CACertFile, "s3-ca-cert-file", s3Params.CACertFile, "File containing the CA certificate for the S3 endpoint. Defaults to the system certificates.")
 	flag.StringVar(&s3Params.Region, "s3-region", s3Params.Region, "Region to use for S3 uploads.")
-	flag.IntVar(&commitParallelism, "parallelism", commitParallelism, "Parallel uploads to use on commit.")
+	flag.IntVar(&commitParallelism, "commit-parallelism", commitParallelism, "Parallel uploads to use on commit.")
 	flag.StringVar(&tofuBinaryPath, "tofu-binary-path", tofuBinaryPath, "Temporary: Tofu binary path to use for module schema extraction.")
 	flag.StringVar(&forceRegenerate, "force-regenerate", forceRegenerate, "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername")
 	flag.Parse()

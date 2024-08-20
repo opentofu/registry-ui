@@ -11,6 +11,7 @@ import (
 	"path"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/opentofu/libregistry/logger"
 	"golang.org/x/sync/errgroup"
@@ -18,7 +19,13 @@ import (
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 )
 
-func New(log logger.Logger, localDir string, backingStorage indexstorage.API, parallelism int) (indexstorage.TransactionalAPI, error) {
+type BufferedStorage interface {
+	indexstorage.TransactionalAPI
+
+	UncommittedFiles() int
+}
+
+func New(log logger.Logger, localDir string, backingStorage indexstorage.API, parallelism int) (BufferedStorage, error) {
 	log = log.WithName("Transactional Storage")
 
 	index := newLocalIndex(localDir, log)
@@ -65,10 +72,21 @@ type buffered struct {
 	parallelism    int
 }
 
+func (b *buffered) UncommittedFiles() int {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	return b.index.Root.uncommittedFiles()
+}
+
 func (b *buffered) GetFileSHA256(ctx context.Context, filePath indexstorage.Path) (string, error) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
+	return b.getFileSHA256(ctx, filePath)
+}
+
+func (b *buffered) getFileSHA256(ctx context.Context, filePath indexstorage.Path) (string, error) {
 	if err := filePath.Validate(); err != nil {
 		return "", err
 	}
@@ -153,7 +171,7 @@ func (b *buffered) WriteFile(ctx context.Context, filePath indexstorage.Path, co
 	if _, err := hasher.Write(contents); err == nil {
 		checksum := hex.EncodeToString(hasher.Sum(nil))
 
-		existingHash, err := b.GetFileSHA256(ctx, filePath)
+		existingHash, err := b.getFileSHA256(ctx, filePath)
 		if err == nil && checksum == existingHash {
 			return nil
 		}
@@ -250,7 +268,8 @@ func (b *buffered) commit(ctx context.Context) error {
 func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, dir *directory, dirPath indexstorage.Path, eg *errgroup.Group) error {
 	// TODO this is super ugly and definitely violates the index boundary. Make this nicer.
 	if dir.IsWiped {
-		b.logger.Trace(ctx, "Removing /%s/* ...", dirPath)
+		b.logger.Debug(ctx, "Removing /%s/* ...", dirPath)
+		removeStart := time.Now()
 		if err := b.backingStorage.RemoveAll(ctx, dirPath); err != nil {
 			b.logger.Trace(ctx, "Failed to remove /%s/* (%v).", dirPath, err)
 			return err
@@ -261,10 +280,11 @@ func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, di
 			b.logger.Trace(ctx, "Failed to remove /%s/* (%v).", dirPath, err)
 			return err
 		}
-		b.logger.Trace(ctx, "Completed removing /%s/*.", dirPath)
+		removeEnd := time.Now()
+		b.logger.Debug(ctx, "Completed removing /%s/* in %f seconds.", dirPath, removeEnd.Sub(removeStart).Seconds())
 	}
 
-	b.logger.Trace(ctx, "Committing /%s ...", dirPath)
+	b.logger.Info(ctx, "Committing /%s ...", dirPath)
 
 	// Since the directory is now wiped if needed, it is safe to process all subdirectories and files in parallel.
 	for name, subdir := range dir.Subdirectories {
@@ -297,9 +317,10 @@ func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, di
 				return fmt.Errorf("commit aborted (%v)", ctx.Err())
 			default:
 			}
+			uploadStart := time.Now()
 			uploadPath := path.Join(string(dirPath), name)
 			fullPath := path.Join(b.localDir, uploadPath)
-			b.logger.Trace(ctx, "Storing file /%s ...", uploadPath)
+			b.logger.Debug(ctx, "Storing file /%s ...", uploadPath)
 			contents, err := os.ReadFile(fullPath)
 			if err != nil {
 				b.logger.Trace(ctx, "Storing file /%s failed (%v)...", uploadPath, err)
@@ -320,7 +341,8 @@ func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, di
 				cancel()
 				return fmt.Errorf("failed to remove the dirty mark from %s (%w)", uploadPath, err)
 			}
-			b.logger.Trace(ctx, "Storing file /%s completed.", uploadPath)
+			uploadEnd := time.Now()
+			b.logger.Debug(ctx, "Storing file /%s completed in %f seconds.", uploadPath, uploadEnd.Sub(uploadStart).Seconds())
 			return nil
 		})
 	}

@@ -129,6 +129,24 @@ func TestSubdir(t *testing.T) {
 	assertFileExists(t, ctx, buffer, "test/test.txt")
 }
 
+func TestChecksum(t *testing.T) {
+	const testFile = "test.txt"
+	const testContent = "Hello world!"
+	backingDir := t.TempDir()
+	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
+	buffer := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25))
+
+	ctx := tofutestutils.Context(t)
+
+	tofutestutils.Must(backingStorage.WriteFile(ctx, testFile, []byte(testContent)))
+
+	tofutestutils.Must(buffer.WriteFile(ctx, testFile, []byte(testContent)))
+
+	if buffer.UncommittedFiles() != 0 {
+		t.Fatalf("There are uncommitted files in the buffer!")
+	}
+}
+
 func assertFileDoesNotExist(t *testing.T, ctx context.Context, storage indexstorage.API, file indexstorage.Path) {
 	t.Helper()
 	_, err := storage.ReadFile(ctx, file)

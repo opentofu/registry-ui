@@ -150,7 +150,7 @@ func (d directAPI) RemoveAll(ctx context.Context, objectPath indexstorage.Path) 
 			return fmt.Errorf("failed to list objects with prefix %s (%w)", objectPath, err)
 		}
 		if len(listResponse.Contents) == 0 {
-			d.cfg.logger.Warn(ctx, "No objects to delete under %s.", string(finalPath))
+			d.cfg.logger.Trace(ctx, "No objects to delete under %s.", string(finalPath))
 			return nil
 		}
 		objects := make([]types.ObjectIdentifier, len(listResponse.Contents))
