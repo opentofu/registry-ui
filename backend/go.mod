@@ -10,7 +10,7 @@ require (
 	github.com/mitchellh/go-spdx v0.1.0
 	github.com/opentofu/libregistry v0.0.0-20240815142506-814a10bca921
 	github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09
-	github.com/opentofu/tofutestutils v0.0.0-20240813101229-b1a47a521f31
+	github.com/opentofu/tofutestutils v0.0.0-20240821111804-5fcfb797e0a7
 	golang.org/x/sync v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 )

@@ -46,28 +46,6 @@ type directAPI struct {
 	prefix indexstorage.Path
 }
 
-func (d directAPI) GetFileSHA256(ctx context.Context, objectPath indexstorage.Path) (string, error) {
-	finalPath := d.prefix + objectPath
-	if err := finalPath.Validate(); err != nil {
-		return "", fmt.Errorf("invalid path %s (%w)", finalPath, err)
-	}
-	d.cfg.logger.Trace(ctx, "Getting checksum for %s ...", finalPath)
-	head, err := d.client.HeadObject(ctx, &s3.HeadObjectInput{
-		Bucket:       aws.String(d.cfg.Bucket),
-		Key:          aws.String(string(finalPath)),
-		ChecksumMode: types.ChecksumModeEnabled,
-	})
-	if err != nil {
-		var notFoundError *types.NoSuchKey
-		if errors.As(err, &notFoundError) {
-			// TODO the higher level implementations rely on os.IsNotExist(), which is not satisfied by wrapped errors.
-			d.cfg.logger.Trace(ctx, "Object %s does not exist (%v). This is normal, don't worry.", finalPath, err)
-			return "", fs.ErrNotExist
-		}
-	}
-	return *head.ChecksumSHA256, nil
-}
-
 func (d directAPI) ReadFile(ctx context.Context, objectPath indexstorage.Path) ([]byte, error) {
 	finalPath := d.prefix + objectPath
 	if err := finalPath.Validate(); err != nil {
