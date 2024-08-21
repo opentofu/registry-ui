@@ -57,8 +57,9 @@ func (d directAPI) ReadFile(ctx context.Context, objectPath indexstorage.Path) (
 		Key:    aws.String(string(finalPath)),
 	})
 	if err != nil {
-		var notFoundError *types.NoSuchKey
-		if errors.As(err, &notFoundError) {
+		var noSuchKey *types.NoSuchKey
+		var notFoundError *types.NotFound
+		if errors.As(err, &noSuchKey) || errors.As(err, &notFoundError) {
 			// TODO the higher level implementations rely on os.IsNotExist(), which is not satisfied by wrapped errors.
 			d.cfg.logger.Trace(ctx, "Object %s does not exist (%v). This is normal, don't worry.", finalPath, err)
 			return nil, fs.ErrNotExist
