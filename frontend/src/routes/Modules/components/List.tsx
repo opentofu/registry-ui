@@ -1,10 +1,20 @@
-import { ModulesCardItem } from "./CardItem";
+import { ModulesCardItem, ModulesCardItemSkeleton } from "./CardItem";
 
 import { Virtuoso } from "react-virtuoso";
-import { forwardRef } from "react";
+import { ComponentProps, forwardRef } from "react";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModulesQuery } from "../query";
+
+const ModulesListWrapper = forwardRef<HTMLDivElement, ComponentProps<"div">>(
+  function ModulesListWrapperImpl({ children, ...props }, ref) {
+    return (
+      <div ref={ref} className="flex flex-col gap-3" {...props}>
+        {children}
+      </div>
+    );
+  },
+);
 
 export function ModulesList() {
   const { data: modules } = useSuspenseQuery(getModulesQuery());
@@ -12,16 +22,11 @@ export function ModulesList() {
   return (
     <>
       <Virtuoso
-        className="z-0 grow"
         useWindowScroll
         data={modules}
         totalCount={modules.length}
         components={{
-          List: forwardRef(({ children, ...props }, ref) => (
-            <div ref={ref} className="flex flex-col gap-3" {...props}>
-              {children}
-            </div>
-          )),
+          List: ModulesListWrapper,
         }}
         itemContent={(_, module) => (
           <ModulesCardItem
@@ -33,5 +38,17 @@ export function ModulesList() {
         )}
       />
     </>
+  );
+}
+
+export function ModulesListSkeleton() {
+  return (
+    <ModulesListWrapper>
+      <ModulesCardItemSkeleton />
+      <ModulesCardItemSkeleton />
+      <ModulesCardItemSkeleton />
+      <ModulesCardItemSkeleton />
+      <ModulesCardItemSkeleton />
+    </ModulesListWrapper>
   );
 }
