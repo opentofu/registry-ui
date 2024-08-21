@@ -5,8 +5,7 @@ import { SimpleLayout } from "@/components/SimpleLayout";
 
 import { Suspense } from "react";
 
-import { ProvidersList } from "./components/List";
-import { ProvidersCardItemSkeleton } from "./components/CardItem";
+import { ProvidersList, ProvidersListSkeleton } from "./components/List";
 
 export function Providers() {
   return (
@@ -15,25 +14,21 @@ export function Providers() {
         <div className="flex flex-col gap-5">
           <PageTitle>Providers</PageTitle>
           <Paragraph>
-              Providers are plugins to OpenTofu and create or destroy resources using their backing API based on your OpenTofu configuration.
+            Providers are plugins to OpenTofu and create or destroy resources
+            using their backing API based on your OpenTofu configuration.
           </Paragraph>
         </div>
-        <Button variant="primary" href="https://opentofu.org">
+        <Button
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="primary"
+          href="https://github.com/opentofu/registry/issues/new?assignees=&labels=provider%2Csubmission&projects=&template=provider.yml&title=Provider%3A+"
+        >
           Add provider
         </Button>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="flex flex-col gap-3">
-            <ProvidersCardItemSkeleton />
-            <ProvidersCardItemSkeleton />
-            <ProvidersCardItemSkeleton />
-            <ProvidersCardItemSkeleton />
-            <ProvidersCardItemSkeleton />
-          </div>
-        }
-      >
+      <Suspense fallback={<ProvidersListSkeleton />}>
         <ProvidersList />
       </Suspense>
     </SimpleLayout>

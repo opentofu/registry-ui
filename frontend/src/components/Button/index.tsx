@@ -1,17 +1,22 @@
-import { MouseEventHandler, ReactNode } from "react";
+import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
 
-interface RouterLinkProps {
+type BaseLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">;
+
+interface RouterLinkProps extends BaseLinkProps {
+  href?: never;
   to: string;
 }
 
-interface NativeLinkProps {
+interface NativeLinkProps extends BaseLinkProps {
   href: string;
+  to?: never;
 }
 
-interface NativeButtonProps {
-  onClick: MouseEventHandler<HTMLButtonElement>;
+interface NativeButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: never;
+  to?: never;
 }
 
 type InteractionProps = RouterLinkProps | NativeLinkProps | NativeButtonProps;
@@ -34,7 +39,7 @@ export function Button({ children, variant, className, ...rest }: ButtonProps) {
     className,
   );
 
-  if ("to" in rest && rest.to) {
+  if ("to" in rest && rest.to !== undefined) {
     return (
       <Link {...rest} className={computedClassName}>
         {children}
@@ -42,7 +47,7 @@ export function Button({ children, variant, className, ...rest }: ButtonProps) {
     );
   }
 
-  if ("href" in rest && rest.href) {
+  if ("href" in rest && rest.href !== undefined) {
     return (
       <a {...rest} className={computedClassName}>
         {children}
