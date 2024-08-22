@@ -14,7 +14,7 @@ interface WrapperProps {
 
 function Wrapper({ children }: WrapperProps) {
   return (
-    <div className="-mx-5 mb-5 border-b border-gray-200 px-5 pb-5 dark:border-gray-800">
+    <div className="-mx-5 border-b border-gray-200 px-5 pb-5 dark:border-gray-800">
       {children}
     </div>
   );
@@ -52,8 +52,7 @@ export function ProviderHeaderSkeleton() {
     <Wrapper>
       <BreadcrumbsSkeleton />
       <span className="flex h-em w-72 animate-pulse bg-gray-500/25 text-5xl" />
-      <span className="mt-3 flex h-em w-[600px] animate-pulse bg-gray-500/25" />
-      <span className="mb-5 mt-2 flex h-em w-[450px] animate-pulse bg-gray-500/25" />
+      <span className="mb-5 mt-6 flex h-em w-[450px] animate-pulse bg-gray-500/25" />
 
       <InfoSection>
         <InfoSectionItem label="Owner">

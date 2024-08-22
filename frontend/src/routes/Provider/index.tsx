@@ -54,7 +54,7 @@ export function Provider() {
         </SidebarPanel>
       }
     >
-      <div className="px-5 pb-5">
+      <div className="flex flex-col gap-5 px-5">
         <Suspense
           fallback={
             <>
@@ -67,7 +67,9 @@ export function Provider() {
           <ProviderHeader />
           <ProviderVersionInfo />
         </Suspense>
+      </div>
 
+      <div className="p-5">
         <Outlet />
       </div>
     </SidebarLayout>
