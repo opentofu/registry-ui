@@ -8,7 +8,7 @@ interface CardItemFooterProps {
 export function CardItemFooter({ children }: CardItemFooterProps) {
   return (
     <footer>
-      <dl className="flex gap-10">{children}</dl>
+      <dl className="flex">{children}</dl>
     </footer>
   );
 }
@@ -25,9 +25,18 @@ export function CardItemFooterDetail({
   className,
 }: CardItemFooterDetailProps) {
   return (
-    <div className={clsx("flex gap-2", className)}>
+    <div className={clsx("flex w-52 gap-2", className)}>
       <dt className="text-gray-700 dark:text-gray-300">{label}</dt>
       <dd>{children}</dd>
+    </div>
+  );
+}
+
+export function CardItemFooterDetailSkeleton() {
+  return (
+    <div className="flex w-52 gap-2">
+      <span className="flex h-em w-28 animate-pulse bg-gray-500/25" />
+      <span className="flex h-em w-10 animate-pulse bg-gray-500/25" />
     </div>
   );
 }
