@@ -4,6 +4,7 @@ import { getProviderDocsQuery, getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { ProviderDocsEditLink } from "./DocsEditLink";
 import { getProviderDoc } from "../utils/getProviderDoc";
+import { useEffect } from "react";
 
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
@@ -16,6 +17,18 @@ export function ProviderDocsContent() {
   });
 
   const editLink = getProviderDoc(versionData.docs, type, doc)?.edit_link;
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+
+    if (hash) {
+      const element = document.getElementById(hash);
+
+      if (element) {
+        element.scrollIntoView();
+      }
+    }
+  }, []);
 
   return (
     <>
