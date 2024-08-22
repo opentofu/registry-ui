@@ -53,18 +53,49 @@ func New(log logger.Logger) (BackendFactory, error) {
 }
 
 type BackendFactory interface {
-	Create(ctx context.Context, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error)
+	Create(
+		ctx context.Context,
+		registryDir string,
+		workDir string,
+		destinationDir string,
+		blocklist blocklist.BlockList,
+		s3Params S3Parameters,
+		parallelism int,
+		tofuBinaryPath string,
+		approvedLicenses []string,
+	) (internal.Backend, error)
 }
 
 type backendFactory struct {
 	logger logger.Logger
 }
 
-func (b backendFactory) Create(ctx context.Context, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
-	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath)
+func (b backendFactory) Create(
+	ctx context.Context,
+	registryDir string,
+	workDir string,
+	destinationDir string,
+	blocklist blocklist.BlockList,
+	s3Params S3Parameters,
+	parallelism int,
+	tofuBinaryPath string,
+	approvedLicenses []string,
+) (internal.Backend, error) {
+	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath, approvedLicenses)
 }
 
-func getBackend(ctx context.Context, log logger.Logger, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
+func getBackend(
+	ctx context.Context,
+	log logger.Logger,
+	registryDir string,
+	workDir string,
+	destinationDir string,
+	blocklist blocklist.BlockList,
+	s3Params S3Parameters,
+	parallelism int,
+	tofuBinaryPath string,
+	approvedLicenses []string,
+) (internal.Backend, error) {
 	if err := os.MkdirAll(workDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create workdir %s (%w)", workDir, err)
 	}
@@ -75,9 +106,7 @@ func getBackend(ctx context.Context, log logger.Logger, registryDir string, work
 	}
 
 	licenseDetector, err := license.New(
-		license.WithOSIApprovedLicenses(),
-		license.WithCompatibleLicenses("MPL-2.0-no-copyleft-exception"),
-		license.WithCompatibleLicenses("MIT-feh"),
+		license.WithCompatibleLicenses(approvedLicenses...),
 	)
 	if err != nil {
 		return nil, err
