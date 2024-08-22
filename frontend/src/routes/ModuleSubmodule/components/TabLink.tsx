@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { TreeViewItem } from "../../components/TreeView";
+import { TreeViewItem } from "@/components/TreeView";
 import { ReactNode } from "react";
 
 interface ModuleTabLinkProps {

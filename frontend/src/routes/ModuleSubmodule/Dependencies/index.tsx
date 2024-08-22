@@ -1,13 +1,14 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getModuleVersionDataQuery } from "../query";
-import { useModuleParams } from "../hooks/useModuleParams";
+import { getModuleSubmoduleDataQuery } from "../query";
 import { ModuleDependencies as ModuleDependenciesComponent } from "@/components/ModuleDependencies";
+import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
 
-export function ModuleDependencies() {
-  const { namespace, name, target, version } = useModuleParams();
+export function ModuleSubmoduleDependencies() {
+  const { namespace, name, target, version, submodule } =
+    useModuleSubmoduleParams();
 
   const { data } = useSuspenseQuery(
-    getModuleVersionDataQuery(namespace, name, target, version),
+    getModuleSubmoduleDataQuery(namespace, name, target, version, submodule),
   );
 
   return (

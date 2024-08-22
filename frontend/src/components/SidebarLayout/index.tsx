@@ -11,7 +11,7 @@ export function SidebarLayout({ children, before, after }: SidebarLayoutProps) {
   return (
     <>
       <Header />
-      <div className="mx-auto flex max-w-screen-3xl grow divide-x divide-gray-200 px-5 dark:divide-gray-800">
+      <div className="mx-auto flex w-full max-w-screen-3xl grow divide-x divide-gray-200 px-5 dark:divide-gray-800">
         {before}
         <main className="min-w-0 flex-1">{children}</main>
         {after}
