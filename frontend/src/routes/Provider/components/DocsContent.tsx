@@ -2,8 +2,8 @@ import { Markdown } from "@/components/Markdown";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getProviderDocsQuery, getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
-import { ProviderDocsEditLink } from "./DocsEditLink";
 import { getProviderDoc } from "../utils/getProviderDoc";
+import { EditLink } from "@/components/EditLink";
 
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
@@ -20,7 +20,7 @@ export function ProviderDocsContent() {
   return (
     <>
       <Markdown text={docs} />
-      {editLink && <ProviderDocsEditLink url={editLink} />}
+      {editLink && <EditLink url={editLink} />}
     </>
   );
 }
