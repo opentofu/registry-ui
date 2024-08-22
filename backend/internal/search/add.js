@@ -12,19 +12,38 @@ process.stdin.on('data', function (data) {
 
 process.stdin.on('end', function () {
     let items = JSON.parse(buffer.join(''));
+    let idx = generateIndex(items)
+    process.stdout.write(JSON.stringify(idx))
+})
 
+function generateIndex(items) {
     let idx = lunr(function () {
-        this.ref('id')
+        this.ref('ref')
         this.field('type')
-        this.field('title')
+        this.field('title', { boost: 10 })
         this.field('description')
         this.field('link')
-        this.field('parent_id')
 
         for (let item of items) {
+            item.ref = getRef(item)
             this.add(item)
         }
     });
 
-    process.stdout.write(JSON.stringify(idx))
-})
+    return idx
+}
+
+// getRef returns the ref for the item, this is the only information returned when searching
+// so it must contain all the information we need to display the item
+// for this reason, we will be json serializing what we need to put in there
+function getRef(item) {
+    return JSON.stringify({
+        addr: item.addr,
+        type: item.type,
+        version: item.version,
+        title: item.title,
+        description: item.description,
+        link: item.link,
+        parent_id: item.parent_id
+    })
+}

@@ -5,6 +5,8 @@ import (
 )
 
 type IndexItem struct {
+	// The ID is used to ensure that we are only storing one item with a specific ID accross all versions.
+	// This should not be consumed by the search index.
 	ID            IndexID           `json:"id"`
 	Type          IndexType         `json:"type"`
 	Addr          string            `json:"addr"`

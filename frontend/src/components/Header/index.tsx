@@ -4,6 +4,7 @@ import { Icon } from "../Icon";
 import { x } from "../../icons/x";
 import { slack } from "../../icons/slack";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { Search } from "./Search";
 
 export function Header() {
   return (
@@ -31,6 +32,7 @@ export function Header() {
         </nav>
 
         <nav className="ml-auto flex h-9 items-center gap-6">
+          <Search />
           <a
             href="https://x.com/opentofuorg"
             aria-label="Follow us on X"
