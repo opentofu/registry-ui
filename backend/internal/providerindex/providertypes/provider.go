@@ -14,6 +14,11 @@ type Provider struct {
 	//
 	// required: true
 	Addr ProviderAddr `json:"addr"`
+	// CanonicalAddr stores the canonical address of the provider. If this is set, it signals that there
+	// is an alias in place. The canonical address describes the repository to ultimately fetch the data from.
+	//
+	// required: false
+	CanonicalAddr *ProviderAddr `json:"canonical_addr"`
 	// Description is the extracted description for the provider. This may be empty.
 	//
 	// required: true

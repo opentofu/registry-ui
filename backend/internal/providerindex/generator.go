@@ -301,6 +301,13 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 
 	// TODO remove versions that no longer exist.
 
+	if !canonicalAddr.Equals(addr.Addr) {
+		canonicalAddrStruct := providertypes.Addr(canonicalAddr)
+		providerData.CanonicalAddr = &canonicalAddrStruct
+	} else {
+		providerData.CanonicalAddr = nil
+	}
+
 	return nil
 }
 
