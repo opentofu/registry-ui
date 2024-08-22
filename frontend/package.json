@@ -52,5 +52,8 @@
     "unified": "^11.0.5",
     "vite": "^5.4.1",
     "vite-tsconfig-paths": "^5.0.1"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.5"
   }
 }

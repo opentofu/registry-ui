@@ -12,6 +12,56 @@ describe("transformStructure", () => {
     expect(result).toEqual([]);
   });
 
+  test("resources should come before datasources", () => {
+    const data = {
+      resources: [
+        {
+          name: "resource1",
+          title: "Resource 1",
+        },
+      ],
+      datasources: [
+        {
+          name: "datasource1",
+          title: "Data Source 1 1",
+        },
+      ],
+    } as Docs;
+
+    const result = transformStructure(data, "", "");
+
+    expect(result).toEqual([
+      {
+        name: "resources",
+        label: "Resources",
+        open: false,
+        items: [
+          {
+            name: "resource1",
+            label: "Resource 1",
+            type: "resources",
+            active: false,
+            open: false,
+          },
+        ],
+      },
+      {
+        name: "datasources",
+        label: "Data Sources",
+        open: false,
+        items: [
+          {
+            name: "datasource1",
+            label: "Data Source 1 1",
+            type: "datasources",
+            active: false,
+            open: false,
+          },
+        ],
+      },
+    ] as NestedItem[]);
+  });
+
   test("should handle basic input with just resources", () => {
     const data = {
       resources: [
@@ -161,21 +211,6 @@ describe("transformStructure", () => {
         open: true,
         items: [
           {
-            name: "datasources",
-            label: "Data Sources",
-            type: "datasources",
-            open: false,
-            items: [
-              {
-                name: "datasource1",
-                label: "Data source 1",
-                type: "datasources",
-                active: false,
-                open: false,
-              },
-            ],
-          },
-          {
             name: "resources",
             label: "Resources",
             type: "resources",
@@ -186,6 +221,21 @@ describe("transformStructure", () => {
                 label: "Resource 1",
                 type: "resources",
                 active: true,
+                open: false,
+              },
+            ],
+          },
+          {
+            name: "datasources",
+            label: "Data Sources",
+            type: "datasources",
+            open: false,
+            items: [
+              {
+                name: "datasource1",
+                label: "Data source 1",
+                type: "datasources",
+                active: false,
                 open: false,
               },
             ],
