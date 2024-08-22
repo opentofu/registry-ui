@@ -50,7 +50,7 @@ export function ProviderVersionInfo() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <VersionInfo
           currentVersion={version}
@@ -62,11 +62,7 @@ export function ProviderVersionInfo() {
           onChange={handleLanguageChange}
         />
       </div>
-      {version !== data.versions[0].id && (
-        <div className="mb-4">
-          <OldVersionBanner />
-        </div>
-      )}
+      {version !== data.versions[0].id && <OldVersionBanner />}
     </div>
   );
 }
