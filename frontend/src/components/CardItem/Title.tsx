@@ -12,6 +12,7 @@ export function CardItemTitle({ children, linkProps }: CardItemTitleProps) {
   return (
     <h3>
       <Link {...linkProps} className="text-xl font-semibold">
+        <span aria-hidden className="absolute inset-0"></span>
         {children}
       </Link>
     </h3>
