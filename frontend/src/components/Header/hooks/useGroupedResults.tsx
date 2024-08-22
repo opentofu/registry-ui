@@ -28,6 +28,29 @@ type SearchRef = {
   parent_id: string;
 };
 
+const typeSortingOrder = {
+  [SearchRefType.Provider]: 0,
+  [SearchRefType.Module]: 1,
+  [SearchRefType.ProviderResource]: 2,
+  [SearchRefType.ProviderDatasource]: 3,
+  [SearchRefType.ProviderFunction]: 4,
+  [SearchRefType.Other]: 5,
+};
+
+export const getTypeLabel = (type: SearchRefType) => {
+  switch (type) {
+    case SearchRefType.Module:
+      return "Module";
+    case SearchRefType.Provider:
+    case SearchRefType.ProviderResource:
+    case SearchRefType.ProviderDatasource:
+    case SearchRefType.ProviderFunction:
+      return "Provider";
+    case SearchRefType.Other:
+      return "Other";
+  }
+};
+
 const parseRef = (ref: string): SearchRef => {
   return JSON.parse(ref);
 };
@@ -35,36 +58,38 @@ const parseRef = (ref: string): SearchRef => {
 const useGroupedResults = (
   deferredQuery: string,
   data: Index | undefined,
-): Map<string, Array<SearchRef & { ref: string; typeLabel: string }>> => {
+): Array<
+  [SearchRefType, Array<SearchRef & { ref: string; typeLabel: string }>]
+> => {
   return useMemo(() => {
     if (deferredQuery === "" || !data) {
-      return new Map();
+      return [];
     }
 
     const results = data.search(deferredQuery).slice(0, 10);
 
     const groupedResults: Map<
-      string,
+      SearchRefType,
       Array<SearchRef & { ref: string; typeLabel: string }>
     > = new Map();
 
     results.forEach((r) => {
       const parsed = parseRef(r.ref);
-      let typeLabel = parsed.type.split("/").pop() || "";
-      typeLabel = typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1);
 
-      if (!groupedResults.has(typeLabel)) {
-        groupedResults.set(typeLabel, []);
+      if (!groupedResults.has(parsed.type)) {
+        groupedResults.set(parsed.type, []);
       }
 
-      groupedResults.get(typeLabel)?.push({
+      groupedResults.get(parsed.type)?.push({
         ...parsed,
         ref: r.ref,
-        typeLabel: typeLabel,
+        typeLabel: getTypeLabel(parsed.type),
       });
     });
 
-    return groupedResults;
+    return Array.from(groupedResults.entries()).sort(
+      ([a], [b]) => typeSortingOrder[a] - typeSortingOrder[b],
+    );
   }, [deferredQuery, data]);
 };
 

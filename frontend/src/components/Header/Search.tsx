@@ -11,7 +11,7 @@ import { getSearchIndexQuery } from "../../q.ts";
 import { search } from "../../icons/search";
 import { spinner } from "../../icons/spinner.ts";
 import { Icon } from "../Icon";
-import useGroupedResults from "./hooks/useGroupedResults.tsx";
+import useGroupedResults, { getTypeLabel } from "./hooks/useGroupedResults.tsx";
 
 type SearchRefLink = {
   name: string;
@@ -135,9 +135,11 @@ export function Search() {
         anchor="bottom start"
         className="z-10 max-h-96 w-96 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:bg-gray-800"
       >
-        {Array.from(filtered.entries()).map(([typeLabel, items]) => (
+        {filtered.map(([typeLabel, items]) => (
           <div key={typeLabel}>
-            <h2 className="p-2 text-sm font-semibold">{typeLabel}</h2>
+            <h2 className="p-2 text-sm font-semibold">
+              {getTypeLabel(typeLabel)}
+            </h2>
             {items.map((item) => (
               <ComboboxOption
                 key={item.ref}
