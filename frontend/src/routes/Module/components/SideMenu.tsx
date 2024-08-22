@@ -32,5 +32,13 @@ export function ModuleSideMenu() {
 }
 
 export function ModuleSideMenuSkeleton() {
-  return <div>Loading</div>;
+  return (
+    <div className="mr-4 mt-4 flex animate-pulse flex-col gap-5">
+      <span className="flex h-em w-48 bg-gray-500/25" />
+      <span className="flex h-em w-52 bg-gray-500/25" />
+      <span className="flex h-em w-36 bg-gray-500/25" />
+      <span className="flex h-em w-64 bg-gray-500/25" />
+      <span className="flex h-em w-56 bg-gray-500/25" />
+    </div>
+  );
 }

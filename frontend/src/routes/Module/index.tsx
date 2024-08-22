@@ -41,10 +41,10 @@ export function Module() {
             fallback={<ModuleProvisionInstructionsSidebarBlockSkeleton />}
           >
             <ModuleProvisionInstructionsSidebarBlock />
+            <ModuleExamplesSidebarBlock />
+            <ModuleSubmodulesSidebarBlock />
+            <ModuleMetadataSidebarBlock />
           </Suspense>
-          <ModuleExamplesSidebarBlock />
-          <ModuleSubmodulesSidebarBlock />
-          <ModuleMetadataSidebarBlock />
         </SidebarPanel>
       }
     >

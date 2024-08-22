@@ -18,7 +18,7 @@ export function ModuleReadmeContent() {
 export function ModuleReadmeContentSkeleton() {
   return (
     <>
-      <span className="mt-6 flex h-em w-52 animate-pulse bg-gray-500/25 text-4xl" />
+      <span className="flex h-em w-52 animate-pulse bg-gray-500/25 text-4xl" />
 
       <span className="mt-5 flex h-em w-[500px] animate-pulse bg-gray-500/25" />
       <span className="mt-1 flex h-em w-[400px] animate-pulse bg-gray-500/25" />
