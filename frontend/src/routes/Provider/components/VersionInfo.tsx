@@ -1,7 +1,10 @@
 import { useSearchParams } from "react-router-dom";
 import { OldVersionBanner } from "@/components/OldVersionBanner";
-import { LanguagePicker } from "@/components/LanguagePicker";
-import { VersionInfo } from "@/components/VersionInfo";
+import {
+  LanguagePicker,
+  LanguagePickerSkeleton,
+} from "@/components/LanguagePicker";
+import { VersionInfo, VersionInfoSkeleton } from "@/components/VersionInfo";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getProviderDataQuery, getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
@@ -69,5 +72,10 @@ export function ProviderVersionInfo() {
 }
 
 export function ProviderVersionInfoSkeleton() {
-  return <span className="flex h-em w-48 animate-pulse bg-gray-500/25" />;
+  return (
+    <div className="flex items-center justify-between">
+      <VersionInfoSkeleton />
+      <LanguagePickerSkeleton />
+    </div>
+  );
 }

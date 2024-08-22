@@ -17,3 +17,12 @@ export function VersionInfo({
     </span>
   );
 }
+
+export function VersionInfoSkeleton() {
+  return (
+    <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+      Version displayed
+      <span className="flex h-5 w-24 animate-pulse bg-gray-500/25" />
+    </span>
+  );
+}
