@@ -191,9 +191,6 @@ func (g GenerateConfig) validate() error {
 func WithSkipUpdateProviders(skip bool) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		c.SkipUpdateProviders = skip
-		if c.SkipUpdateProviders && c.SkipUpdateModules {
-			return fmt.Errorf("skipping both provider and module updates results in a noop generation")
-		}
 		return nil
 	}
 }
@@ -201,9 +198,6 @@ func WithSkipUpdateProviders(skip bool) GenerateOpt {
 func WithSkipUpdateModules(skip bool) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		c.SkipUpdateModules = skip
-		if c.SkipUpdateProviders && c.SkipUpdateModules {
-			return fmt.Errorf("skipping both provider and module updates results in a noop generation")
-		}
 		return nil
 	}
 }
@@ -330,8 +324,12 @@ func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
 			}
 		}
 	}
-	if !cfg.SkipUpdateProviders {
-		if cfg.Namespace != "" {
+	if !cfg.SkipUpdateProviders && cfg.TargetSystem == "" {
+		if cfg.Name != "" {
+			if err := b.providerIndexGenerator.GenerateSingleProvider(ctx, provider.Addr{Namespace: cfg.Namespace, Name: cfg.Name}, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+				return fmt.Errorf("failed to index providers (%w)", err)
+			}
+		} else if cfg.Namespace != "" {
 			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
