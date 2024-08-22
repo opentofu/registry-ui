@@ -31,16 +31,19 @@ export function RepoMetadataSidebarBlock(props: BlockProps) {
     license =
       props.license === null
         ? "Unavailable"
-        : props.license.map((license) => (
-            <a
-              href={license.link}
-              key={license.spdx}
-              className="underline"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {license.spdx}
-            </a>
+        : props.license.map((license, index, arr) => (
+            <>
+              <a
+                href={license.link}
+                key={license.spdx}
+                className="underline"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {license.spdx}
+              </a>
+              {index < arr.length - 1 && ", "}
+            </>
           ));
   }
 

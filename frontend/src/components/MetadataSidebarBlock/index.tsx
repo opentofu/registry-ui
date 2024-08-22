@@ -30,12 +30,12 @@ export function MetadataSidebarBlockItem({
   children,
 }: MetadataSidebarBlockItemProps) {
   return (
-    <div className="flex justify-between">
-      <dt className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+    <div className="flex flex-col">
+      <dt className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
         <Icon path={icon} className="size-5" />
         {title}
       </dt>
-      <dd className="flex flex-col justify-center text-right">{children}</dd>
+      <dd>{children}</dd>
     </div>
   );
 }
