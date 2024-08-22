@@ -10,7 +10,8 @@ function Block({ children }: { children: ReactNode }) {
   return (
     <SidebarBlock title="Provision instructions">
       <Paragraph className="my-4">
-        Copy this code info your OpenTofu configuration and add any variables necessary, then run{" "}
+        Copy this code info your OpenTofu configuration and add any variables
+        necessary, then run{" "}
         <code className="text-sm text-purple-700 dark:text-purple-300">
           tofu init
         </code>
@@ -43,7 +44,7 @@ export function ModuleProvisionInstructionsSidebarBlock() {
 export function ModuleProvisionInstructionsSidebarBlockSkeleton() {
   return (
     <Block>
-      <span className="flex h-72 w-full animate-pulse bg-gray-500/25" />
+      <span className="flex h-32 w-full animate-pulse bg-gray-500/25" />
     </Block>
   );
 }

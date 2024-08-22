@@ -54,8 +54,7 @@ export function ModuleHeaderSkeleton() {
     <Wrapper>
       <BreadcrumbsSkeleton />
       <span className="flex h-em w-72 animate-pulse bg-gray-500/25 text-5xl" />
-      <span className="mt-3 flex h-em w-[600px] animate-pulse bg-gray-500/25" />
-      <span className="mb-5 mt-2 flex h-em w-[450px] animate-pulse bg-gray-500/25" />
+      <span className="mb-6 mt-6 flex h-em w-[450px] animate-pulse bg-gray-500/25" />
 
       <InfoSection>
         <InfoSectionItem label="Owner">
