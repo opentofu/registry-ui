@@ -106,10 +106,7 @@ export function Search() {
     <Combobox
       onClose={() => setQuery("")}
       onChange={(v: { ref: string }) => {
-        const parsed = parseRef(v.ref);
-        const link = getLink(parsed);
-        console.log("LINK", link);
-        navigate(link);
+        navigate(getLink(parseRef(v.ref)));
       }}
     >
       <div className="relative">
