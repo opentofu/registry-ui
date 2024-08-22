@@ -7,7 +7,7 @@ export function MarkdownH1({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className="group mt-8 scroll-mt-28 break-words text-4xl font-bold first:mt-0"
+      className="group mt-8 scroll-mt-5 break-words text-4xl font-bold first:mt-0"
       id={id}
     >
       {children}
