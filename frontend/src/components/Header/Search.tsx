@@ -91,7 +91,7 @@ export function Search() {
 
   useEffect(() => {
     const handleSlash = (event: KeyboardEvent) => {
-      if (event.key === "/") {
+      if (event.key === "/" && event.target !== inputRef.current) {
         event.preventDefault();
         inputRef.current.focus();
       }
