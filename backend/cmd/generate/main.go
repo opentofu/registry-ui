@@ -8,8 +8,10 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 
 	"github.com/opentofu/libregistry/logger"
+	"github.com/opentofu/libregistry/types/module"
 	backend "github.com/opentofu/registry-ui/internal"
 	"github.com/opentofu/registry-ui/internal/defaults"
 	"github.com/opentofu/registry-ui/internal/factory"
@@ -19,11 +21,14 @@ func main() {
 	skipUpdateProviders := false
 	skipUpdateModules := false
 	namespace := ""
+	name := ""
+	targetSystem := ""
 	logLevel := "info"
+	forceRegenerate := ""
 	registryDir := defaults.RegistryDir
 	workDir := defaults.WorkDir
 	destinationDir := defaults.DestinationDir
-	commitParallelism := 25
+	commitParallelism := 100
 	// TODO this is only until these features get released in mainline tofu.
 	binaryName := "tofu"
 	if runtime.GOOS == "windows" {
@@ -44,6 +49,8 @@ func main() {
 	flag.BoolVar(&skipUpdateProviders, "skip-update-providers", skipUpdateProviders, "Skip updating provider indexes.")
 	flag.BoolVar(&skipUpdateModules, "skip-update-modules", skipUpdateModules, "Skip updating module indexes.")
 	flag.StringVar(&namespace, "namespace", namespace, "Limit updates to a namespace.")
+	flag.StringVar(&name, "name", name, "Limit updates to a name. Only works in conjunction with -namespace. For providers, this will result in a single provider getting updated. For modules, this will update all target systems under a name.")
+	flag.StringVar(&targetSystem, "target-system", targetSystem, "Limit updates to a target system for module updates only. Only works in conjunction with -namespace and -name.")
 	flag.StringVar(&logLevel, "log-level", logLevel, "Set the log level (debug, info, warn, error)")
 	flag.StringVar(&registryDir, "registry-dir", registryDir, "Directory to check out the registry in.")
 	flag.StringVar(&workDir, "vcs-dir", workDir, "Directory to use for checking out providers and modules in.")
@@ -53,8 +60,9 @@ func main() {
 	flag.BoolVar(&s3Params.PathStyle, "s3-path-style", s3Params.PathStyle, "Use path-style URLs for S3.")
 	flag.StringVar(&s3Params.CACertFile, "s3-ca-cert-file", s3Params.CACertFile, "File containing the CA certificate for the S3 endpoint. Defaults to the system certificates.")
 	flag.StringVar(&s3Params.Region, "s3-region", s3Params.Region, "Region to use for S3 uploads.")
-	flag.IntVar(&commitParallelism, "parallelism", commitParallelism, "Parallel uploads to use on commit.")
+	flag.IntVar(&commitParallelism, "commit-parallelism", commitParallelism, "Parallel uploads to use on commit.")
 	flag.StringVar(&tofuBinaryPath, "tofu-binary-path", tofuBinaryPath, "Temporary: Tofu binary path to use for module schema extraction.")
+	flag.StringVar(&forceRegenerate, "force-regenerate", forceRegenerate, "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername")
 	flag.Parse()
 
 	// Parse the log level
@@ -85,17 +93,56 @@ func main() {
 
 	// TODO implement signal handling
 
+	forceOpts, err := parseForceOpts(forceRegenerate)
+	if err != nil {
+		mainLogger.Error(ctx, err.Error())
+		os.Exit(1)
+	}
+
 	if err := backendInstance.Generate(
 		ctx,
-		backend.WithNamespace(namespace),
-		backend.WithSkipUpdateModules(skipUpdateModules),
-		backend.WithSkipUpdateProviders(skipUpdateProviders),
+		append(forceOpts,
+			backend.WithNamespace(namespace),
+			backend.WithName(name),
+			backend.WithTargetSystem(targetSystem),
+			backend.WithSkipUpdateModules(skipUpdateModules),
+			backend.WithSkipUpdateProviders(skipUpdateProviders),
+		)...,
 	); err != nil {
 		mainLogger.Error(ctx, err.Error())
 		os.Exit(1)
 	}
 
 	mainLogger.Info(ctx, "Done!")
+}
+
+func parseForceOpts(regenerate string) ([]backend.GenerateOpt, error) {
+	if regenerate == "" {
+		return nil, nil
+	}
+	var results []backend.GenerateOpt
+	parts := strings.Split(regenerate, ",")
+	for _, part := range parts {
+		if part == "" {
+			return nil, fmt.Errorf("empty part in -force-regenerate options")
+		}
+		partParts := strings.Split(part, "/")
+		switch len(partParts) {
+		case 1:
+			results = append(results, backend.WithForceRegenerateNamespace(partParts[0]))
+		case 2:
+			results = append(results, backend.WithForceRegenerateNamespaceAndName(partParts[0], partParts[1]))
+		case 3:
+			results = append(results, backend.WithForceRegenerateSingleModule(module.Addr{
+				Namespace:    partParts[0],
+				Name:         partParts[1],
+				TargetSystem: partParts[2],
+			}))
+		default:
+			return nil, fmt.Errorf("invalid option for -force-regenerate: %s", part)
+		}
+	}
+	return results, nil
 }
 
 func parseLogLevel(level string) (slog.Level, error) {

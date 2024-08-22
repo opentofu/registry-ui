@@ -157,3 +157,15 @@ func (m *Module) RemoveVersions(in module.VersionList, notIn module.VersionList)
 	m.Versions = newVersions
 	return removedVersions
 }
+
+func (m *Module) UpdateVersions(updatedVersions ...ModuleVersionDescriptor) {
+	for _, updatedVersion := range updatedVersions {
+		for i, existingVersion := range m.Versions {
+			if existingVersion.ID.Compare(updatedVersion.ID) == 0 {
+				m.Versions[i].Published = updatedVersion.Published
+				m.Versions[i].ID = updatedVersion.ID
+			}
+		}
+	}
+
+}

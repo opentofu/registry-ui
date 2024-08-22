@@ -37,13 +37,42 @@ const indexPrefix = "modules"
 // Generator is a tool to generate all index files for modules.
 type Generator interface {
 	// Generate generates all module index files incrementally and removes items no longer in the registry.
-	Generate(ctx context.Context) error
+	Generate(ctx context.Context, opts ...Opts) error
 	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
 	// registry.
-	GenerateNamespace(ctx context.Context, namespace string) error
+	GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error
 	// GenerateNamespaceAndName generates module index files incrementally for one namespace and removes items no longer in the
 	// registry.
-	GenerateNamespaceAndName(ctx context.Context, namespace string, name string) error
+	GenerateNamespaceAndName(ctx context.Context, namespace string, name string, opts ...Opts) error
+	// GenerateSingleModule generates module index files for a single module only.
+	GenerateSingleModule(ctx context.Context, addr module.Addr, opts ...Opts) error
+}
+
+type GenerateConfig struct {
+	Force ForceRegenerate
+}
+
+type noForce struct {
+}
+
+func (n noForce) MustRegenerateModule(_ context.Context, _ module.Addr) bool {
+	return false
+}
+
+func (c *GenerateConfig) applyDefaults() error {
+	if c.Force == nil {
+		c.Force = &noForce{}
+	}
+	return nil
+}
+
+type Opts func(ctx context.Context, generateConfig *GenerateConfig) error
+
+func WithForce(force ForceRegenerate) Opts {
+	return func(_ context.Context, generateConfig *GenerateConfig) error {
+		generateConfig.Force = force
+		return nil
+	}
 }
 
 func New(
@@ -76,7 +105,14 @@ type generator struct {
 	search                moduleSearch
 }
 
-func (g generator) GenerateNamespaceAndName(ctx context.Context, namespace string, name string) error {
+func (g generator) GenerateSingleModule(ctx context.Context, addr module.Addr, opts ...Opts) error {
+	addr = addr.Normalize()
+	return g.generate(ctx, []module.Addr{addr}, func(moduleAddr ModuleAddr) bool {
+		return !(addr.Equals(moduleAddr.Addr))
+	}, opts)
+}
+
+func (g generator) GenerateNamespaceAndName(ctx context.Context, namespace string, name string, opts ...Opts) error {
 	namespace = module.NormalizeNamespace(namespace)
 	name = module.NormalizeName(name)
 	moduleList, err := g.metadataAPI.ListModulesByNamespaceAndName(ctx, namespace, name)
@@ -85,10 +121,10 @@ func (g generator) GenerateNamespaceAndName(ctx context.Context, namespace strin
 	}
 	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
 		return !(moduleAddr.Namespace == namespace && moduleAddr.Name == name)
-	})
+	}, opts)
 }
 
-func (g generator) GenerateNamespace(ctx context.Context, namespace string) error {
+func (g generator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
 	namespace = module.NormalizeNamespace(namespace)
 	g.log.Info(ctx, "Listing all modules...")
 	moduleList, err := g.metadataAPI.ListModulesByNamespace(ctx, namespace)
@@ -97,10 +133,10 @@ func (g generator) GenerateNamespace(ctx context.Context, namespace string) erro
 	}
 	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
 		return !(moduleAddr.Namespace == namespace)
-	})
+	}, opts)
 }
 
-func (g generator) Generate(ctx context.Context) error {
+func (g generator) Generate(ctx context.Context, opts ...Opts) error {
 	g.log.Info(ctx, "Listing all modules...")
 	moduleList, err := g.metadataAPI.ListModules(ctx)
 	if err != nil {
@@ -108,10 +144,20 @@ func (g generator) Generate(ctx context.Context) error {
 	}
 	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
 		return false
-	})
+	}, opts)
 }
 
-func (g generator) generate(ctx context.Context, moduleList []module.Addr, blockRemoval func(moduleAddr ModuleAddr) bool) error {
+func (g generator) generate(ctx context.Context, moduleList []module.Addr, blockRemoval func(moduleAddr ModuleAddr) bool, opts []Opts) error {
+	cfg := GenerateConfig{}
+	for _, opt := range opts {
+		if err := opt(ctx, &cfg); err != nil {
+			return err
+		}
+	}
+	if err := cfg.applyDefaults(); err != nil {
+		return err
+	}
+
 	indexPath := "index.json"
 	modules := ModuleList{
 		// Leave this a slice so the JSON marshalling doesn't include a null.
@@ -143,6 +189,8 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			continue
 		}
 		eg.Go(func() error {
+			forceModule := cfg.Force.MustRegenerateModule(ctx, moduleAddr.Addr)
+
 			moduleIndexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, "index.json")
 			entry := modules.GetModule(moduleAddr.Addr)
 			if entry == nil {
@@ -162,6 +210,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			}
 
 			var versionsToAdd []ModuleVersionDescriptor
+			var versionsToUpdate []ModuleVersionDescriptor
 			var versionsToRemove module.VersionList
 			metadataVersions := moduleMetadata.Versions
 			metadataVersions.Sort()
@@ -177,7 +226,8 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					g.log.Warn(ctx, "Module %s version %s has an invalid version number, skipping...", moduleAddr.String(), ver.Version)
 					continue
 				}
-				if entry.HasVersion(ver.Version) {
+				hasVersion := entry.HasVersion(ver.Version)
+				if hasVersion && !forceModule {
 					g.log.Info(ctx, "The index already has version %s for module %s, skipping...", ver.Version, moduleAddr.String())
 					continue
 				}
@@ -235,10 +285,17 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 						return fmt.Errorf("failed to remove module %s version %s from search index (%w)", moduleAddr, ver.Version, err)
 					}
 				} else {
-					versionsToAdd = append(versionsToAdd, modVersion)
+					if hasVersion {
+						versionsToUpdate = append(versionsToUpdate, modVersion)
+						// TODO we currently don't remove submodules and examples that no longer exist. This should
+						//      be addressed by diffing the existing and the new version.
+					} else {
+						versionsToAdd = append(versionsToAdd, modVersion)
+					}
 				}
 			}
 			entry.AddVersions(versionsToAdd...)
+			entry.UpdateVersions(versionsToUpdate...)
 			removedVersions := entry.RemoveVersions(versionsToRemove, moduleMetadata.Versions)
 			for _, version := range removedVersions {
 				if err := g.removeModuleVersion(ctx, moduleAddr, version); err != nil {

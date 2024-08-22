@@ -6,6 +6,8 @@ import (
 	"regexp"
 
 	"github.com/opentofu/libregistry/logger"
+	"github.com/opentofu/libregistry/types/module"
+	"github.com/opentofu/libregistry/types/provider"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/opentofu/registry-ui/internal/indexstorage"
@@ -76,14 +78,119 @@ type GenerateConfig struct {
 	SkipUpdateProviders bool
 	SkipUpdateModules   bool
 	Namespace           string
+	Name                string
+	TargetSystem        string
+	ForceRegenerate     ForceRegenerateType
+}
+
+func WithForceRegenerateNamespace(namespace string) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		if namespace == "" {
+			return fmt.Errorf("empty namespace provided")
+		}
+		c.ForceRegenerate = append(c.ForceRegenerate, ForceRegenerateEntry{
+			Namespace: namespace,
+		})
+		return nil
+	}
+}
+
+func WithForceRegenerateNamespaceAndName(namespace string, name string) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		if namespace == "" {
+			return fmt.Errorf("empty namespace provided")
+		}
+		c.ForceRegenerate = append(c.ForceRegenerate, ForceRegenerateEntry{
+			Namespace: namespace,
+			Name:      name,
+		})
+		return nil
+	}
+}
+
+func WithForceRegenerateSingleModule(addr module.Addr) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		if err := addr.Validate(); err != nil {
+			return err
+		}
+		c.ForceRegenerate = append(c.ForceRegenerate, ForceRegenerateEntry{
+			Namespace:    addr.Namespace,
+			Name:         addr.Name,
+			TargetSystem: addr.TargetSystem,
+		})
+		return nil
+	}
+}
+
+type ForceRegenerateType []ForceRegenerateEntry
+
+func (f ForceRegenerateType) MustRegenerateModule(ctx context.Context, addr module.Addr) bool {
+	for _, entry := range f {
+		if entry.MustRegenerateModule(ctx, addr) {
+			return true
+		}
+	}
+	return false
+}
+
+func (f ForceRegenerateType) MustRegenerateProvider(ctx context.Context, addr provider.Addr) bool {
+	for _, entry := range f {
+		if entry.MustRegenerateProvider(ctx, addr) {
+			return true
+		}
+	}
+	return false
+}
+
+type ForceRegenerateEntry struct {
+	Namespace    string
+	Name         string
+	TargetSystem string
+}
+
+func (f ForceRegenerateEntry) MustRegenerateModule(_ context.Context, addr module.Addr) bool {
+	if f.Name == "" {
+		return module.NormalizeNamespace(f.Namespace) == addr.Namespace
+	}
+	if f.TargetSystem == "" {
+		return module.NormalizeNamespace(f.Namespace) == addr.Namespace && module.NormalizeName(f.Name) == addr.Name
+	}
+	return addr.Equals(module.Addr{
+		Namespace:    f.Namespace,
+		Name:         f.Name,
+		TargetSystem: f.TargetSystem,
+	})
+}
+
+func (f ForceRegenerateEntry) MustRegenerateProvider(_ context.Context, addr provider.Addr) bool {
+	if f.TargetSystem != "" {
+		return false
+	}
+	if f.Name == "" {
+		return provider.NormalizeNamespace(f.Namespace) == addr.Namespace
+	}
+	return addr.Equals(provider.Addr{
+		Namespace: f.Namespace,
+		Name:      f.Name,
+	})
+}
+
+func (g GenerateConfig) validate() error {
+	if g.Name != "" && g.Namespace == "" {
+		return fmt.Errorf("cannot use name filtering without namespace filtering")
+	}
+	if g.TargetSystem != "" && g.Name == "" {
+		return fmt.Errorf("cannot use target system filtering without name filtering")
+	}
+	if g.TargetSystem != "" && g.SkipUpdateModules {
+		return fmt.Errorf("target system filtering makes no sense without module updates")
+	}
+	return nil
 }
 
 func WithSkipUpdateProviders(skip bool) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		c.SkipUpdateProviders = skip
-		if c.SkipUpdateProviders && c.SkipUpdateModules {
-			return fmt.Errorf("skipping both provider and module updates results in a noop generation")
-		}
 		return nil
 	}
 }
@@ -91,14 +198,13 @@ func WithSkipUpdateProviders(skip bool) GenerateOpt {
 func WithSkipUpdateModules(skip bool) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		c.SkipUpdateModules = skip
-		if c.SkipUpdateProviders && c.SkipUpdateModules {
-			return fmt.Errorf("skipping both provider and module updates results in a noop generation")
-		}
 		return nil
 	}
 }
 
 var namespaceRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
+var nameRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
+var targetSystemRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
 
 func WithNamespace(namespace string) GenerateOpt {
 	return func(c *GenerateConfig) error {
@@ -106,6 +212,26 @@ func WithNamespace(namespace string) GenerateOpt {
 			return fmt.Errorf("invalid namespace: %s", namespaceRe)
 		}
 		c.Namespace = namespace
+		return nil
+	}
+}
+
+func WithName(name string) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		if !nameRe.MatchString(name) {
+			return fmt.Errorf("invalid name: %s", nameRe)
+		}
+		c.Name = name
+		return nil
+	}
+}
+
+func WithTargetSystem(targetSystem string) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		if !targetSystemRe.MatchString(targetSystem) {
+			return fmt.Errorf("invalid target system: %s", targetSystemRe)
+		}
+		c.TargetSystem = targetSystem
 		return nil
 	}
 }
@@ -176,23 +302,39 @@ func (b backend) Generate(ctx context.Context, opts ...GenerateOpt) error {
 
 func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
 	if !cfg.SkipUpdateModules {
-		if cfg.Namespace != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace); err != nil {
+		if cfg.TargetSystem != "" {
+			if err := b.moduleIndexGenerator.GenerateSingleModule(ctx, module.Addr{
+				Namespace:    cfg.Namespace,
+				Name:         cfg.Name,
+				TargetSystem: cfg.TargetSystem,
+			}); err != nil {
+				return fmt.Errorf("failed to generate modules (%w)", err)
+			}
+		} else if cfg.Name != "" {
+			if err := b.moduleIndexGenerator.GenerateNamespaceAndName(ctx, cfg.Namespace, cfg.Name, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
+				return fmt.Errorf("failed to generate modules (%w)", err)
+			}
+		} else if cfg.Namespace != "" {
+			if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		} else {
-			if err := b.moduleIndexGenerator.Generate(ctx); err != nil {
+			if err := b.moduleIndexGenerator.Generate(ctx, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		}
 	}
-	if !cfg.SkipUpdateProviders {
-		if cfg.Namespace != "" {
-			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace); err != nil {
+	if !cfg.SkipUpdateProviders && cfg.TargetSystem == "" {
+		if cfg.Name != "" {
+			if err := b.providerIndexGenerator.GenerateSingleProvider(ctx, provider.Addr{Namespace: cfg.Namespace, Name: cfg.Name}, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+				return fmt.Errorf("failed to index providers (%w)", err)
+			}
+		} else if cfg.Namespace != "" {
+			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		} else {
-			if err := b.providerIndexGenerator.Generate(ctx); err != nil {
+			if err := b.providerIndexGenerator.Generate(ctx, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		}
