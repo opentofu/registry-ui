@@ -131,11 +131,18 @@ export function transformStructure(
 function sortSidebar(sidebar: NestedItem[]): NestedItem[] {
   const categories = Array.from(categoryLabelMap.values());
   sidebar = sidebar.sort((a, b) => {
-    if (categories.includes(a.label) && !categories.includes(b.label)) {
+    const aIndex = categories.indexOf(a.label);
+    const bIndex = categories.indexOf(b.label);
+
+    if (aIndex !== -1 && bIndex !== -1) {
+      return aIndex - bIndex;
+    }
+
+    if (aIndex !== -1 && bIndex === -1) {
       return -1;
     }
 
-    if (!categories.includes(a.label) && categories.includes(b.label)) {
+    if (aIndex === -1 && bIndex !== -1) {
       return 1;
     }
 
