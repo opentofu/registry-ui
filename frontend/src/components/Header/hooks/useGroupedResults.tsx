@@ -32,6 +32,10 @@ const parseRef = (ref: string): SearchRef => {
   return JSON.parse(ref);
 };
 
+const filterQuery = (query: string) => {
+  return query.replace(/:/g, "").replace(/\^/g, "");
+};
+
 const useGroupedResults = (
   deferredQuery: string,
   data: Index | undefined,
@@ -41,7 +45,7 @@ const useGroupedResults = (
       return new Map();
     }
 
-    const results = data.search(deferredQuery).slice(0, 10);
+    const results = data.search(filterQuery(deferredQuery)).slice(0, 10);
 
     const groupedResults: Map<
       string,
