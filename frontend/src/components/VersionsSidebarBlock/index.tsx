@@ -71,6 +71,7 @@ function VersionTreeViewItemHandle({
             ? "text-brand-700 dark:text-brand-600"
             : "text-inherit underline underline-offset-2"
         }
+        state={{ fromVersion: true }}
       >
         {label}
       </NavLink>

@@ -6,7 +6,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useProviderParams } from "../hooks/useProviderParams";
 
 export function ProviderVersionsSidebarBlock() {
-  const { namespace, provider, version } = useProviderParams();
+  const { namespace, provider, version, type, doc } = useProviderParams();
 
   const { data } = useSuspenseQuery(getProviderDataQuery(namespace, provider));
 
@@ -15,7 +15,9 @@ export function ProviderVersionsSidebarBlock() {
       versions={data.versions}
       latestVersion={data.versions[0]}
       currentVersion={version || data.versions[0].id}
-      versionLink={(version) => `/provider/${namespace}/${provider}/${version}`}
+      versionLink={(version) =>
+        `/provider/${namespace}/${provider}/${version}${type && doc ? `/docs/${type}/${doc}` : ""}`
+      }
     />
   );
 }
