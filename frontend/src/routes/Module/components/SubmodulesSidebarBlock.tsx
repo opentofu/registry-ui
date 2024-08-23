@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { getModuleVersionDataQuery } from "../query";
 import { useState } from "react";
 import { useModuleParams } from "../hooks/useModuleParams";
+import { Paragraph } from "@/components/Paragraph";
 
 export function ModuleSubmodulesSidebarBlock() {
   const [expanded, setExpanded] = useState(false);
@@ -16,38 +17,40 @@ export function ModuleSubmodulesSidebarBlock() {
 
   const submodules = Object.keys(data.submodules);
 
-  if (submodules.length === 0) {
-    return null;
-  }
-
   const visibleSubmodules = expanded ? submodules : submodules.slice(0, 5);
 
   return (
     <SidebarBlock title="Submodules">
-      <ul className="mt-4 flex flex-col gap-4">
-        {visibleSubmodules.map((submodule) => (
-          <li key={submodule}>
-            <Link
-              to={`submodule/${submodule}`}
-              className="text-inherit underline underline-offset-2"
-            >
-              {submodule}
-            </Link>
-          </li>
-        ))}
+      {submodules.length === 0 && (
+        <Paragraph>This module does not have any submodules.</Paragraph>
+      )}
 
-        {submodules.length > 5 && (
-          <li>
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              className="text-gray-700 underline underline-offset-2 dark:text-gray-300"
-            >
-              {expanded ? "Show less" : "Show all submodules"}
-            </button>
-          </li>
-        )}
-      </ul>
+      {submodules.length > 0 && (
+        <ul className="mt-4 flex flex-col gap-4">
+          {visibleSubmodules.map((submodule) => (
+            <li key={submodule}>
+              <Link
+                to={`submodule/${submodule}`}
+                className="text-inherit underline underline-offset-2"
+              >
+                {submodule}
+              </Link>
+            </li>
+          ))}
+
+          {submodules.length > 5 && (
+            <li>
+              <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className="text-gray-700 underline underline-offset-2 dark:text-gray-300"
+              >
+                {expanded ? "Show less" : "Show all submodules"}
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
     </SidebarBlock>
   );
 }
