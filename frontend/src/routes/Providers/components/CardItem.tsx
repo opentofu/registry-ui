@@ -3,6 +3,7 @@ import { Paragraph } from "@/components/Paragraph";
 import {
   CardItemFooter,
   CardItemFooterDetail,
+  CardItemFooterDetailSkeleton,
 } from "@/components/CardItem/Footer";
 import { CardItemTitle } from "@/components/CardItem/Title";
 import { formatDate } from "@/utils/formatDate";
@@ -48,12 +49,12 @@ export function ProvidersCardItemSkeleton() {
     <CardItem>
       <span className="flex h-em w-48 animate-pulse bg-gray-500/25 text-xl" />
 
-      <span className="mt-5 flex h-em w-96 animate-pulse bg-gray-500/25" />
+      <span className="mb-7 mt-5 flex h-em w-96 animate-pulse bg-gray-500/25" />
 
-      <span className="mt-7 flex gap-10">
-        <span className="flex h-em w-36 animate-pulse bg-gray-500/25" />
-        <span className="flex h-em w-52 animate-pulse bg-gray-500/25" />
-      </span>
+      <CardItemFooter>
+        <CardItemFooterDetailSkeleton />
+        <CardItemFooterDetailSkeleton />
+      </CardItemFooter>
     </CardItem>
   );
 }
