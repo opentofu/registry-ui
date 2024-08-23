@@ -12,13 +12,16 @@ export function ModuleVersionInfo() {
     getModuleDataQuery(namespace, name, target),
   );
 
+  const latestVersion = data.versions[0].id;
+
+  const latestVersionLink = `/module/${namespace}/${name}/${target}/${latestVersion}`;
+
   return (
     <div className="flex flex-col gap-5">
-      <VersionInfo
-        currentVersion={version}
-        latestVersion={data.versions[0].id}
-      />
-      {version !== data.versions[0].id && <OldVersionBanner />}
+      <VersionInfo currentVersion={version} latestVersion={latestVersion} />
+      {version !== latestVersion && (
+        <OldVersionBanner latestVersionLink={latestVersionLink} />
+      )}
     </div>
   );
 }
