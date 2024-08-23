@@ -4,7 +4,7 @@ import {
 } from "../MetadataSidebarBlock";
 import { github } from "@/icons/github";
 import { document } from "@/icons/document";
-import { ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { definitions } from "@/api";
 
 function getLinkLabel(url: string) {
@@ -32,7 +32,7 @@ export function RepoMetadataSidebarBlock(props: BlockProps) {
       props.license === null
         ? "Unavailable"
         : props.license.map((license, index, arr) => (
-            <>
+            <Fragment key={license.spdx}>
               <a
                 href={license.link}
                 key={license.spdx}
@@ -43,7 +43,7 @@ export function RepoMetadataSidebarBlock(props: BlockProps) {
                 {license.spdx}
               </a>
               {index < arr.length - 1 && ", "}
-            </>
+            </Fragment>
           ));
   }
 
