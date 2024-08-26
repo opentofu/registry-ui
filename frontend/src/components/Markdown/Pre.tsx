@@ -8,6 +8,14 @@ export function MarkdownPre({ children }: HTMLAttributes<HTMLPreElement>) {
 
   const child = children as ReactElement;
 
+  if (!child.props) {
+    return (
+      <pre className="overflow-auto bg-gray-100 p-4 text-sm dark:bg-blue-900">
+        {children}
+      </pre>
+    );
+  }
+
   if (!child.props.children) {
     return null;
   }
