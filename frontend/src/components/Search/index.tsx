@@ -44,6 +44,23 @@ const getTypeLabel = (type: SearchResultType) => {
   }
 };
 
+const getTypeLink = (type: SearchResultType, result: ApiSearchResult) => {
+  switch (type) {
+    case SearchResultType.Module:
+      return `/module/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.target_system}/${result.link_variables.version}`;
+    case SearchResultType.Provider:
+      return `/provider/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.version}`;
+    case SearchResultType.ProviderResource:
+      return `/provider/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.version}/docs/resources/${result.link_variables.id}`;
+    case SearchResultType.ProviderDatasource:
+      return `/provider/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.version}/docs/datasources/${result.link_variables.id}`;
+    case SearchResultType.ProviderFunction:
+      return `/provider/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.version}/docs/functions/${result.link_variables.id}`;
+    default:
+      return "";
+  }
+};
+
 type Results = Array<{
   label: string;
   type: SearchResultType;
@@ -54,6 +71,7 @@ export function Search() {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const { data, isLoading } = useQuery(getSearchQuery(deferredQuery));
+
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
 
@@ -71,22 +89,17 @@ export function Search() {
 
       const result = data[i] as ApiSearchResult;
       const order = getTypeOrder(result.type);
+      const link = getTypeLink(result.type, result);
 
-      const group = (results[order] = results[order] || {
-        type: result.type,
-        label: getTypeLabel(result.type),
-        results: [],
-      });
-
-      let link = "";
-
-      if (result.type === SearchResultType.Module) {
-        link = `/module/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.target_system}/${result.version}`;
-      } else if (result.type === SearchResultType.Provider) {
-        link = `/provider/${result.link_variables.namespace}/${result.link_variables.name}/${result.version}`;
+      if (!results[order]) {
+        results[order] = {
+          type: result.type,
+          label: getTypeLabel(result.type),
+          results: [],
+        };
       }
 
-      group.results.push({
+      results[order].results.push({
         id: result.id,
         title: result.title,
         addr: result.addr,

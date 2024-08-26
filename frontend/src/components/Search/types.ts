@@ -15,6 +15,7 @@ export interface ApiSearchResult {
   description: string;
   version: string;
   link_variables: {
+    id?: string;
     name: string;
     version: string;
     namespace: string;
