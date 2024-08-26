@@ -33,7 +33,7 @@ export const getProviderDocsQuery = (
       const urlBase = `providers/${namespace}/${provider}/${version}`;
       const requestURL =
         type === undefined && name === undefined
-          ? `${urlBase}/index.md`
+          ? `${urlBase}/${lang ? `cdktf/${lang}/s/` : ""}index.md`
           : `${urlBase}/${lang ? `cdktf/${lang}/` : ""}${type}/${name}.md`;
 
       const data = await api(requestURL).text();
