@@ -5,14 +5,14 @@ import { useEffect } from "react";
 import { getProviderDoc } from "../utils/getProviderDoc";
 
 export function ProviderPageTitle() {
-  const { namespace, provider, version, doc, type } = useProviderParams();
+  const { namespace, provider, version, doc, type, lang } = useProviderParams();
 
   const { data } = useSuspenseQuery(
     getProviderVersionDataQuery(namespace, provider, version),
   );
 
   useEffect(() => {
-    const providerDoc = getProviderDoc(data.docs, type, doc);
+    const providerDoc = getProviderDoc(data, type, doc, lang);
 
     if (providerDoc) {
       document.title = `${providerDoc.title} - OpenTofu Registry`;
@@ -21,7 +21,7 @@ export function ProviderPageTitle() {
     return () => {
       document.title = "OpenTofu Registry";
     };
-  }, [data, doc, type]);
+  }, [data, doc, type, lang]);
 
   return null;
 }

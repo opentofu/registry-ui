@@ -1,4 +1,3 @@
-import { useSearchParams } from "react-router-dom";
 import { OldVersionBanner } from "@/components/OldVersionBanner";
 import {
   LanguagePicker,
@@ -28,27 +27,12 @@ export function ProviderVersionInfo() {
     ],
   });
 
-  const [, setSearchParams] = useSearchParams();
-
   const langs = Object.keys(versionData.cdktf_docs);
-  const language = langs.includes(lang) ? lang : null;
 
   const languages = langs.map((language) => ({
     code: language,
     name: languageLabels[language],
   }));
-
-  const handleLanguageChange = (language: string | null) => {
-    setSearchParams((params) => {
-      const next = new URLSearchParams(params);
-      if (language) {
-        next.set("lang", language);
-      } else {
-        next.delete("lang");
-      }
-      return next;
-    });
-  };
 
   const latestVersion = data.versions[0].id;
 
@@ -66,11 +50,7 @@ export function ProviderVersionInfo() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <VersionInfo currentVersion={version} latestVersion={latestVersion} />
-        <LanguagePicker
-          languages={languages}
-          selected={language}
-          onChange={handleLanguageChange}
-        />
+        <LanguagePicker languages={languages} />
       </div>
       {version !== latestVersion && (
         <OldVersionBanner latestVersionLink={latestVersionLink} />
