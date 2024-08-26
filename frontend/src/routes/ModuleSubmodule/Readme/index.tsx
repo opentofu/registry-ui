@@ -5,7 +5,7 @@ import { getModuleSubmoduleReadmeQuery } from "../query";
 import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
 import { Suspense } from "react";
 
-export function ModuleSubmoduleReadmeContent() {
+function ModuleSubmoduleReadmeContent() {
   const { namespace, name, target, version, submodule } =
     useModuleSubmoduleParams();
 
@@ -16,7 +16,7 @@ export function ModuleSubmoduleReadmeContent() {
   return <Markdown text={data} />;
 }
 
-export function ModuleSubmoduleReadmeContentSkeleton() {
+function ModuleSubmoduleReadmeContentSkeleton() {
   return (
     <>
       <span className="mt-6 flex h-em w-52 animate-pulse bg-gray-500/25 text-4xl" />
