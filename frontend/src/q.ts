@@ -1,13 +1,22 @@
-import { queryOptions } from "@tanstack/react-query";
-import lunr from "lunr";
+import { queryOptions, skipToken } from "@tanstack/react-query";
 import { api } from "./query";
+import { ApiSearchResult } from "./components/Search/types";
 
-export const getSearchIndexQuery = () =>
+export const getSearchQuery = (query: string) =>
   queryOptions({
-    queryKey: ["search-index"],
-    queryFn: async () => {
-      const data = await api(`search.json`).json();
+    queryKey: ["search", query],
+    queryFn:
+      query.length > 0
+        ? async ({ signal }) => {
+            const response = await api(
+              `/search?q=${encodeURIComponent(query)}`,
+              {
+                signal,
+              },
+            );
 
-      return lunr.Index.load(data);
-    },
+            const res = await response.json();
+            return res as ApiSearchResult[];
+          }
+        : skipToken,
   });

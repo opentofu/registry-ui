@@ -4,7 +4,7 @@ import { Icon } from "../Icon";
 import { x } from "../../icons/x";
 import { slack } from "../../icons/slack";
 import { ThemeSwitcher } from "./ThemeSwitcher";
-import { Search } from "./Search";
+import { Search } from "../Search";
 
 export function Header() {
   return (
