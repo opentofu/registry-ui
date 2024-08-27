@@ -12,7 +12,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: 'backend/go.mod'
       - name: Run go generate
         working-directory: backend
         run: go generate ./...
@@ -30,7 +30,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: 'backend/go.mod'
       - name: Run tests
         working-directory: backend
         run: |
