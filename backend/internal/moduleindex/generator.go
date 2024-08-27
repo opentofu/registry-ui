@@ -452,8 +452,8 @@ func (g generator) refreshLicense(ctx context.Context, moduleAddr ModuleAddr, mo
 	var err error
 	result.Licenses, err = g.licenseDetector.Detect(ctx, workingCopy, license.WithLinkFetcher(vcslinkfetcher.Fetcher(
 		ctx,
-		moduleAddr.ToRepositoryAddr(),
-		moduleVersion.ID.ToVCSVersion(),
+		workingCopy.Repository(),
+		workingCopy.Version(),
 		g.vcsClient,
 	)))
 	return err
