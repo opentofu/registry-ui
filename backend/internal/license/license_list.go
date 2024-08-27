@@ -32,6 +32,7 @@ var osiApprovedLicenses = []string{
 	"PostgreSQL", "Python-2.0", "QPL-1.0", "RPL-1.1", "RPL-1.5",
 	"RPSL-1.0", "RSCPL", "SISSL", "SPL-1.0", "SimPL-2.0",
 	"Sleepycat", "UCL-1.0", "UPL-1.0", "Unicode-3.0", "Unicode-DFS-2016",
-	"Unlicense", "VSL-1.0", "W3C", "Watcom-1.0", "Xnet",
-	"ZPL-2.0", "ZPL-2.1", "Zlib", "wxWindows", 
+	"Unlicense", "VSL-1.0", "W3C", "W3C-20150513", "Watcom-1.0",
+	"Xnet", "ZPL-2.0", "ZPL-2.1", "Zlib", "wxWindows",
+
 }

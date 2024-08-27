@@ -60,5 +60,5 @@ func (a api) getMetaIndexFile() indexstorage.Path {
 }
 
 func (a api) getGeneratedFile() indexstorage.Path {
-	return "search.json"
+	return "search.ndjson"
 }

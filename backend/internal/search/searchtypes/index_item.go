@@ -2,6 +2,7 @@ package searchtypes
 
 import (
 	"fmt"
+	"time"
 )
 
 type IndexItem struct {
@@ -15,6 +16,24 @@ type IndexItem struct {
 	Description   string            `json:"description"`
 	LinkVariables map[string]string `json:"link"`
 	ParentID      IndexID           `json:"parent_id"`
+	LastUpdated   time.Time         `json:"last_updated"`
+}
+
+func (i IndexItem) Equals(other IndexItem) bool {
+	if i.ID != other.ID || i.Type != other.Type || i.Addr != other.Addr || i.Version != other.Version ||
+		i.Title != other.Title || i.Description != other.Description || i.ParentID != other.ParentID {
+		return false
+	}
+	if len(i.LinkVariables) != len(other.LinkVariables) {
+		return false
+	}
+	for k, v := range i.LinkVariables {
+		if other.LinkVariables[k] != v {
+			return false
+		}
+	}
+	// We ignore LastUpdated since we want to compare the contents.
+	return true
 }
 
 func (i IndexItem) Validate() error {

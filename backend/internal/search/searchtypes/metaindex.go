@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 )
 
 func NewMetaIndex() MetaIndex {
 	return MetaIndex{
 		Items:         map[IndexID]IndexItem{},
+		Deletions:     map[IndexID]time.Time{},
 		itemsByParent: map[IndexID]map[IndexID]struct{}{},
 		lock:          &sync.Mutex{},
 	}
@@ -17,6 +19,9 @@ func NewMetaIndex() MetaIndex {
 
 type MetaIndex struct {
 	Items map[IndexID]IndexItem `json:"items"`
+	// Deletions are items that have been removed from the underlying data structure. These deletions will be kept in
+	// the metaindex for a period of 30 days to ensure that any search indexes can be updated incrementally.
+	Deletions map[IndexID]time.Time `json:"deletions"`
 
 	itemsByParent map[IndexID]map[IndexID]struct{}
 	lock          *sync.Mutex
@@ -27,20 +32,30 @@ func (m *MetaIndex) UnmarshalJSON(data []byte) error {
 	defer m.lock.Unlock()
 
 	type metaIndex struct {
-		Items map[IndexID]IndexItem `json:"items"`
+		Items     map[IndexID]IndexItem `json:"items"`
+		Deletions map[IndexID]time.Time `json:"deletions"`
 	}
 
 	unmarshalled := metaIndex{
-		Items: nil,
+		Items:     map[IndexID]IndexItem{},
+		Deletions: map[IndexID]time.Time{},
 	}
 	if err := json.Unmarshal(data, &unmarshalled); err != nil {
 		return err
 	}
 	m.Items = map[IndexID]IndexItem{}
+	m.Deletions = map[IndexID]time.Time{}
+
 	m.itemsByParent = map[IndexID]map[IndexID]struct{}{}
 	for _, item := range unmarshalled.Items {
 		if err := m.addItem(item); err != nil {
 			return err
+		}
+	}
+	for i, t := range unmarshalled.Deletions {
+		// Only load the deletion if 30 days have not passed since.
+		if t.Add(time.Hour * 24 * 30).After(time.Now()) {
+			m.Deletions[i] = t
 		}
 	}
 	for _, item := range m.Items {
@@ -69,6 +84,14 @@ func (m *MetaIndex) AddItem(_ context.Context, i IndexItem) error {
 }
 
 func (m *MetaIndex) addItem(i IndexItem) error {
+	if existingItem, ok := m.Items[i.ID]; ok {
+		if existingItem.Equals(i) {
+			return nil
+		}
+	}
+
+	delete(m.Deletions, i.ID)
+
 	m.Items[i.ID] = i
 	if _, ok := m.itemsByParent[i.ID]; !ok {
 		m.itemsByParent[i.ID] = map[IndexID]struct{}{}
@@ -91,11 +114,16 @@ func (m *MetaIndex) RemoveItem(_ context.Context, id IndexID) error {
 }
 
 func (m *MetaIndex) removeItem(id IndexID) error {
+	if _, ok := m.Deletions[id]; ok {
+		return nil
+	}
+
 	for id := range m.itemsByParent[id] {
 		if err := m.removeItem(id); err != nil {
 			return fmt.Errorf("failed to remove subitem %s (%w)", id, err)
 		}
 	}
+	m.Deletions[id] = time.Now()
 	delete(m.itemsByParent, id)
 	return nil
 }
@@ -111,7 +139,9 @@ func (m *MetaIndex) RemoveVersionItems(_ context.Context, itemType IndexType, ad
 		}
 	}
 	for _, id := range removeQueue {
-		delete(m.Items, id)
+		if err := m.removeItem(id); err != nil {
+			return fmt.Errorf("failed to remove item %s (%w)", id, err)
+		}
 	}
 	return nil
 }

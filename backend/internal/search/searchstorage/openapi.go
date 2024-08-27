@@ -1,13 +1,16 @@
 package searchstorage
 
-// GetSearchIndex returns a lunr.js search index.
+// GetSearchIndex returns a newline-delimited search index suitable for insertion into a database. The records are not
+// guaranteed to be in order.
 //
-// swagger:operation GET /search.json Search GetSearchIndex
+// swagger:operation GET /search.ndjson Search GetSearchIndex
 // ---
 // produces:
-// - application/json
+// - application/x-ndjson
 // responses:
 //   '200':
-//     description: A lunr.js search index for modules and providers.
+//     description: A newline-delimited search index suitable for insertion into a database. The records are not guaranteed to be in order. Each item is a GeneratedIndexItem.
 //     schema:
-//       type: file
+//       type: array
+//       items:
+//         $ref: '#/definitions/GeneratedIndexItem'
