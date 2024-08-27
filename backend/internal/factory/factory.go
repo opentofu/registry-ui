@@ -109,7 +109,7 @@ func getBackend(ctx context.Context, log logger.Logger, registryDir string, work
 		backingStorage, err = s3storage.New(
 			ctx,
 			s3storage.WithBucket(s3Params.Bucket),
-			//s3storage.WithRegion(s3Params.Region),
+			s3storage.WithRegion(s3Params.Region),
 			s3storage.WithEndpoint(s3Params.Endpoint),
 			s3storage.WithTLSConfig(&tls.Config{
 				RootCAs:    tlsPool,

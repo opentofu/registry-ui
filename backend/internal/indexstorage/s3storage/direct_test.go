@@ -1,6 +1,7 @@
 package s3storage_test
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"os"
@@ -20,6 +21,7 @@ func TestDirect(t *testing.T) {
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(aws.CACert())
 	storage := tofutestutils.Must2(s3storage.New(
+		context.Background(),
 		s3storage.WithBucket(aws.S3Bucket()),
 		s3storage.WithAccessKey(aws.AccessKey()),
 		s3storage.WithSecretKey(aws.SecretKey()),
