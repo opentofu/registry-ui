@@ -19,7 +19,7 @@ import (
 
 func main() {
 	// TODO: Do config properly using a lib, not just flags
-	// TODO: Stop using NOW() anywher
+	// TODO: Stop using NOW() in all places
 	var connString string
 	flag.StringVar(&connString, "connection-string", "", "Postgres connection string")
 
