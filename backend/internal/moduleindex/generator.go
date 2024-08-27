@@ -226,6 +226,8 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					g.log.Warn(ctx, "Module %s version %s has an invalid version number, skipping...", moduleAddr.String(), ver.Version)
 					continue
 				}
+				vcsVer := ver.Version.ToVCSVersion()
+				ver = ver.Normalize()
 				hasVersion := entry.HasVersion(ver.Version)
 				if hasVersion && !forceModule {
 					g.log.Info(ctx, "The index already has version %s for module %s, skipping...", ver.Version, moduleAddr.String())
@@ -250,7 +252,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 				}
 
 				publicationTime := time.Time{}
-				vcsVersion, err := g.vcsClient.GetTagVersion(ctx, moduleAddr.ToRepositoryAddr(), ver.Version.ToVCSVersion())
+				vcsVersion, err := g.vcsClient.GetTagVersion(ctx, moduleAddr.ToRepositoryAddr(), vcsVer)
 				if err != nil {
 					var versionNotFound *vcs.VersionNotFoundError
 					if errors.As(err, &versionNotFound) {
@@ -265,7 +267,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					ID:        ver.Version,
 					Published: publicationTime,
 				}
-				if err := g.generateModuleVersion(ctx, moduleAddr, *entry, modVersion); err != nil {
+				if err := g.generateModuleVersion(ctx, moduleAddr, *entry, modVersion, vcsVer); err != nil {
 					var repoNotFound *vcs.RepositoryNotFoundError
 					if errors.As(err, &repoNotFound) {
 						g.log.Info(ctx, "The repository for the module %s has been removed from the VCS system, queueing removal from index.", moduleAddr.String())
@@ -362,7 +364,7 @@ func (g generator) removeModuleVersion(ctx context.Context, moduleAddr ModuleAdd
 	return nil
 }
 
-func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleAddr, entry Module, ver ModuleVersionDescriptor) error {
+func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleAddr, entry Module, ver ModuleVersionDescriptor, vcsVersion vcs.VersionNumber) error {
 	g.log.Info(ctx, "Generating index artifacts for module %s version %s...", moduleAddr.String(), ver.ID)
 	indexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, string(ver.ID), "index.json")
 	result := ModuleVersion{
@@ -397,7 +399,7 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 	}
 
 	g.log.Info(ctx, "Checking out module %s version %s...", moduleAddr, ver.ID)
-	workingCopy, err := g.vcsClient.Checkout(ctx, moduleAddr.ToRepositoryAddr(), ver.ID.ToVCSVersion())
+	workingCopy, err := g.vcsClient.Checkout(ctx, moduleAddr.ToRepositoryAddr(), vcsVersion)
 	if err != nil {
 		return fmt.Errorf("failed to check out %s version %s (%w)", moduleAddr.String(), ver.ID, err)
 	}
