@@ -1,12 +1,14 @@
 definitions:
     Addr:
         description: |-
-            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-            github.com/NAMESPACE/terraform-provider-NAME .
+            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
         properties:
             Name:
                 type: string
             Namespace:
+                type: string
+            TargetSystem:
                 type: string
         type: object
     BaseDetails:
@@ -38,19 +40,27 @@ definitions:
         type: object
     DocItemName:
         type: string
+    GeneratedIndexHeader:
+        properties:
+            last_updated:
+                format: date-time
+                type: string
+        type: object
     GeneratedIndexItem:
         properties:
             addition:
                 $ref: '#/definitions/IndexItem'
             deletion:
                 $ref: '#/definitions/ItemDeletion'
-            operation:
-                $ref: '#/definitions/GeneratedIndexItemOperation'
+            header:
+                $ref: '#/definitions/GeneratedIndexHeader'
+            type:
+                $ref: '#/definitions/GeneratedIndexItemType'
         required:
-            - operation
+            - type
         type: object
-    GeneratedIndexItemOperation:
-        description: 'enum: ["add","delete"]'
+    GeneratedIndexItemType:
+        description: 'enum: ["header","add","delete"]'
         type: string
     IndexID:
         type: string
