@@ -38,6 +38,59 @@ definitions:
         type: object
     DocItemName:
         type: string
+    GeneratedIndexItem:
+        properties:
+            addition:
+                $ref: '#/definitions/IndexItem'
+            deletion:
+                $ref: '#/definitions/ItemDeletion'
+            operation:
+                $ref: '#/definitions/GeneratedIndexItemOperation'
+        required:
+            - operation
+        type: object
+    GeneratedIndexItemOperation:
+        description: 'enum: ["add","delete"]'
+        type: string
+    IndexID:
+        type: string
+    IndexItem:
+        properties:
+            addr:
+                type: string
+            description:
+                type: string
+            id:
+                $ref: '#/definitions/IndexID'
+            last_updated:
+                format: date-time
+                type: string
+            link:
+                additionalProperties:
+                    type: string
+                type: object
+            parent_id:
+                $ref: '#/definitions/IndexID'
+            title:
+                type: string
+            type:
+                $ref: '#/definitions/IndexType'
+            version:
+                type: string
+        type: object
+    IndexType:
+        type: string
+    ItemDeletion:
+        properties:
+            deleted_at:
+                format: date-time
+                type: string
+            id:
+                $ref: '#/definitions/IndexID'
+        required:
+            - id
+            - deleted_at
+        type: object
     License:
         properties:
             confidence:
@@ -1030,16 +1083,18 @@ paths:
                         $ref: '#/definitions/ProviderList'
             tags:
                 - Providers
-    /search.json:
+    /search.ndjson:
         get:
             operationId: GetSearchIndex
             produces:
-                - application/json
+                - application/x-ndjson
             responses:
                 "200":
-                    description: A lunr.js search index for modules and providers.
+                    description: A newline-delimited search index suitable for insertion into a database. The records are not guaranteed to be in order. Each item is a GeneratedIndexItem.
                     schema:
-                        type: file
+                        items:
+                            $ref: '#/definitions/GeneratedIndexItem'
+                        type: array
             tags:
                 - Search
 schemes:

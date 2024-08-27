@@ -6,10 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"os/exec"
-	"path"
 	"sync"
+	"time"
 
 	"github.com/opentofu/libregistry/logger"
 
@@ -40,23 +38,10 @@ func New(
 }
 
 type Config struct {
-	NodePath string
-	JSDir    string
-	Logger   logger.Logger
+	Logger logger.Logger
 }
 
 func (c *Config) applyDefaults() error {
-	if c.NodePath == "" {
-		c.NodePath = defaultNodePath
-		// TODO check if node is runnable
-	}
-	if c.JSDir == "" {
-		tempDir, err := os.MkdirTemp(os.TempDir(), "search-")
-		if err != nil {
-			return fmt.Errorf("failed to create temporary directory (%w)", err)
-		}
-		c.JSDir = tempDir
-	}
 	if c.Logger == nil {
 		c.Logger = logger.NewNoopLogger()
 	}
@@ -64,13 +49,6 @@ func (c *Config) applyDefaults() error {
 }
 
 type Opt func(c *Config) error
-
-func WithJSDir(dir string) Opt {
-	return func(c *Config) error {
-		c.JSDir = dir
-		return nil
-	}
-}
 
 func WithLogger(log logger.Logger) Opt {
 	return func(c *Config) error {
@@ -98,7 +76,7 @@ func (a *api) AddItem(ctx context.Context, item searchtypes.IndexItem) error {
 	if err := a.ensureMetaIndex(ctx); err != nil {
 		return err
 	}
-
+	item.LastUpdated = time.Now()
 	return a.metaIndex.AddItem(ctx, item)
 }
 
@@ -118,60 +96,52 @@ func (a *api) GenerateIndex(ctx context.Context) error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 
-	input := make([]searchtypes.IndexItem, len(a.metaIndex.Items))
-	i := 0
-	for _, item := range a.metaIndex.Items {
-		input[i] = item
-		i++
+	buf := &bytes.Buffer{}
+	writeItem := func(id string, item searchtypes.GeneratedIndexItem) error {
+		itemJSON, err := json.Marshal(item)
+		if err != nil {
+			return fmt.Errorf("failed to create JSON for %s (%w)", id, err)
+		}
+		buf.Write(itemJSON)
+		buf.Write([]byte("\n"))
+		return nil
+	}
+	if err := writeItem("header", searchtypes.GeneratedIndexItem{
+		Type: searchtypes.GeneratedIndexItemHeader,
+		Header: &searchtypes.GeneratedIndexHeader{
+			LastUpdated: time.Now(),
+		},
+	}); err != nil {
+		return err
 	}
 
-	lunrInput, err := json.Marshal(input)
-	if err != nil {
-		return fmt.Errorf("failed to create lunr input (%w)", err)
-	}
-
-	// Eject lunr.js:
-	lunrFile := path.Join(a.cfg.JSDir, "lunr.js")
-	if err := os.WriteFile(lunrFile, []byte(lunrJSCode), 0600); err != nil {
-		return fmt.Errorf("failed to write lunr.js code to %s (%w)", lunrFile, err)
-	}
-	defer func() {
-		_ = os.RemoveAll(lunrFile)
-	}()
-
-	// Eject the add code:
-	generateFile := path.Join(a.cfg.JSDir, "generate.js")
-	if err := os.WriteFile(generateFile, addScript, 0600); err != nil {
-		return fmt.Errorf("failed to write generate.js code to %s (%w)", generateFile, err)
-	}
-	defer func() {
-		_ = os.RemoveAll(lunrFile)
-	}()
-
-	stdin := &bytes.Buffer{}
-	stdout := &bytes.Buffer{}
-
-	_, _ = stdin.Write(lunrInput)
-
-	cmd := exec.CommandContext(ctx, a.cfg.NodePath, generateFile)
-	cmd.Dir = a.cfg.JSDir
-	cmd.Stdout = stdout
-	cmd.Stdin = stdin
-	cmd.Stderr = logger.NewWriter(ctx, a.cfg.Logger, logger.LevelWarning, a.cfg.NodePath+" "+generateFile+": ")
-	if err := cmd.Run(); err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			if exitErr.ExitCode() != 0 {
-				return fmt.Errorf("node exited with a non-zero exit code (%d)", exitErr.ExitCode())
-			}
-		} else {
+	for i, t := range a.metaIndex.Deletions {
+		generatedItem := searchtypes.GeneratedIndexItem{
+			Type: searchtypes.GeneratedIndexItemDelete,
+			Deletion: &searchtypes.ItemDeletion{
+				ID:        i,
+				DeletedAt: t,
+			},
+		}
+		if err := writeItem(string(i), generatedItem); err != nil {
 			return err
 		}
 	}
+
+	for i, item := range a.metaIndex.Items {
+		generatedItem := searchtypes.GeneratedIndexItem{
+			Type:     searchtypes.GeneratedIndexItemAdd,
+			Addition: &item,
+		}
+		if err := writeItem(string(i), generatedItem); err != nil {
+			return err
+		}
+	}
+
 	if err := a.storage.StoreMetaIndex(ctx, *a.metaIndex); err != nil {
 		return err
 	}
-	if err := a.storage.StoreGeneratedIndex(ctx, stdout.Bytes()); err != nil {
+	if err := a.storage.StoreGeneratedIndex(ctx, buf.Bytes()); err != nil {
 		return err
 	}
 	return nil

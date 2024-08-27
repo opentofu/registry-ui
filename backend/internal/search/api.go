@@ -17,7 +17,6 @@ type API interface {
 	RemoveItem(ctx context.Context, id searchtypes.IndexID) error
 
 	// GenerateIndex generates a search index with the items currently in the searchtypes.MetaIndex. This function
-	// returns an opaque blob that should be passed to the frontend for use as a search index. (Under the hood this is
-	// a lunr.js search index.)
+	// returns an opaque blob that should be passed to the frontend for use as a search index.
 	GenerateIndex(ctx context.Context) error
 }
