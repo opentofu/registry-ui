@@ -1,13 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-            github.com/NAMESPACE/terraform-provider-NAME .
-        properties:
-            Name:
-                type: string
-            Namespace:
-                type: string
+            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
         type: object
     BaseDetails:
         properties:
@@ -38,19 +33,27 @@ definitions:
         type: object
     DocItemName:
         type: string
+    GeneratedIndexHeader:
+        properties:
+            last_updated:
+                format: date-time
+                type: string
+        type: object
     GeneratedIndexItem:
         properties:
             addition:
                 $ref: '#/definitions/IndexItem'
             deletion:
                 $ref: '#/definitions/ItemDeletion'
-            operation:
-                $ref: '#/definitions/GeneratedIndexItemOperation'
+            header:
+                $ref: '#/definitions/GeneratedIndexHeader'
+            type:
+                $ref: '#/definitions/GeneratedIndexItemType'
         required:
-            - operation
+            - type
         type: object
-    GeneratedIndexItemOperation:
-        description: 'enum: ["add","delete"]'
+    GeneratedIndexItemType:
+        description: 'enum: ["header","add","delete"]'
         type: string
     IndexID:
         type: string
@@ -136,12 +139,6 @@ definitions:
             ModuleAddr describes a module address enriched with data for the API. Use the Addr() function
             to generate this from a module.Addr.
         properties:
-            Name:
-                type: string
-            Namespace:
-                type: string
-            TargetSystem:
-                type: string
             display:
                 description: |-
                     Contains the display version of the addr presentable to the end user. This may be
@@ -463,10 +460,6 @@ definitions:
         type: object
     ProviderAddr:
         properties:
-            Name:
-                type: string
-            Namespace:
-                type: string
             display:
                 description: Display contains the user-readable display variant of this addr. This may be capitalized.
                 type: string
