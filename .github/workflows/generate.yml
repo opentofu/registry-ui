@@ -21,7 +21,7 @@ jobs:
           AWS_ENDPOINT_URL_S3: ${{secrets.AWS_ENDPOINT_URL_S3}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
           S3_BUCKET: ${{secrets.S3_BUCKET}}
-          NAMESPACES: hashicorp,opentofu,env0,spacelift-io,scalr,harness-io,integrations
+          NAMESPACES: hashicorp opentofu env0 spacelift-io scalr harness-io integrations
         run: |
           mkdir work
           for NAMESPACE in ${NAMESPACES}; do
