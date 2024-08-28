@@ -473,7 +473,7 @@ func (g generator) refreshModuleDetails(ctx context.Context, moduleAddr ModuleAd
 	}
 
 	dir := path.Join(rawDirectory, prefix)
-	if err := g.extractModuleSchema(ctx, dir, d); err != nil {
+	if err := g.extractModuleSchema(ctx, dir, d, licenseOK); err != nil {
 		return err
 	}
 
@@ -634,7 +634,10 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 	return nil
 }
 
-func (g generator) extractModuleSchema(ctx context.Context, directory string, d *Details) error {
+func (g generator) extractModuleSchema(ctx context.Context, directory string, d *Details, licenseOK bool) error {
+	if !licenseOK {
+		return nil
+	}
 	moduleSchema, err := g.moduleSchemaExtractor.Extract(ctx, directory)
 	if err != nil {
 		var extractionFailed *moduleschema.SchemaExtractionFailedError
@@ -655,7 +658,10 @@ func (g generator) extractModuleSchema(ctx context.Context, directory string, d 
 	return nil
 }
 
-func (g generator) extractExampleSchema(ctx context.Context, directory string, e *Example) error {
+func (g generator) extractExampleSchema(ctx context.Context, directory string, e *Example, licenseOK bool) error {
+	if !licenseOK {
+		return nil
+	}
 	moduleSchema, err := g.moduleSchemaExtractor.Extract(ctx, directory)
 	if err != nil {
 		var extractionFailed *moduleschema.SchemaExtractionFailedError
