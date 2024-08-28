@@ -27,7 +27,6 @@ async function fetchData(client: Client, queryParam: string, ctx: ExecutionConte
 	try {
 		const results = await query(client, queryParam);
 		ctx.waitUntil(client.end());
-		console.log(results);
 		return Response.json(results);
 	} catch (error) {
 		console.error('Error during fetch:', error);
