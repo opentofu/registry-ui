@@ -21,12 +21,18 @@ export function ModuleSideMenu() {
       <ModuleTabLink to="." end>
         Readme
       </ModuleTabLink>
-      <ModuleTabLink to="inputs">Inputs ({inputsCount})</ModuleTabLink>
-      <ModuleTabLink to="outputs">Outputs ({outputsCount})</ModuleTabLink>
-      <ModuleTabLink to="dependencies">
-        Dependencies ({dependenciesCount})
-      </ModuleTabLink>
-      <ModuleTabLink to="resources">Resources ({resourcesCount})</ModuleTabLink>
+      {!data.schema_error && (
+        <>
+          <ModuleTabLink to="inputs">Inputs ({inputsCount})</ModuleTabLink>
+          <ModuleTabLink to="outputs">Outputs ({outputsCount})</ModuleTabLink>
+          <ModuleTabLink to="dependencies">
+            Dependencies ({dependenciesCount})
+          </ModuleTabLink>
+          <ModuleTabLink to="resources">
+            Resources ({resourcesCount})
+          </ModuleTabLink>
+        </>
+      )}
     </TreeView>
   );
 }
