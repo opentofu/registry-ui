@@ -58,7 +58,9 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(body)
-	scanner.Scan()
+	if !scanner.Scan() {
+		log.Fatal("no data in search index")
+	}
 
 	header, err := readSearchHeader(scanner.Bytes())
 	if err != nil {
