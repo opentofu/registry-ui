@@ -27,6 +27,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
+    "ky": "^1.7.1",
     "lunr": "^2.3.9",
     "openapi-typescript": "^5.4.2",
     "postcss": "^8.4.41",

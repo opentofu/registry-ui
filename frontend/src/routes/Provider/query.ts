@@ -1,5 +1,5 @@
 import { definitions } from "@/api";
-import { NotFoundPageError } from "@/utils/errors";
+import { api } from "@/query";
 import { queryOptions } from "@tanstack/react-query";
 
 export const getProviderVersionDataQuery = (
@@ -10,13 +10,11 @@ export const getProviderVersionDataQuery = (
   return queryOptions({
     queryKey: ["provider-version", namespace, provider, version],
     queryFn: async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_DATA_API_URL}/providers/${namespace}/${provider}/${version}/index.json`,
-      );
+      const data = await api(
+        `providers/${namespace}/${provider}/${version}/index.json`,
+      ).json<definitions["ProviderVersion"]>();
 
-      const data = await response.json();
-
-      return data as definitions["ProviderVersion"];
+      return data;
     },
   });
 };
@@ -32,19 +30,14 @@ export const getProviderDocsQuery = (
   return queryOptions({
     queryKey: ["provider-doc", namespace, provider, type, name, lang, version],
     queryFn: async () => {
-      const urlBase = `${import.meta.env.VITE_DATA_API_URL}/providers/${namespace}/${provider}/${version}`;
+      const urlBase = `providers/${namespace}/${provider}/${version}`;
       const requestURL =
         type === undefined && name === undefined
           ? `${urlBase}/index.md`
           : `${urlBase}/${lang ? `cdktf/${lang}/` : ""}${type}/${name}.md`;
 
-      const response = await fetch(requestURL);
-
-      if (!response.ok) {
-        throw new NotFoundPageError();
-      }
-
-      return response.text();
+      const data = await api(requestURL).text();
+      return data;
     },
   });
 };
@@ -56,13 +49,11 @@ export const getProviderDataQuery = (
   return queryOptions({
     queryKey: ["provider", namespace, provider],
     queryFn: async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_DATA_API_URL}/providers/${namespace}/${provider}/index.json`,
-      );
+      const data = await api(
+        `providers/${namespace}/${provider}/index.json`,
+      ).json<definitions["Provider"]>();
 
-      const data = await response.json();
-
-      return data as definitions["Provider"];
+      return data;
     },
   });
 };
