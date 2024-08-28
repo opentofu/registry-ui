@@ -18,8 +18,6 @@ import (
 )
 
 func main() {
-	// TODO: Do config properly using a lib, not just flags
-	// TODO: Stop using NOW() in all places
 	var connString string
 	flag.StringVar(&connString, "connection-string", "", "Postgres connection string")
 
@@ -35,10 +33,11 @@ func main() {
 		log.Fatal("batch size must be greater than 0")
 	}
 
-	err := downloadSearchMetaIndex()
+	body, err := downloadSearchMetaIndex()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer body.Close()
 
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
@@ -52,20 +51,13 @@ func main() {
 	}
 
 	// If the most recent job is in progress, exit
-	// TODO: Handle this so we dont have to fix things manually
+	// TODO: Handle this in a better way
 	if mostRecentJob.InProgress() {
 		log.Println("Import already in progress, exiting")
 		os.Exit(0)
 	}
 
-	file, err := os.Open("./search.ndjson")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	//TODO: Dont dump to file, stream from http directly
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(body)
 	scanner.Scan()
 
 	header, err := readSearchHeader(scanner.Bytes())
@@ -181,10 +173,7 @@ func readSearchHeader(data []byte) (*SearchHeader, error) {
 }
 
 func (i *ImportJob) InProgress() bool {
-	if i == nil {
-		return false
-	}
-	return !i.CompletedAt.Valid
+	return i != nil && !i.CompletedAt.Valid
 }
 
 func getMostRecentJob(db *sql.DB) (*ImportJob, error) {
@@ -221,9 +210,10 @@ func getMostRecentJob(db *sql.DB) (*ImportJob, error) {
 }
 
 func startJob(db *sql.DB) (int, error) {
-	// TODO: use a non-server time
+	now := time.Now()
+
 	id := 0
-	err := db.QueryRow("INSERT INTO import_jobs (created_at) VALUES (NOW()) RETURNING id").Scan(&id)
+	err := db.QueryRow("INSERT INTO import_jobs (created_at) VALUES ($1) RETURNING id", now).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -232,39 +222,25 @@ func startJob(db *sql.DB) (int, error) {
 }
 
 func completeJob(db *sql.DB, id int) error {
-	// set completed_at and successful to true for the job with id
-	_, err := db.Exec("UPDATE import_jobs SET completed_at = NOW(), successful = true WHERE id = $1", id)
+	now := time.Now()
+	_, err := db.Exec("UPDATE import_jobs SET completed_at = $1, successful = true WHERE id = $2", now, id)
 	return err
 }
 
-func downloadSearchMetaIndex() error {
-	log.Println("Downloading search.ndjson")
-	out, err := os.Create("./search.ndjson")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
+func downloadSearchMetaIndex() (io.ReadCloser, error) {
 
 	// Get the data
 	resp, err := http.Get("https://api.opentofu.org/search.ndjson")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("unexpected status code: %d", resp.StatusCode)
+		resp.Body.Close()
+		return nil, fmt.Errorf("failed to download search index: %s", resp.Status)
 	}
 
-	// stream the data to disk
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Downloaded search.ndjson")
-
-	return err
+	return resp.Body, nil
 }
 
 func deleteItems(tx *sql.Tx, items []SearchIndexItem) error {
@@ -293,7 +269,7 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 	}
 
 	values := make([]string, 0, len(items))
-	args := make([]interface{}, 0, len(items)*7) // 7 fields + 1 for timestamp
+	args := make([]interface{}, 0, len(items)*8)
 
 	for i, item := range items {
 		linkVarsJSON, err := json.Marshal(item.Addition.Link)
@@ -302,11 +278,11 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 		}
 
 		// Build the placeholder for each row
-		// TODO: use last updated time on the record
-		placeholderIndex := i * 7 // 7 fields per row
-		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, NOW())",
+		placeholderIndex := i * 8 // 8 fields per row
+		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
 			placeholderIndex+1, placeholderIndex+2, placeholderIndex+3,
-			placeholderIndex+4, placeholderIndex+5, placeholderIndex+6, placeholderIndex+7))
+			placeholderIndex+4, placeholderIndex+5, placeholderIndex+6,
+			placeholderIndex+7, placeholderIndex+8))
 
 		args = append(args,
 			item.Addition.ID,
@@ -316,6 +292,7 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 			item.Addition.Title,
 			item.Addition.Description,
 			linkVarsJSON,
+			item.Addition.LastUpdated,
 		)
 	}
 
@@ -324,12 +301,12 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 		VALUES %s
 		ON CONFLICT (id) DO UPDATE 
 		SET type = EXCLUDED.type,
-		    addr = EXCLUDED.addr,
-		    version = EXCLUDED.version,
-		    title = EXCLUDED.title,
-		    description = EXCLUDED.description,
-		    link_variables = EXCLUDED.link_variables,
-		    last_updated = NOW()
+				addr = EXCLUDED.addr,
+				version = EXCLUDED.version,
+				title = EXCLUDED.title,
+				description = EXCLUDED.description,
+				link_variables = EXCLUDED.link_variables,
+				last_updated = EXCLUDED.last_updated
 	`, strings.Join(values, ","))
 
 	// Execute the query with all the arguments
