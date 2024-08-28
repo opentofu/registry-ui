@@ -2,7 +2,7 @@ import { Client } from '@neondatabase/serverless';
 
 const searchQuery = `
 WITH search_terms AS (
-  SELECT unnest(string_to_array($1, ' ')) AS term
+  SELECT unnest(regexp_split_to_array($1, '[ /]+')) AS term
 ),
 matched_entities AS (
   SELECT *,

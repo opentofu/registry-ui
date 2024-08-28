@@ -232,7 +232,6 @@ func completeJob(db *sql.DB, id int) error {
 }
 
 func downloadSearchMetaIndex() (io.ReadCloser, error) {
-
 	// Get the data
 	resp, err := http.Get("https://api.opentofu.org/search.ndjson")
 	if err != nil {
