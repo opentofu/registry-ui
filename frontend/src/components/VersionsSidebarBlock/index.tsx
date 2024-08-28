@@ -23,7 +23,6 @@ interface TreeNode extends SimpleTreeNode {
 
 interface TreeItemProps {
   node: TreeNode;
-  isInitiallyOpen?: boolean;
 }
 
 function VersionTreeViewItemHandle({
@@ -136,8 +135,8 @@ function VersionTreeViewNestedItems({
   );
 }
 
-function VersionTreeViewItem({ node, isInitiallyOpen = false }: TreeItemProps) {
-  const [isOpen, setIsOpen] = useState(isInitiallyOpen);
+function VersionTreeViewItem({ node }: TreeItemProps) {
+  const [isOpen, setIsOpen] = useState(node.isActive);
 
   return (
     <TreeViewItem>
@@ -192,12 +191,8 @@ export function VersionsSidebarBlock({
           }}
         />
 
-        {groupedVersions.map((node, index) => (
-          <VersionTreeViewItem
-            key={index}
-            node={node}
-            isInitiallyOpen={index === 0}
-          />
+        {groupedVersions.map((node) => (
+          <VersionTreeViewItem key={node.label} node={node} />
         ))}
       </TreeView>
     </SidebarBlock>
