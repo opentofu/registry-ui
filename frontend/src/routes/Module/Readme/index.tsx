@@ -6,7 +6,7 @@ import { useModuleParams } from "../hooks/useModuleParams";
 import { Suspense } from "react";
 import { EditLink } from "@/components/EditLink";
 
-export function ModuleReadmeContent() {
+function ModuleReadmeContent() {
   const { namespace, name, version, target } = useModuleParams();
 
   const [{ data }, { data: versionData }] = useSuspenseQueries({
@@ -26,7 +26,7 @@ export function ModuleReadmeContent() {
   );
 }
 
-export function ModuleReadmeContentSkeleton() {
+function ModuleReadmeContentSkeleton() {
   return (
     <>
       <span className="flex h-em w-52 animate-pulse bg-gray-500/25 text-4xl" />

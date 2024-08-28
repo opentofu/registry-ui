@@ -5,7 +5,7 @@ import { getModuleExampleReadmeQuery } from "../query";
 import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 import { Suspense } from "react";
 
-export function ModuleExampleReadmeContent() {
+function ModuleExampleReadmeContent() {
   const { namespace, name, target, version, example } =
     useModuleExampleParams();
 
@@ -16,7 +16,7 @@ export function ModuleExampleReadmeContent() {
   return <Markdown text={data} />;
 }
 
-export function ModuleExampleReadmeContentSkeleton() {
+function ModuleExampleReadmeContentSkeleton() {
   return (
     <>
       <span className="mt-6 flex h-em w-52 animate-pulse bg-gray-500/25 text-4xl" />

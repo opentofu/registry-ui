@@ -9,7 +9,6 @@ export type NestedItem = {
   active?: boolean;
 };
 
-export type Document = definitions["ProviderDocItem"];
 export type Docs = Omit<definitions["ProviderDocs"], "index">;
 type Category = keyof Docs;
 
