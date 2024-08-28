@@ -110,6 +110,8 @@ func main() {
 			} else if item.Type == "deletion" {
 				toDelete = append(toDelete, item)
 				handled++
+			} else {
+				log.Printf("Skipping unknown item type: %s\n", item.Type)
 			}
 		}
 
