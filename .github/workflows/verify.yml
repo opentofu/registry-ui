@@ -1,0 +1,40 @@
+name: Verify
+permissions: {}
+on:
+  pull_request:
+jobs:
+  generate:
+    name: Go generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'backend/go.mod'
+      - name: Run go generate
+        working-directory: backend
+        run: go generate ./...
+      - name: Check if there are any changes
+        run: |
+          if [ "$(git diff | wc -l)" -ne 0 ]; then
+            echo "Changes detected after go generate. Please run go generate ./... and push your changes."
+          fi
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'backend/go.mod'
+      - name: Run go generate
+        working-directory: backend
+        run: go generate ./...
+      - name: Run tests
+        working-directory: backend
+        run: |
+          go test ./...

@@ -1,0 +1,29 @@
+name: Generate
+permissions: {}
+on:
+  schedule:
+    - cron: "0 * * * *"
+jobs:
+  generate:
+    name: Run generation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'backend/go.mod'
+      - name: Run generation
+        working-directory: backend
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_ENDPOINT_URL_S3: ${{secrets.AWS_ENDPOINT_URL_S3}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          S3_BUCKET: ${{secrets.S3_BUCKET}}
+          NAMESPACES: hashicorp opentofu env0 spacelift-io scalr harness-io integrations
+        run: |
+          mkdir work
+          for NAMESPACE in ${NAMESPACES}; do
+            go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --namespace="${NAMESPACE}" --s3-bucket=${S3_BUCKET}
+          done
