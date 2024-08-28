@@ -2,6 +2,8 @@ import { HTMLAttributes } from "react";
 
 export function MarkdownUl({ children }: HTMLAttributes<HTMLUListElement>) {
   return (
-    <ul className="my-4 ml-6 flex list-disc flex-col gap-2">{children}</ul>
+    <ul className="ml-8 mt-5 flex list-disc flex-col gap-2 [li>&]:mt-2.5">
+      {children}
+    </ul>
   );
 }
