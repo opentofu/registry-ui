@@ -280,7 +280,8 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 			return fmt.Errorf("failed to marshal link variables: %w", err)
 		}
 
-		// Build the placeholder for each row
+		// Build the placeholder for each row, this is to be used to construct the sql query and not for the actual values
+		// it's okay to use sprintf here as no values are actually being injected, we're just building the query
 		placeholderIndex := i * 8 // 8 fields per row
 		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
 			placeholderIndex+1, placeholderIndex+2, placeholderIndex+3,
