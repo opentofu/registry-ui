@@ -2,7 +2,7 @@ import { NotFoundPageError } from "@/utils/errors";
 import { Navigate, useLocation, useRouteError } from "react-router-dom";
 import { useProviderParams } from "../hooks/useProviderParams";
 
-export function ProviderDocsError() {
+export function ProviderError() {
   const routeError = useRouteError() as Error;
   const location = useLocation();
   const { namespace, provider, version } = useProviderParams();
