@@ -15,15 +15,11 @@ type ValidationResult = ValidationSuccess | ValidationError;
 
 const newValidationErrorResult = (message: string, status: number): ValidationError => ({ error: { message, status } });
 
-export function validateRequest(request: Request): ValidationResult {
+export function validateSearchRequest(request: Request): ValidationResult {
 	const url = new URL(request.url);
 
 	if (request.method !== 'GET') {
 		return newValidationErrorResult('Method not allowed', 405);
-	}
-
-	if (url.pathname !== '/') {
-		return newValidationErrorResult('Not found', 404);
 	}
 
 	const queryParam = url.searchParams.get('q');
