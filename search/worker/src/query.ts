@@ -1,4 +1,10 @@
 import { Client } from '@neondatabase/serverless';
+import { Entity } from './types';
+
+export const query = async (client: Client, queryParam: string): Promise<Entity[]> => {
+	const { rows } = await client.query(searchQuery, [queryParam]);
+	return rows;
+};
 
 const searchQuery = `
 WITH search_terms AS (
@@ -72,16 +78,3 @@ ORDER BY term_match_count DESC,
   LENGTH(description)
 LIMIT 20;
 `;
-
-type Entity = {
-	id: string;
-	addr: string;
-	title: string;
-	description: string;
-	link_variables: Record<string, string>;
-};
-
-export const query = async (client: Client, queryParam: string): Promise<Entity[]> => {
-	const { rows } = await client.query(searchQuery, [queryParam]);
-	return rows;
-};

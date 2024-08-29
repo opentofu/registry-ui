@@ -1,26 +1,15 @@
 import { Client } from '@neondatabase/serverless';
 import { query } from './query';
+import { validateRequest } from './validation';
 
-function validateRequest(request: Request): { queryParam: string } | Response {
-	const url = new URL(request.url);
-
-	// Validate the request method
-	if (request.method !== 'GET') {
-		return new Response('Method not allowed', { status: 405 });
+async function getClient(databaseUrl: string): Promise<Client> {
+	if (databaseUrl === undefined) {
+		throw new Error('DATABASE_URL is required');
 	}
 
-	// Validate the request path
-	if (url.pathname !== '/') {
-		return new Response('Not found', { status: 404 });
-	}
-
-	// Validate query parameters
-	const queryParam = url.searchParams.get('q');
-	if (!queryParam) {
-		return new Response('No query provided', { status: 400 });
-	}
-
-	return { queryParam };
+	const client = new Client(databaseUrl);
+	await client.connect();
+	return client;
 }
 
 async function fetchData(client: Client, queryParam: string, ctx: ExecutionContext): Promise<Response> {
@@ -34,28 +23,14 @@ async function fetchData(client: Client, queryParam: string, ctx: ExecutionConte
 	}
 }
 
-function getClient(databaseUrl: string): Client {
-	if (databaseUrl === undefined) {
-		throw new Error('DATABASE_URL is required');
-	}
-
-	const client = new Client(databaseUrl);
-	client.connect();
-	return client;
-}
-
-// Main fetch handler
 export default {
 	async fetch(request: Request, env: any, ctx: ExecutionContext): Promise<Response> {
-		const client = getClient(env.DATABASE_URL);
-
-		// Validate the incoming request
 		const validation = validateRequest(request);
-		if (validation instanceof Response) {
-			return validation;
+		if (validation.error) {
+			return new Response(validation.error.message, { status: validation.error.status });
 		}
 
-		// Proceed with fetching data if validation passes
+		const client = await getClient(env.DATABASE_URL);
 		return await fetchData(client, validation.queryParam, ctx);
 	},
 };

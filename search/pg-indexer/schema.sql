@@ -1,3 +1,5 @@
+-- This file is to be used as reference on how to create the tables, this is not automatically run anywhere
+-- Please attempt to keep this file up to date with the actual schema
 CREATE TABLE IF NOT EXISTS entities
 (
     id             TEXT PRIMARY KEY,
