@@ -48,163 +48,164 @@ import { ProviderDocsError } from "./routes/Provider/Docs/error";
 export const router = createBrowserRouter(
   [
     {
-      id: "home",
-      index: true,
-      element: <Home />,
-      errorElement: <Error />,
-    },
-    {
-      id: "providers",
-      path: "/providers",
-      element: <Providers />,
-      errorElement: <Error />,
-      loader: providersLoader,
-      handle: {
-        crumb: () => createCrumb("/providers", "Providers"),
-      },
-    },
-    {
-      id: "modules",
-      path: "/modules",
-      element: <Modules />,
-      errorElement: <Error />,
-      loader: modulesLoader,
-      handle: {
-        crumb: () => createCrumb("/modules", "Modules"),
-      },
-    },
-    {
-      id: "module",
-      path: "module",
-      handle: {
-        crumb: () => createCrumb("/modules", "Modules"),
-      },
       errorElement: <Error />,
       children: [
         {
-          path: ":namespace",
+          id: "home",
+          index: true,
+          element: <Home />,
+        },
+        {
+          id: "providers",
+          path: "/providers",
+          element: <Providers />,
+          loader: providersLoader,
+          handle: {
+            crumb: () => createCrumb("/providers", "Providers"),
+          },
+        },
+        {
+          id: "modules",
+          path: "/modules",
+          element: <Modules />,
+          loader: modulesLoader,
+          handle: {
+            crumb: () => createCrumb("/modules", "Modules"),
+          },
+        },
+        {
+          id: "module",
+          path: "module",
+          handle: {
+            crumb: () => createCrumb("/modules", "Modules"),
+          },
           children: [
             {
-              index: true,
-              element: <Navigate to="/modules" />,
-            },
-            {
-              id: "module-version",
-              path: ":name/:target/:version?",
-              loader: moduleLoader,
-              handle: {
-                middleware: moduleMiddleware,
-                crumb: ({
-                  namespace,
-                  name,
-                  target,
-                  rawVersion,
-                }: ModuleRouteContext) =>
-                  createCrumb(
-                    `/module/${namespace}/${name}/${target}/${rawVersion}`,
-                    `${namespace}/${name}`,
-                  ),
-              },
+              path: ":namespace",
               children: [
                 {
-                  element: <Module />,
-                  children: [
-                    {
-                      index: true,
-                      element: <ModuleReadme />,
-                      loader: moduleReadmeLoader,
-                    },
-                    {
-                      path: "inputs",
-                      element: <ModuleInputs />,
-                    },
-                    {
-                      path: "outputs",
-                      element: <ModuleOutputs />,
-                    },
-                    {
-                      path: "dependencies",
-                      element: <ModuleDependencies />,
-                    },
-                    {
-                      path: "resources",
-                      element: <ModuleResources />,
-                    },
-                  ],
+                  index: true,
+                  element: <Navigate to="/modules" />,
                 },
                 {
-                  path: "example/:example",
-                  element: <ModuleExample />,
-                  loader: moduleExampleLoader,
+                  id: "module-version",
+                  path: ":name/:target/:version?",
+                  loader: moduleLoader,
                   handle: {
-                    middleware: moduleExampleMiddleware,
+                    middleware: moduleMiddleware,
                     crumb: ({
                       namespace,
                       name,
                       target,
-                      example,
                       rawVersion,
-                    }: ModuleRouteContext & ModuleExampleRouteContext) =>
+                    }: ModuleRouteContext) =>
                       createCrumb(
-                        `/module/${namespace}/${name}/${target}/${rawVersion}/example/${example}`,
-                        example,
+                        `/module/${namespace}/${name}/${target}/${rawVersion}`,
+                        `${namespace}/${name}`,
                       ),
                   },
                   children: [
                     {
-                      index: true,
-                      element: <ModuleExampleReadme />,
-                      loader: moduleExampleReadmeLoader,
+                      element: <Module />,
+                      children: [
+                        {
+                          index: true,
+                          element: <ModuleReadme />,
+                          loader: moduleReadmeLoader,
+                        },
+                        {
+                          path: "inputs",
+                          element: <ModuleInputs />,
+                        },
+                        {
+                          path: "outputs",
+                          element: <ModuleOutputs />,
+                        },
+                        {
+                          path: "dependencies",
+                          element: <ModuleDependencies />,
+                        },
+                        {
+                          path: "resources",
+                          element: <ModuleResources />,
+                        },
+                      ],
                     },
                     {
-                      path: "inputs",
-                      element: <ModuleExampleInputs />,
+                      path: "example/:example",
+                      element: <ModuleExample />,
+                      loader: moduleExampleLoader,
+                      handle: {
+                        middleware: moduleExampleMiddleware,
+                        crumb: ({
+                          namespace,
+                          name,
+                          target,
+                          example,
+                          rawVersion,
+                        }: ModuleRouteContext & ModuleExampleRouteContext) =>
+                          createCrumb(
+                            `/module/${namespace}/${name}/${target}/${rawVersion}/example/${example}`,
+                            example,
+                          ),
+                      },
+                      children: [
+                        {
+                          index: true,
+                          element: <ModuleExampleReadme />,
+                          loader: moduleExampleReadmeLoader,
+                        },
+                        {
+                          path: "inputs",
+                          element: <ModuleExampleInputs />,
+                        },
+                        {
+                          path: "outputs",
+                          element: <ModuleExampleOutputs />,
+                        },
+                      ],
                     },
                     {
-                      path: "outputs",
-                      element: <ModuleExampleOutputs />,
-                    },
-                  ],
-                },
-                {
-                  path: "submodule/:submodule",
-                  element: <ModuleSubmodule />,
-                  loader: moduleSubmoduleLoader,
-                  handle: {
-                    middleware: moduleSubmoduleMiddleware,
-                    crumb: ({
-                      namespace,
-                      name,
-                      target,
-                      submodule,
-                      rawVersion,
-                    }: ModuleRouteContext & ModuleSubmoduleRouteContext) =>
-                      createCrumb(
-                        `/module/${namespace}/${name}/${target}/${rawVersion}/submodule/${submodule}`,
-                        submodule,
-                      ),
-                  },
-                  children: [
-                    {
-                      index: true,
-                      element: <ModuleSubmoduleReadme />,
-                      loader: moduleSubmoduleReadmeLoader,
-                    },
-                    {
-                      path: "inputs",
-                      element: <ModuleSubmoduleInputs />,
-                    },
-                    {
-                      path: "outputs",
-                      element: <ModuleSubmoduleOutputs />,
-                    },
-                    {
-                      path: "dependencies",
-                      element: <ModuleSubmoduleDependencies />,
-                    },
-                    {
-                      path: "resources",
-                      element: <ModuleSubmoduleResources />,
+                      path: "submodule/:submodule",
+                      element: <ModuleSubmodule />,
+                      loader: moduleSubmoduleLoader,
+                      handle: {
+                        middleware: moduleSubmoduleMiddleware,
+                        crumb: ({
+                          namespace,
+                          name,
+                          target,
+                          submodule,
+                          rawVersion,
+                        }: ModuleRouteContext & ModuleSubmoduleRouteContext) =>
+                          createCrumb(
+                            `/module/${namespace}/${name}/${target}/${rawVersion}/submodule/${submodule}`,
+                            submodule,
+                          ),
+                      },
+                      children: [
+                        {
+                          index: true,
+                          element: <ModuleSubmoduleReadme />,
+                          loader: moduleSubmoduleReadmeLoader,
+                        },
+                        {
+                          path: "inputs",
+                          element: <ModuleSubmoduleInputs />,
+                        },
+                        {
+                          path: "outputs",
+                          element: <ModuleSubmoduleOutputs />,
+                        },
+                        {
+                          path: "dependencies",
+                          element: <ModuleSubmoduleDependencies />,
+                        },
+                        {
+                          path: "resources",
+                          element: <ModuleSubmoduleResources />,
+                        },
+                      ],
                     },
                   ],
                 },
@@ -212,50 +213,49 @@ export const router = createBrowserRouter(
             },
           ],
         },
-      ],
-    },
-    {
-      id: "provider",
-      path: "/provider",
-      handle: {
-        crumb: () => createCrumb("/providers", "Providers"),
-      },
-      errorElement: <Error />,
-      children: [
         {
-          path: ":namespace",
+          id: "provider",
+          path: "/provider",
+          handle: {
+            crumb: () => createCrumb("/providers", "Providers"),
+          },
           children: [
             {
-              index: true,
-              element: <Navigate to="/providers" />,
-            },
-            {
-              path: ":provider/:version?",
-              element: <Provider />,
-              loader: providerLoader,
-              handle: {
-                middleware: providerMiddleware,
-                crumb: ({
-                  namespace,
-                  provider,
-                  version,
-                }: ProviderRouteContext) =>
-                  createCrumb(
-                    `/provider/${namespace}/${provider}/${version}`,
-                    `${namespace}/${provider}`,
-                  ),
-              },
+              path: ":namespace",
               children: [
                 {
                   index: true,
-                  element: <ProviderOverview />,
-                  loader: providerOverviewLoader,
+                  element: <Navigate to="/providers" />,
                 },
                 {
-                  path: "docs/:type/:doc",
-                  element: <ProviderDocs />,
-                  loader: providerDocsLoader,
-                  errorElement: <ProviderDocsError />,
+                  path: ":provider/:version?",
+                  element: <Provider />,
+                  loader: providerLoader,
+                  handle: {
+                    middleware: providerMiddleware,
+                    crumb: ({
+                      namespace,
+                      provider,
+                      version,
+                    }: ProviderRouteContext) =>
+                      createCrumb(
+                        `/provider/${namespace}/${provider}/${version}`,
+                        `${namespace}/${provider}`,
+                      ),
+                  },
+                  children: [
+                    {
+                      index: true,
+                      element: <ProviderOverview />,
+                      loader: providerOverviewLoader,
+                    },
+                    {
+                      path: "docs/:type/:doc",
+                      element: <ProviderDocs />,
+                      loader: providerDocsLoader,
+                      errorElement: <ProviderDocsError />,
+                    },
+                  ],
                 },
               ],
             },
