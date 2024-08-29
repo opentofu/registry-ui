@@ -494,7 +494,7 @@ func (g generator) refreshExampleDetails(ctx context.Context, moduleAddr ModuleA
 	}
 
 	dir := path.Join(rawDirectory, prefix)
-	if err := g.extractExampleSchema(ctx, dir, e); err != nil {
+	if err := g.extractExampleSchema(ctx, dir, e, licenseOK); err != nil {
 		return err
 	}
 
