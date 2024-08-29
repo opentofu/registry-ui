@@ -43,6 +43,7 @@ import { moduleSubmoduleLoader } from "./routes/ModuleSubmodule/loader";
 import { ModuleSubmoduleRouteContext } from "./routes/ModuleSubmodule/types";
 import { moduleSubmoduleReadmeLoader } from "./routes/ModuleSubmodule/Readme/loader";
 import { moduleSubmoduleMiddleware } from "./routes/ModuleSubmodule/middleware";
+import { ProviderDocsError } from "./routes/Provider/Docs/error";
 
 export const router = createBrowserRouter(
   [
@@ -254,6 +255,7 @@ export const router = createBrowserRouter(
                   path: "docs/:type/:doc",
                   element: <ProviderDocs />,
                   loader: providerDocsLoader,
+                  errorElement: <ProviderDocsError />,
                 },
               ],
             },
