@@ -65,6 +65,10 @@ func (b backendFactory) Create(ctx context.Context, registryDir string, workDir 
 }
 
 func getBackend(ctx context.Context, log logger.Logger, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
+	if err := os.MkdirAll(workDir, 0700); err != nil {
+		return nil, fmt.Errorf("failed to create workdir %s (%w)", workDir, err)
+	}
+
 	reader, err := metadata.New(filesystem.New(registryDir))
 	if err != nil {
 		return nil, err
