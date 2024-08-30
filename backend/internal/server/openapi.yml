@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
-            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
+            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
+            github.com/NAMESPACE/terraform-provider-NAME .
         type: object
     BaseDetails:
         properties:
@@ -595,6 +595,43 @@ definitions:
             - name
         title: Resource describes a resource a module uses as the UI expects it.
         type: object
+    SearchResultItem:
+        properties:
+            addr:
+                description: The address of the module or provider.
+                type: string
+            description:
+                description: A brief description of the result item.
+                type: string
+            id:
+                description: The unique identifier for the result item.
+                type: string
+            last_updated:
+                description: The last updated timestamp for the result item.
+                type: string
+            link:
+                additionalProperties:
+                    type: string
+                description: A map of variables used to generate the link for the result item.
+                type: object
+            rank:
+                description: The rank of the result in the search results.
+                format: int32
+                type: integer
+            term_match_count:
+                description: The number of times the search term matched in this result.
+                type: string
+            title:
+                description: The title of the result item.
+                type: string
+            type:
+                description: The type of the result item (e.g., module, provider, datasource etc).
+                type: string
+            version:
+                description: The version of the module or provider
+                type: string
+        title: SearchResultItem describes a single search result item.
+        type: object
     Submodule:
         properties:
             dependencies:
@@ -1076,6 +1113,28 @@ paths:
                         $ref: '#/definitions/ProviderList'
             tags:
                 - Providers
+    /search:
+        get:
+            operationId: Search
+            parameters:
+                - description: The search query string. This should be a URL encoded string.
+                  in: query
+                  name: q
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: A list of search results matching the query.
+                    schema:
+                        items:
+                            $ref: '#/definitions/SearchResultItem'
+                        type: array
+                "400":
+                    description: Invalid search query.
+            tags:
+                - Search
     /search.ndjson:
         get:
             operationId: GetSearchIndex
