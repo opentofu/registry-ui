@@ -187,7 +187,9 @@ export function Search() {
         />
         <ComboboxInput
           ref={inputRef}
-          displayValue={(result: SearchResult) => result.title}
+          displayValue={(result: SearchResult) =>
+            (result || {}).displayTitle || ""
+          }
           onChange={(event) => onChange(event.target.value)}
           placeholder="Search resources (Press / to focus)"
           className="relative block h-9 w-96 appearance-none border border-transparent bg-gray-200 px-4 pl-8 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
