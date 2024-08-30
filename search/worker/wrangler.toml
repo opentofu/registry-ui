@@ -3,12 +3,3 @@ name = "registry-ui-search"
 main = "src/index.ts"
 compatibility_date = "2024-08-21"
 compatibility_flags = ["nodejs_compat"]
-
-route = { pattern = "api2.opentofu.org", custom_domain = true }
-
-[[r2_buckets]]
-binding = 'BUCKET'
-bucket_name = 'registry-ui-api'
-preview_bucket_name = 'registry-ui-api'
-
-# PG database access is configured in the cloudflare UI
