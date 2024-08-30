@@ -14,4 +14,6 @@ export interface SearchResult {
   description: string;
   link: string;
   type: SearchResultType;
+
+  displayTitle: string;
 }

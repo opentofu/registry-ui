@@ -82,6 +82,24 @@ function getSearchResultTypeLink(
   }
 }
 
+function getSearchResultDisplayTitle(
+  type: SearchResultType,
+  result: definitions["SearchResultItem"],
+) {
+  switch (type) {
+    case SearchResultType.Module:
+      return `${result.link_variables.namespace}/${result.link_variables.name}`;
+    case SearchResultType.Provider:
+      return `${result.link_variables.namespace}/${result.link_variables.name}`;
+    case SearchResultType.ProviderResource:
+    case SearchResultType.ProviderDatasource:
+    case SearchResultType.ProviderFunction:
+      return `${result.link_variables.namespace}/${result.link_variables.name} - ${result.link_variables.id}`;
+    default:
+      return result.title;
+  }
+}
+
 type Results = Array<{
   label: string;
   type: SearchResultType;
@@ -112,6 +130,7 @@ export function Search() {
       const type = getSearchResultType(result.type);
       const order = getSearchResultTypeOrder(type);
       const link = getSearchResultTypeLink(type, result);
+      const displayTitle = getSearchResultDisplayTitle(type, result);
 
       if (!results[order]) {
         results[order] = {
@@ -128,6 +147,7 @@ export function Search() {
         description: result.description,
         link,
         type,
+        displayTitle,
       });
     }
 
