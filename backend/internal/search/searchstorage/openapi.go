@@ -20,24 +20,34 @@ package searchstorage
 // swagger:model SearchResultItem
 type SearchResultItem struct {
 	// The unique identifier for the result item.
+	// required: true
 	ID string `json:"id"`
 	// The last updated timestamp for the result item.
+	// required: true
 	LastUpdated string `json:"last_updated"`
 	// The type of the result item (e.g., module, provider, datasource etc).
+	// required: true
 	Type string `json:"type"`
 	// The address of the module or provider.
+	// required: true
 	Addr string `json:"addr"`
 	// The version of the module or provider
+	// required: true
 	Version string `json:"version"`
 	// The title of the result item.
+	// required: true
 	Title string `json:"title"`
 	// A brief description of the result item.
+	// required: true
 	Description string `json:"description"`
 	// A map of variables used to generate the link for the result item.
+	// required: true
 	LinkVariables map[string]string `json:"link_variables"`
 	// The number of times the search term matched in this result.
+	// required: true
 	TermMatchCount string `json:"term_match_count"`
 	// The rank of the result in the search results.
+	// required: true
 	Rank int32 `json:"rank"`
 }
 
