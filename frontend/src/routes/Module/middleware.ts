@@ -1,6 +1,6 @@
 import { queryClient } from "@/query";
-import { LoaderFunction, redirect } from "react-router-dom";
-import { getModuleDataQuery } from "./query";
+import { LoaderFunction, matchPath, redirect } from "react-router-dom";
+import { getModuleDataQuery, getModuleVersionDataQuery } from "./query";
 import { ModuleRouteContext } from "./types";
 
 export const moduleMiddleware: LoaderFunction = async ({ params }, context) => {
@@ -23,4 +23,33 @@ export const moduleMiddleware: LoaderFunction = async ({ params }, context) => {
   moduleContext.namespace = namespace;
   moduleContext.name = name;
   moduleContext.target = target;
+};
+
+export const moduleMetadataMiddleware: LoaderFunction = async (
+  { params, request },
+  context,
+) => {
+  const { namespace, name, target, version } = params;
+
+  const match = matchPath(
+    "/module/:namespace/:name/:target/:version/*",
+    new URL(request.url).pathname,
+  );
+
+  if (!match || !match.params["*"]) {
+    return;
+  }
+
+  const versionData = await queryClient.ensureQueryData(
+    getModuleVersionDataQuery(
+      namespace,
+      name,
+      target,
+      (context as ModuleRouteContext).version,
+    ),
+  );
+
+  if (versionData.schema_error) {
+    return redirect(`/module/${namespace}/${name}/${target}/${version}`);
+  }
 };
