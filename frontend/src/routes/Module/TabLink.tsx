@@ -20,7 +20,7 @@ export function ModuleTabLink({
   count,
   disabled,
 }: ModuleTabLinkProps) {
-  const sharedClasses = "flex px-4 py-2";
+  const sharedClasses = "flex px-4 py-2 items-center";
 
   const component = disabled ? (
     <button
