@@ -82,7 +82,12 @@ the following secrets to be set up:
 
 ## Frontend
 
-In order to run the frontend, enter the [frontend](frontend) directory and run `npm run dev`.
+In order to run the frontend, enter the [frontend](frontend) directory and run `npm run dev`. You can create a `.env`
+file to configure where the generated dataset and search API are:
+
+```env
+VITE_DATA_API_URL=http://localhost:8000
+```
 
 ## Search
 
