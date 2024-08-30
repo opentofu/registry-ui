@@ -59,7 +59,7 @@ export function Markdown({ text }: MarkdownProps) {
         .use(remarkParse)
         .use(remarkFrontmatter)
         .use(remarkGfm)
-        .use(remarkRehype, { allowDangerousHtml: true })
+        .use(remarkRehype, { allowDangerousHtml: true }) // This is okay to use dangerous html because we are sanitizing later on in the pipeline
         .use(rehypeRaw)
         .use(rehypeSanitize)
         .use(rehypeSlug)
