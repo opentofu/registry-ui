@@ -22,6 +22,10 @@ type Provider struct {
 	//
 	// required: true
 	Versions []ProviderVersionDescriptor `json:"versions"`
+	// required: true
+	IsBlocked bool `json:"is_blocked"`
+	// required: false
+	BlockedReason string `json:"blocked_reason,omitempty"`
 }
 
 func (p *Provider) Compare(other Provider) int {

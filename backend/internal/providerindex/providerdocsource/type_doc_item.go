@@ -18,7 +18,12 @@ type docItem struct {
 
 	EditLink string `json:"edit_link"`
 
+	isError  bool
 	contents []byte
+}
+
+func (d docItem) IsError() bool {
+	return d.isError
 }
 
 func (d docItem) Store(

@@ -12,16 +12,15 @@ type ModuleVersion struct {
 	// Link holds the link to the repository browse URL.
 	// required: false
 	Link string `json:"link"`
-	// IncompatibleLicense indicates that there are no licenses or there is one or more license that are not OSI
-	// approved.
-	// required:true
-	IncompatibleLicense bool `json:"incompatible_license"`
 	// VCSRepository holds the URL to the versioning system for this repository.
 	// required:true
 	VCSRepository string `json:"vcs_repository"`
 	// Licenses is a list of licenses detected in the project.
 	// required:true
 	Licenses license.List `json:"licenses"`
+	// IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
+	// required:true
+	IncompatibleLicense bool `json:"incompatible_license"`
 	// Examples lists all examples for this version.
 	// required:true
 	Examples map[string]Example `json:"examples"`

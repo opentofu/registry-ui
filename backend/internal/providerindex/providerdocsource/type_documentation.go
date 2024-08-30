@@ -46,6 +46,7 @@ func (d documentation) ToProviderTypes(ctx context.Context, version providertype
 		Docs:                      d.docs.ToProviderTypes(ctx),
 		CDKTFDocs:                 cdktfDocs,
 		Licenses:                  d.licenses,
+		IncompatibleLicense:       !d.licenses.IsRedistributable(),
 		Link:                      d.link,
 	}
 }

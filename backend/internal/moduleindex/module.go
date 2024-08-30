@@ -16,6 +16,10 @@ type Module struct {
 	Description string `json:"description"`
 	// required: true
 	Versions []ModuleVersionDescriptor `json:"versions"`
+	// required: true
+	IsBlocked bool `json:"is_blocked"`
+	// required: false
+	BlockedReason string `json:"blocked_reason,omitempty"`
 }
 
 func (m *Module) Validate() error {

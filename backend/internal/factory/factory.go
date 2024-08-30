@@ -17,6 +17,7 @@ import (
 	"github.com/opentofu/libregistry/vcs"
 	"github.com/opentofu/libregistry/vcs/github"
 	"github.com/opentofu/registry-ui/internal"
+	"github.com/opentofu/registry-ui/internal/blocklist"
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/bufferedstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/filesystemstorage"
@@ -52,18 +53,18 @@ func New(log logger.Logger) (BackendFactory, error) {
 }
 
 type BackendFactory interface {
-	Create(ctx context.Context, registryDir string, workDir string, destinationDir string, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error)
+	Create(ctx context.Context, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error)
 }
 
 type backendFactory struct {
 	logger logger.Logger
 }
 
-func (b backendFactory) Create(ctx context.Context, registryDir string, workDir string, destinationDir string, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
-	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, s3Params, parallelism, tofuBinaryPath)
+func (b backendFactory) Create(ctx context.Context, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
+	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath)
 }
 
-func getBackend(ctx context.Context, log logger.Logger, registryDir string, workDir string, destinationDir string, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
+func getBackend(ctx context.Context, log logger.Logger, registryDir string, workDir string, destinationDir string, blocklist blocklist.BlockList, s3Params S3Parameters, parallelism int, tofuBinaryPath string) (internal.Backend, error) {
 	reader, err := metadata.New(filesystem.New(registryDir))
 	if err != nil {
 		return nil, err
@@ -145,12 +146,12 @@ func getBackend(ctx context.Context, log logger.Logger, registryDir string, work
 		return nil, err
 	}
 
-	providerIndexGenerator, err := getProviderIndexer(ctx, bufferedStorage, log, reader, vcsClient, licenseDetector, searchAPI)
+	providerIndexGenerator, err := getProviderIndexer(ctx, bufferedStorage, log, reader, vcsClient, licenseDetector, searchAPI, blocklist)
 	if err != nil {
 		return nil, err
 	}
 
-	moduleIndexGenerator, err := getModuleIndexGenerator(ctx, workDir, bufferedStorage, log, reader, vcsClient, licenseDetector, searchAPI, tofuBinaryPath)
+	moduleIndexGenerator, err := getModuleIndexGenerator(ctx, workDir, bufferedStorage, log, reader, vcsClient, licenseDetector, searchAPI, blocklist, tofuBinaryPath)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func getBackend(ctx context.Context, log logger.Logger, registryDir string, work
 	return internal.New(cloner, moduleIndexGenerator, providerIndexGenerator, searchAPI, openAPIWriter, bufferedStorage, internal.WithLogger(log))
 }
 
-func getProviderIndexer(ctx context.Context, rootStorage indexstorage.API, log logger.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API) (providerindex.DocumentationGenerator, error) {
+func getProviderIndexer(ctx context.Context, rootStorage indexstorage.API, log logger.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, blocklist blocklist.BlockList) (providerindex.DocumentationGenerator, error) {
 	storage, err := rootStorage.Subdirectory(ctx, "providers")
 	if err != nil {
 		return nil, err
@@ -183,11 +184,11 @@ func getProviderIndexer(ctx context.Context, rootStorage indexstorage.API, log l
 	if err != nil {
 		return nil, err
 	}
-	scrapingManager := providerindex.NewDocumentationGenerator(log, reader, vcsClient, licenseDetector, source, destination, searchAPI)
+	scrapingManager := providerindex.NewDocumentationGenerator(log, reader, vcsClient, licenseDetector, source, destination, searchAPI, blocklist)
 	return scrapingManager, nil
 }
 
-func getModuleIndexGenerator(ctx context.Context, workDir string, rootStorage indexstorage.API, log logger.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, tofuBinaryPath string) (moduleindex.Generator, error) {
+func getModuleIndexGenerator(ctx context.Context, workDir string, rootStorage indexstorage.API, log logger.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, blocklist blocklist.BlockList, tofuBinaryPath string) (moduleindex.Generator, error) {
 	moduleStorage, err := rootStorage.Subdirectory(ctx, "modules")
 	if err != nil {
 		return nil, err
@@ -219,6 +220,7 @@ func getModuleIndexGenerator(ctx context.Context, workDir string, rootStorage in
 		moduleStorage,
 		moduleSchemaExtractor,
 		searchAPI,
+		blocklist,
 	), nil
 }
 
