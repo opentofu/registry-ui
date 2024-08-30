@@ -11,6 +11,7 @@ import (
 	"github.com/opentofu/libregistry/metadata"
 	"github.com/opentofu/libregistry/types/provider"
 	"github.com/opentofu/libregistry/vcs"
+	"github.com/opentofu/registry-ui/internal/blocklist"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/opentofu/registry-ui/internal/providerindex/providerdocsource"
@@ -61,15 +62,7 @@ func WithForce(force ForceRegenerate) Opts {
 	}
 }
 
-func NewDocumentationGenerator(
-	log logger.Logger,
-	metadataAPI metadata.API,
-	vcsClient vcs.Client,
-	licenseDetector license.Detector,
-	source providerdocsource.API,
-	destination providerindexstorage.API,
-	searchAPI search.API,
-) DocumentationGenerator {
+func NewDocumentationGenerator(log logger.Logger, metadataAPI metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, source providerdocsource.API, destination providerindexstorage.API, searchAPI search.API, blocklist blocklist.BlockList) DocumentationGenerator {
 	return &documentationGenerator{
 		log:             log.WithName("Provider indexer"),
 		metadataAPI:     metadataAPI,
@@ -80,6 +73,7 @@ func NewDocumentationGenerator(
 		search: providerSearch{
 			searchAPI: searchAPI,
 		},
+		blocklist: blocklist,
 	}
 }
 
@@ -91,6 +85,7 @@ type documentationGenerator struct {
 	search          providerSearch
 	source          providerdocsource.API
 	destination     providerindexstorage.API
+	blocklist       blocklist.BlockList
 }
 
 func (d *documentationGenerator) GenerateSingleProvider(ctx context.Context, addr provider.Addr, opts ...Opts) error {
@@ -163,19 +158,23 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 	var providersToRemove []provider.Addr
 	for _, addr := range providers {
 		eg.Go(func() error {
+			blocked, blockedReason := d.blocklist.IsProviderBlocked(addr)
+
 			providerEntry := existingProviders.GetProvider(addr)
 			needsAdd := false
 			if providerEntry == nil {
 				providerEntry = &providertypes.Provider{
-					Addr:        providertypes.Addr(addr),
-					Description: "",
-					Versions:    nil,
+					Addr:          providertypes.Addr(addr),
+					Description:   "",
+					Versions:      nil,
+					IsBlocked:     blocked,
+					BlockedReason: blockedReason,
 				}
 				needsAdd = true
 			}
 
 			// scrape the docs into their own directory
-			if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry, cfg); err != nil {
+			if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry, cfg, blocked, blockedReason); err != nil {
 				var notFound *metadata.ProviderNotFoundError
 				if errors.As(err, &notFound) {
 					d.log.Info(ctx, "Provider %s not found, removing from UI... (%v)", addr, err)
@@ -216,7 +215,7 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 	return nil
 }
 
-func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider, cfg GenerateConfig) error {
+func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider, cfg GenerateConfig, blocked bool, blockedReason string) error {
 	d.log.Trace(ctx, "Generating index for provider %s/%s", addr.Namespace, addr.Name)
 
 	canonicalAddr, err := d.metadataAPI.GetProviderCanonicalAddr(ctx, addr.Addr)
@@ -235,7 +234,14 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	repoInfoFetched := false
 	var versionsToAdd []providertypes.ProviderVersionDescriptor
 	var versionsToUpdate []providertypes.ProviderVersionDescriptor
+
 	forceProvider := cfg.Force.MustRegenerateProvider(ctx, addr.Addr)
+	if blocked != providerData.IsBlocked {
+		// If the blocked status has changed, force re-generating everything to make sure all previous content is gone.
+		forceProvider = true
+		d.log.Info(ctx, "Provider %s changed blocked status, reindexing all versions...", addr)
+	}
+
 	for _, version := range meta.Versions {
 		if err := version.Version.Validate(); err != nil {
 			d.log.Warn(ctx, "Invalid version number for provider %s: %s, skipping... (%v)", addr, version.Version, err)
@@ -263,7 +269,7 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 			}
 		}
 
-		providerVersion, err := d.scrapeVersion(ctx, addr, canonicalAddr, version)
+		providerVersion, err := d.scrapeVersion(ctx, addr, canonicalAddr, version, blocked, blockedReason)
 		if err != nil {
 			var repoNotFound *vcs.RepositoryNotFoundError
 			if errors.As(err, &repoNotFound) {
@@ -298,7 +304,7 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	return nil
 }
 
-func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, version provider.Version) (providertypes.ProviderVersion, error) {
+func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {
 	version.Version = version.Version.Normalize()
 	d.log.Info(ctx, "Scraping documentation for %s version %s...", addr, version.Version)
 
@@ -318,7 +324,7 @@ func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr provide
 		}
 	}()
 
-	providerData, err := d.source.Describe(ctx, workingCopy)
+	providerData, err := d.source.Describe(ctx, workingCopy, blocked, blockedReason)
 	if err != nil {
 		return providertypes.ProviderVersion{}, err
 	}
@@ -326,6 +332,11 @@ func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr provide
 	versionDescriptor := providertypes.ProviderVersionDescriptor{
 		ID:        version.Version.Normalize(),
 		Published: tag.Created,
+	}
+
+	// Make sure we delete all old data in case a re-indexing needs to institute a block and remove everything.
+	if err := d.destination.DeleteProviderVersion(ctx, addr.Addr, versionDescriptor.ID); err != nil {
+		return providertypes.ProviderVersion{}, err
 	}
 
 	versionData, err := providerData.Store(ctx, addr.Addr, versionDescriptor, d.destination)

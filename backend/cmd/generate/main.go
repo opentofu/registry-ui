@@ -13,6 +13,7 @@ import (
 	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/libregistry/types/module"
 	backend "github.com/opentofu/registry-ui/internal"
+	"github.com/opentofu/registry-ui/internal/blocklist"
 	"github.com/opentofu/registry-ui/internal/defaults"
 	"github.com/opentofu/registry-ui/internal/factory"
 )
@@ -29,6 +30,7 @@ func main() {
 	workDir := defaults.WorkDir
 	destinationDir := defaults.DestinationDir
 	commitParallelism := 100
+	blockListFile := ""
 	// TODO this is only until these features get released in mainline tofu.
 	binaryName := "tofu"
 	if runtime.GOOS == "windows" {
@@ -63,6 +65,7 @@ func main() {
 	flag.IntVar(&commitParallelism, "commit-parallelism", commitParallelism, "Parallel uploads to use on commit.")
 	flag.StringVar(&tofuBinaryPath, "tofu-binary-path", tofuBinaryPath, "Temporary: Tofu binary path to use for module schema extraction.")
 	flag.StringVar(&forceRegenerate, "force-regenerate", forceRegenerate, "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername")
+	flag.StringVar(&blockListFile, "blocklist", blockListFile, "File containing the blocklist to use.")
 	flag.Parse()
 
 	// Parse the log level
@@ -79,13 +82,21 @@ func main() {
 
 	mainLogger.Info(ctx, "Initializing metadata system...")
 
+	blockList := blocklist.New()
+	if blockListFile != "" {
+		if err := blockList.LoadFile(blockListFile); err != nil {
+			mainLogger.Error(ctx, "Failed to load block file %s (%v)", blockListFile, err)
+			os.Exit(1)
+		}
+	}
+
 	backendFactory, err := factory.New(mainLogger)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
 		os.Exit(1)
 	}
 
-	backendInstance, err := backendFactory.Create(ctx, registryDir, workDir, destinationDir, s3Params, commitParallelism, tofuBinaryPath)
+	backendInstance, err := backendFactory.Create(ctx, registryDir, workDir, destinationDir, blockList, s3Params, commitParallelism, tofuBinaryPath)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
 		os.Exit(1)

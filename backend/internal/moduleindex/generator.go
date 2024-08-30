@@ -1,6 +1,7 @@
 package moduleindex
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
@@ -11,12 +12,14 @@ import (
 	"path"
 	"slices"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/libregistry/metadata"
 	"github.com/opentofu/libregistry/types/module"
 	"github.com/opentofu/libregistry/vcs"
+	"github.com/opentofu/registry-ui/internal/blocklist"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/opentofu/registry-ui/internal/indexstorage"
@@ -31,6 +34,11 @@ var errorMessageIncompatibleLicense []byte
 
 //go:embed err_no_readme.md
 var errorNoReadme []byte
+
+//go:embed err_blocked.md.tpl
+var errorMessageBlocked []byte
+
+var errorMessageBlockedTemplate = template.Must(template.New("").Parse(string(errorMessageBlocked)))
 
 const indexPrefix = "modules"
 
@@ -75,15 +83,7 @@ func WithForce(force ForceRegenerate) Opts {
 	}
 }
 
-func New(
-	log logger.Logger,
-	metadataAPI metadata.API,
-	vcsClient vcs.Client,
-	licenseDetector license.Detector,
-	storage indexstorage.API,
-	moduleSchemaExtractor moduleschema.Extractor,
-	searchAPI search.API,
-) Generator {
+func New(log logger.Logger, metadataAPI metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, storage indexstorage.API, moduleSchemaExtractor moduleschema.Extractor, searchAPI search.API, blocklist blocklist.BlockList) Generator {
 	return &generator{
 		log:                   log.WithName("Module indexer"),
 		metadataAPI:           metadataAPI,
@@ -92,6 +92,7 @@ func New(
 		storage:               storage,
 		moduleSchemaExtractor: moduleSchemaExtractor,
 		search:                moduleSearch{searchAPI},
+		blocklist:             blocklist,
 	}
 }
 
@@ -103,6 +104,7 @@ type generator struct {
 	storage               indexstorage.API
 	log                   logger.Logger
 	search                moduleSearch
+	blocklist             blocklist.BlockList
 }
 
 func (g generator) GenerateSingleModule(ctx context.Context, addr module.Addr, opts ...Opts) error {
@@ -191,18 +193,32 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 		eg.Go(func() error {
 			forceModule := cfg.Force.MustRegenerateModule(ctx, moduleAddr.Addr)
 
+			blocked, blockedReason := g.blocklist.IsModuleBlocked(moduleAddr.Addr)
+
 			moduleIndexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, "index.json")
 			entry := modules.GetModule(moduleAddr.Addr)
 			if entry == nil {
 				entry = &Module{
-					Addr:        moduleAddr,
-					Description: "",
-					Versions:    nil,
+					Addr:          moduleAddr,
+					Description:   "",
+					Versions:      nil,
+					IsBlocked:     blocked,
+					BlockedReason: blockedReason,
 				}
 				lock.Lock()
 				modulesToAdd = append(modulesToAdd, entry)
 				lock.Unlock()
 			}
+
+			if entry.IsBlocked != blocked {
+				// If the blocked status has changed, we need to reindex the entire module to make sure the content
+				// is gone or re-added, depending on the flag.
+				forceModule = true
+				g.log.Info(ctx, "Module %s changed blocked status, reindexing all versions...", moduleAddr)
+			}
+			entry.IsBlocked = blocked
+			entry.BlockedReason = blockedReason
+
 			g.log.Info(ctx, "Getting module metadata for %s...", moduleAddr)
 			moduleMetadata, err := g.metadataAPI.GetModule(ctx, moduleAddr.Addr)
 			if err != nil {
@@ -380,11 +396,12 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 			Dependencies: []ModuleDependency{},
 			Resources:    []Resource{},
 		},
-		VCSRepository: "",
-		Licenses:      nil,
-		Link:          "",
-		Examples:      map[string]Example{},
-		Submodules:    map[string]Submodule{},
+		VCSRepository:       "",
+		Licenses:            nil,
+		IncompatibleLicense: false,
+		Link:                "",
+		Examples:            map[string]Example{},
+		Submodules:          map[string]Submodule{},
 	}
 	g.log.Info(ctx, "Reading module index for %s version %s...", moduleAddr, ver.ID)
 	contents, err := g.storage.ReadFile(ctx, indexstorage.Path(indexPath))
@@ -413,7 +430,8 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 	if err := g.refreshLicense(ctx, moduleAddr, ver, &result, workingCopy); err != nil {
 		return fmt.Errorf("failed to fetch licenses for %s version %s (%w)", moduleAddr, ver.ID, err)
 	}
-	licenseOK := !result.Licenses.HasIncompatible() && len(result.Licenses) > 0
+	licenseOK := result.Licenses.IsRedistributable()
+	result.IncompatibleLicense = !licenseOK
 
 	result.Link, err = workingCopy.Client().GetVersionBrowseURL(ctx, workingCopy.Repository(), workingCopy.Version())
 	if err != nil {
@@ -421,15 +439,15 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 	}
 
 	g.log.Info(ctx, "Updating module details for %s version %s...", moduleAddr, ver.ID)
-	if err := g.refreshModuleDetails(ctx, moduleAddr, ver, &result.Details, workingCopy, licenseOK, ""); err != nil {
+	if err := g.refreshModuleDetails(ctx, moduleAddr, ver, &result.Details, workingCopy, licenseOK, entry.IsBlocked, entry.BlockedReason, ""); err != nil {
 		return fmt.Errorf("failed to extract module defaults for %s version %s (%w)", moduleAddr, ver.ID, err)
 	}
 
-	if err := g.extractSubmodules(ctx, moduleAddr, ver, &result, workingCopy, licenseOK); err != nil {
+	if err := g.extractSubmodules(ctx, moduleAddr, ver, &result, workingCopy, licenseOK, entry.IsBlocked, entry.BlockedReason); err != nil {
 		return err
 	}
 
-	if err := g.extractExamples(ctx, moduleAddr, ver, &result, workingCopy, licenseOK); err != nil {
+	if err := g.extractExamples(ctx, moduleAddr, ver, &result, workingCopy, licenseOK, entry.IsBlocked, entry.BlockedReason); err != nil {
 		return err
 	}
 
@@ -459,9 +477,9 @@ func (g generator) refreshLicense(ctx context.Context, moduleAddr ModuleAddr, mo
 	return err
 }
 
-func (g generator) refreshModuleDetails(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, d *Details, workingCopy vcs.WorkingCopy, licenseOK bool, prefix string) error {
+func (g generator) refreshModuleDetails(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, d *Details, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string, prefix string) error {
 	var err error
-	if d.Readme, d.EditLink, err = g.extractReadme(ctx, moduleAddr, ver, workingCopy, licenseOK, prefix); err != nil {
+	if d.Readme, d.EditLink, err = g.extractReadme(ctx, moduleAddr, ver, workingCopy, licenseOK, blocked, blockedReason, prefix); err != nil {
 		return err
 	}
 
@@ -473,16 +491,16 @@ func (g generator) refreshModuleDetails(ctx context.Context, moduleAddr ModuleAd
 	}
 
 	dir := path.Join(rawDirectory, prefix)
-	if err := g.extractModuleSchema(ctx, dir, d, licenseOK); err != nil {
+	if err := g.extractModuleSchema(ctx, dir, d, licenseOK, blocked); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (g generator) refreshExampleDetails(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, e *Example, workingCopy vcs.WorkingCopy, licenseOK bool, prefix string) error {
+func (g generator) refreshExampleDetails(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, e *Example, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string, prefix string) error {
 	var err error
-	if e.Readme, e.EditLink, err = g.extractReadme(ctx, moduleAddr, ver, workingCopy, licenseOK, prefix); err != nil {
+	if e.Readme, e.EditLink, err = g.extractReadme(ctx, moduleAddr, ver, workingCopy, licenseOK, blocked, blockedReason, prefix); err != nil {
 		return err
 	}
 
@@ -494,14 +512,14 @@ func (g generator) refreshExampleDetails(ctx context.Context, moduleAddr ModuleA
 	}
 
 	dir := path.Join(rawDirectory, prefix)
-	if err := g.extractExampleSchema(ctx, dir, e, licenseOK); err != nil {
+	if err := g.extractExampleSchema(ctx, dir, e, licenseOK, blocked); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (g generator) extractReadme(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, workingCopy vcs.WorkingCopy, licenseOK bool, prefix string) (bool, string, error) {
+func (g generator) extractReadme(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string, prefix string) (bool, string, error) {
 	hasReadme := false
 	var readme []byte
 	sourcePath := path.Join(prefix, "README.md")
@@ -513,14 +531,20 @@ func (g generator) extractReadme(ctx context.Context, moduleAddr ModuleAddr, ver
 			return false, "", fmt.Errorf("failed to open README.md")
 		}
 	} else {
-		if licenseOK {
+		switch {
+		case blocked:
+			wr := &bytes.Buffer{}
+			if err := errorMessageBlockedTemplate.Execute(wr, blockedReason); err != nil {
+				return false, "", fmt.Errorf("failed to create template (%w)", err)
+			}
+			readme = wr.Bytes()
+		case !licenseOK:
+			readme = errorMessageIncompatibleLicense
+		default:
 			readme, err = io.ReadAll(fh)
 			if err != nil {
 				return false, "", fmt.Errorf("failed to read README.md (%w)", err)
 			}
-
-		} else {
-			readme = errorMessageIncompatibleLicense
 		}
 		hasReadme = true
 		_ = fh.Close()
@@ -542,7 +566,10 @@ func (g generator) extractReadme(ctx context.Context, moduleAddr ModuleAddr, ver
 	return hasReadme, readmeViewURL, nil
 }
 
-func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver ModuleVersionDescriptor, m *ModuleVersion, workingCopy vcs.WorkingCopy, licenseOK bool) error {
+func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver ModuleVersionDescriptor, m *ModuleVersion, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string) error {
+	// Note: we extract the fact that a submodule exists even if the license is not OK because we just index the fact
+	// that the submodule exists. However, we do not index the contents of the submodule.
+
 	const directoryPrefix = "modules"
 	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
@@ -573,15 +600,7 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 			},
 		}
 		submodulePrefix := path.Join(directoryPrefix, name)
-		if err := g.refreshModuleDetails(
-			ctx,
-			addr,
-			ver,
-			&submodule.Details,
-			workingCopy,
-			licenseOK,
-			submodulePrefix,
-		); err != nil {
+		if err := g.refreshModuleDetails(ctx, addr, ver, &submodule.Details, workingCopy, licenseOK, blocked, blockedReason, submodulePrefix); err != nil {
 			return fmt.Errorf("failed to refresh details for submodule %s (%w)", submodulePrefix, err)
 		}
 
@@ -591,7 +610,9 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 	return nil
 }
 
-func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, m *ModuleVersion, workingCopy vcs.WorkingCopy, licenseOK bool) error {
+func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, m *ModuleVersion, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string) error {
+	// Note: we extract the fact that an example exists even if the license is not OK because we just index the fact
+	// that the submodule exists. However, we do not index the contents of the submodule.
 	const directoryPrefix = "examples"
 	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
@@ -623,6 +644,8 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 			&example,
 			workingCopy,
 			licenseOK,
+			blocked,
+			blockedReason,
 			examplePrefix,
 		); err != nil {
 			return fmt.Errorf("failed to refresh details for example %s (%w)", examplePrefix, err)
@@ -634,8 +657,8 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 	return nil
 }
 
-func (g generator) extractModuleSchema(ctx context.Context, directory string, d *Details, licenseOK bool) error {
-	if !licenseOK {
+func (g generator) extractModuleSchema(ctx context.Context, directory string, d *Details, licenseOK bool, blocked bool) error {
+	if !licenseOK || blocked {
 		return nil
 	}
 	moduleSchema, err := g.moduleSchemaExtractor.Extract(ctx, directory)
@@ -658,8 +681,8 @@ func (g generator) extractModuleSchema(ctx context.Context, directory string, d 
 	return nil
 }
 
-func (g generator) extractExampleSchema(ctx context.Context, directory string, e *Example, licenseOK bool) error {
-	if !licenseOK {
+func (g generator) extractExampleSchema(ctx context.Context, directory string, e *Example, licenseOK bool, blocked bool) error {
+	if !licenseOK || blocked {
 		return nil
 	}
 	moduleSchema, err := g.moduleSchemaExtractor.Extract(ctx, directory)

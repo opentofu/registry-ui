@@ -25,5 +25,5 @@ jobs:
         run: |
           mkdir work
           for NAMESPACE in ${NAMESPACES}; do
-            go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --namespace="${NAMESPACE}" --s3-bucket=${S3_BUCKET}
+            go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --namespace="${NAMESPACE}" --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json
           done

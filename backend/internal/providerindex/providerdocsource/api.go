@@ -11,7 +11,7 @@ import (
 )
 
 type API interface {
-	Describe(ctx context.Context, workingCopy vcs.WorkingCopy) (ProviderDocumentation, error)
+	Describe(ctx context.Context, workingCopy vcs.WorkingCopy, blocked bool, blockedReason string) (ProviderDocumentation, error)
 }
 
 type ProviderDocumentation interface {
@@ -46,6 +46,9 @@ type DocumentationItem interface {
 	GetDescription(ctx context.Context) (string, error)
 
 	GetContents(ctx context.Context) ([]byte, error)
+
+	// IsError describes if the documentation item is an error page, in which case it should not be returned in the provider type.
+	IsError() bool
 
 	// Store stores the documentation item. The language may have the special value of empty, indicating a non-CDKTF doc item.
 	Store(ctx context.Context, addr provider.Addr, version providertypes.ProviderVersionDescriptor, storage providerindexstorage.API, language providertypes.CDKTFLanguage, itemKind providertypes.DocItemKind, itemName providertypes.DocItemName) error

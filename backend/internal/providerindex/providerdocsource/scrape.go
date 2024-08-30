@@ -26,10 +26,7 @@ import (
 // maxFileSize limits the amount of data read from the docs to 1MB to prevent memory-based DoS.
 const maxFileSize = 1024 * 1024
 
-//go:embed err_file_too_large.md.tpl
-var tooLargeError []byte
-
-var tplTooLarge = template.Must(template.New("").Parse(string(tooLargeError)))
+var tplTooLarge = template.Must(template.New("").Parse(string(errorTooLarge)))
 
 func New(licenseDetector license.Detector, logger logger.Logger) (API, error) {
 	return &source{licenseDetector: licenseDetector, logger: logger.WithName("Provider doc source")}, nil
@@ -40,7 +37,7 @@ type source struct {
 	logger          logger.Logger
 }
 
-func (s source) Describe(ctx context.Context, workingCopy vcs.WorkingCopy) (ProviderDocumentation, error) {
+func (s source) Describe(ctx context.Context, workingCopy vcs.WorkingCopy, blocked bool, blockedReason string) (ProviderDocumentation, error) {
 	licenses, err := s.licenseDetector.Detect(
 		ctx,
 		workingCopy,
@@ -66,7 +63,32 @@ func (s source) Describe(ctx context.Context, workingCopy vcs.WorkingCopy) (Prov
 		cdktf:    map[string]Documentation{},
 		licenses: licenses,
 	}
-	if !doc.licenses.IsRedistributable() {
+	switch {
+	case blocked:
+		wr := &bytes.Buffer{}
+		if err := errorMessageBlockedTemplate.Execute(wr, blockedReason); err != nil {
+			return doc, fmt.Errorf("failed to execute blocked template (%w)", err)
+		}
+		doc.docs.root = docItem{
+			Name:        "index",
+			Title:       "",
+			Subcategory: "",
+			Description: "",
+			EditLink:    "",
+			isError:     true,
+			contents:    wr.Bytes(),
+		}
+		return doc, nil
+	case !doc.licenses.IsRedistributable():
+		doc.docs.root = docItem{
+			Name:        "index",
+			Title:       "",
+			Subcategory: "",
+			Description: "",
+			EditLink:    "",
+			isError:     true,
+			contents:    errorIncompatibleLicense,
+		}
 		return doc, nil
 	}
 	for _, dir := range []string{

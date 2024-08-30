@@ -50,7 +50,7 @@ func (p providerDoc) Store(ctx context.Context, addr provider.Addr, version prov
 
 func (p providerDoc) ToProviderTypes(ctx context.Context) providertypes.ProviderDocs {
 	var root *providertypes.ProviderDocItem
-	if p.root != nil {
+	if p.root != nil && !p.root.IsError() {
 		rootType := p.root.ToProviderTypes(ctx)
 		root = &rootType
 	}

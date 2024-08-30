@@ -19,6 +19,10 @@ type ProviderVersion struct {
 	// required:true
 	Licenses license.List `json:"license"`
 
+	// IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
+	// required:true
+	IncompatibleLicense bool `json:"incompatible_license"`
+
 	// required:false
 	Link string `json:"link"`
 }
