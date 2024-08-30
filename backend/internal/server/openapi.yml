@@ -123,8 +123,12 @@ definitions:
         properties:
             addr:
                 $ref: '#/definitions/ModuleAddr'
+            blocked_reason:
+                type: string
             description:
                 type: string
+            is_blocked:
+                type: boolean
             versions:
                 items:
                     $ref: '#/definitions/ModuleVersionDescriptor'
@@ -133,6 +137,7 @@ definitions:
             - addr
             - description
             - versions
+            - is_blocked
         type: object
     ModuleAddr:
         description: |-
@@ -357,9 +362,7 @@ definitions:
             id:
                 $ref: '#/definitions/VersionNumber'
             incompatible_license:
-                description: |-
-                    IncompatibleLicense indicates that there are no licenses or there is one or more license that are not OSI
-                    approved.
+                description: IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
                 type: boolean
             licenses:
                 $ref: '#/definitions/LicenseList'
@@ -411,9 +414,9 @@ definitions:
             - providers
             - dependencies
             - resources
-            - incompatible_license
             - vcs_repository
             - licenses
+            - incompatible_license
             - examples
             - submodules
         type: object
@@ -444,9 +447,13 @@ definitions:
         properties:
             addr:
                 $ref: '#/definitions/ProviderAddr'
+            blocked_reason:
+                type: string
             description:
                 description: Description is the extracted description for the provider. This may be empty.
                 type: string
+            is_blocked:
+                type: boolean
             versions:
                 description: Versions holds the list of versions this provider supports.
                 items:
@@ -456,6 +463,7 @@ definitions:
             - addr
             - description
             - versions
+            - is_blocked
         title: Provider is a single provider with all its versions.
         type: object
     ProviderAddr:
@@ -554,6 +562,9 @@ definitions:
                 $ref: '#/definitions/ProviderDocs'
             id:
                 $ref: '#/definitions/VersionNumber'
+            incompatible_license:
+                description: IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
+                type: boolean
             license:
                 $ref: '#/definitions/LicenseList'
             link:
@@ -567,6 +578,7 @@ definitions:
             - docs
             - cdktf_docs
             - license
+            - incompatible_license
         title: ProviderVersion describes a single provider version.
         type: object
     ProviderVersionDescriptor:
@@ -609,7 +621,7 @@ definitions:
             last_updated:
                 description: The last updated timestamp for the result item.
                 type: string
-            link:
+            link_variables:
                 additionalProperties:
                     type: string
                 description: A map of variables used to generate the link for the result item.
@@ -630,6 +642,17 @@ definitions:
             version:
                 description: The version of the module or provider
                 type: string
+        required:
+            - id
+            - last_updated
+            - type
+            - addr
+            - version
+            - title
+            - description
+            - link_variables
+            - term_match_count
+            - rank
         title: SearchResultItem describes a single search result item.
         type: object
     Submodule:
