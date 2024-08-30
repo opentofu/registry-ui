@@ -102,7 +102,11 @@ function VersionTreeViewNestedItems({
   const visibleCount = expanded ? children.length : 5;
 
   const visibleChildren = useMemo(() => {
-    const start = Math.max(0, activeIndex - Math.floor(visibleCount / 2));
+    const start = Math.max(
+      0,
+      Math.min(activeIndex - 2, children.length - visibleCount),
+    );
+
     const end = Math.min(start + visibleCount, children.length);
     return children.slice(start, end);
   }, [activeIndex, children, visibleCount]);
