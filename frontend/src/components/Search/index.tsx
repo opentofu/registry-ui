@@ -11,12 +11,30 @@ import { getSearchQuery } from "../../q";
 import { search } from "../../icons/search";
 import { spinner } from "../../icons/spinner";
 import { Icon } from "../Icon";
-import { ApiSearchResult, SearchResult, SearchResultType } from "./types";
+import { SearchResult, SearchResultType } from "./types";
 import { SearchModuleResult } from "./ModuleResult";
 import { SearchProviderResult } from "./ProviderResult";
 import { SearchOtherResult } from "./OtherResult";
+import { definitions } from "@/api";
 
-const getTypeOrder = (type: SearchResultType) => {
+function getSearchResultType(value: string) {
+  switch (value) {
+    case "provider":
+      return SearchResultType.Provider;
+    case "module":
+      return SearchResultType.Module;
+    case "provider/resource":
+      return SearchResultType.ProviderResource;
+    case "provider/datasource":
+      return SearchResultType.ProviderDatasource;
+    case "provider/function":
+      return SearchResultType.ProviderFunction;
+    default:
+      return SearchResultType.Other;
+  }
+}
+
+function getSearchResultTypeOrder(type: SearchResultType) {
   switch (type) {
     case SearchResultType.Provider:
     case SearchResultType.ProviderResource:
@@ -28,9 +46,9 @@ const getTypeOrder = (type: SearchResultType) => {
     default:
       return 2;
   }
-};
+}
 
-const getTypeLabel = (type: SearchResultType) => {
+function getSearchResultTypeLabel(type: SearchResultType) {
   switch (type) {
     case SearchResultType.Module:
       return "Modules";
@@ -42,9 +60,12 @@ const getTypeLabel = (type: SearchResultType) => {
     case SearchResultType.Other:
       return "Other";
   }
-};
+}
 
-const getTypeLink = (type: SearchResultType, result: ApiSearchResult) => {
+function getSearchResultTypeLink(
+  type: SearchResultType,
+  result: definitions["SearchResultItem"],
+) {
   switch (type) {
     case SearchResultType.Module:
       return `/module/${result.link_variables.namespace}/${result.link_variables.name}/${result.link_variables.target_system}/${result.link_variables.version}`;
@@ -59,7 +80,7 @@ const getTypeLink = (type: SearchResultType, result: ApiSearchResult) => {
     default:
       return "";
   }
-};
+}
 
 type Results = Array<{
   label: string;
@@ -87,14 +108,15 @@ export function Search() {
         break;
       }
 
-      const result = data[i] as ApiSearchResult;
-      const order = getTypeOrder(result.type);
-      const link = getTypeLink(result.type, result);
+      const result = data[i];
+      const type = getSearchResultType(result.type);
+      const order = getSearchResultTypeOrder(type);
+      const link = getSearchResultTypeLink(type, result);
 
       if (!results[order]) {
         results[order] = {
-          type: result.type,
-          label: getTypeLabel(result.type),
+          type,
+          label: getSearchResultTypeLabel(type),
           results: [],
         };
       }
@@ -105,7 +127,7 @@ export function Search() {
         addr: result.addr,
         description: result.description,
         link,
-        type: result.type,
+        type,
       });
     }
 

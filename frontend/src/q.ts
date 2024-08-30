@@ -1,6 +1,8 @@
 import { queryOptions, skipToken } from "@tanstack/react-query";
+
 import { api } from "./query";
-import { ApiSearchResult } from "./components/Search/types";
+
+import { definitions } from "./api";
 
 export const getSearchQuery = (query: string) =>
   queryOptions({
@@ -17,7 +19,7 @@ export const getSearchQuery = (query: string) =>
             );
 
             const res = await response.json();
-            return res as ApiSearchResult[];
+            return res as definitions["SearchResultItem"][];
           }
         : skipToken,
   });

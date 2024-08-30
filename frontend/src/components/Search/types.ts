@@ -7,22 +7,6 @@ export enum SearchResultType {
   Other = "other",
 }
 
-export interface ApiSearchResult {
-  id: string;
-  type: SearchResultType;
-  addr: string;
-  title: string;
-  description: string;
-  version: string;
-  link_variables: {
-    id?: string;
-    name: string;
-    version: string;
-    namespace: string;
-    target_system?: string;
-  };
-}
-
 export interface SearchResult {
   id: string;
   addr: string;
