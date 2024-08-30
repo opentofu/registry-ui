@@ -80,6 +80,8 @@ the following secrets to be set up:
 - `AWS_ENDPOINT_URL_S3`
 - `S3_BUCKET`
 
+Additionally, the `Generate (manual)` workflow allows you to manually trigger the generation for a namespace, name, or target system, including an option to force the regeneration from scratch.
+
 ## Frontend
 
 In order to run the frontend, enter the [frontend](frontend) directory and run `npm run dev`. You can create a `.env`

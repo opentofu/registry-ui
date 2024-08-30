@@ -1,9 +1,11 @@
 name: Generate
 permissions: {}
 on:
-  workflow_dispatch:
   schedule:
     - cron: "0 * * * *" # Run every hour
+concurrency:
+  group: generate
+  cancel-in-progress: false
 jobs:
   generate:
     name: Run generation
