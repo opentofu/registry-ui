@@ -7,6 +7,8 @@ import remarkRehype from "remark-rehype";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import rehypeReact, { Options } from "rehype-react";
+import rehypeSanitize from "rehype-sanitize";
+import rehypeRaw from "rehype-raw";
 import { unified } from "unified";
 import { MarkdownH1 } from "./H1";
 import { MarkdownP } from "./P";
@@ -57,7 +59,9 @@ export function Markdown({ text }: MarkdownProps) {
         .use(remarkParse)
         .use(remarkFrontmatter)
         .use(remarkGfm)
-        .use(remarkRehype)
+        .use(remarkRehype, { allowDangerousHtml: true }) // This is okay to use dangerous html because we are sanitizing later on in the pipeline
+        .use(rehypeRaw)
+        .use(rehypeSanitize)
         .use(rehypeSlug)
         .use(rehypeReact, production)
         .processSync(text),
