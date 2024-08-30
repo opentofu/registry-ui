@@ -10,6 +10,7 @@ export const getSearchQuery = (query: string) =>
         ? async ({ signal }) => {
             const response = await api(
               `/search?q=${encodeURIComponent(query)}`,
+
               {
                 signal,
               },
