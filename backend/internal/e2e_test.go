@@ -8,6 +8,7 @@ import (
 
 	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/registry-ui/internal"
+	"github.com/opentofu/registry-ui/internal/blocklist"
 	"github.com/opentofu/registry-ui/internal/factory"
 	"github.com/opentofu/tofutestutils"
 )
@@ -44,7 +45,7 @@ func TestE2E(t *testing.T) {
 	}
 	// TODO this is only until these features get released in mainline tofu.
 	tofuBinaryPath := path.Join("moduleindex", "moduleschema", "testtofu", binaryName)
-	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, s3Params, 25, tofuBinaryPath))
+	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath))
 
 	tofutestutils.Must(backendInstance.Generate(
 		ctx,
