@@ -2,7 +2,7 @@ name: Generate
 permissions: {}
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 * * * *" # Run every hour
 jobs:
   generate:
     name: Run generation
