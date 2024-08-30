@@ -16,23 +16,37 @@ export function ModuleSideMenu() {
   const dependenciesCount = data.dependencies.length;
   const resourcesCount = data.resources.length;
 
+  const hasSchemaError = !!data.schema_error;
+
   return (
     <TreeView className="mr-4 mt-4">
       <ModuleTabLink to="." end>
         Readme
       </ModuleTabLink>
-      {!data.schema_error && (
-        <>
-          <ModuleTabLink to="inputs">Inputs ({inputsCount})</ModuleTabLink>
-          <ModuleTabLink to="outputs">Outputs ({outputsCount})</ModuleTabLink>
-          <ModuleTabLink to="dependencies">
-            Dependencies ({dependenciesCount})
-          </ModuleTabLink>
-          <ModuleTabLink to="resources">
-            Resources ({resourcesCount})
-          </ModuleTabLink>
-        </>
-      )}
+      <ModuleTabLink to="inputs" count={inputsCount} disabled={hasSchemaError}>
+        Inputs
+      </ModuleTabLink>
+      <ModuleTabLink
+        to="outputs"
+        count={outputsCount}
+        disabled={hasSchemaError}
+      >
+        Outputs
+      </ModuleTabLink>
+      <ModuleTabLink
+        to="dependencies"
+        count={dependenciesCount}
+        disabled={hasSchemaError}
+      >
+        Dependencies
+      </ModuleTabLink>
+      <ModuleTabLink
+        to="resources"
+        count={resourcesCount}
+        disabled={hasSchemaError}
+      >
+        Resources
+      </ModuleTabLink>
     </TreeView>
   );
 }
