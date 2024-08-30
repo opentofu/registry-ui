@@ -13,6 +13,9 @@ func (s storage) getProviderCDKTFDocItemPath(_ context.Context, providerAddr pro
 	providerAddr = providerAddr.Normalize()
 	version = version.Normalize()
 	name = name.Normalize()
+	if kind == providertypes.DocItemKindRoot {
+		return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), cdktfDirName, string(language), string(name)+".md"))
+	}
 	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), cdktfDirName, string(language), string(kind)+"s", string(name)+".md"))
 }
 
