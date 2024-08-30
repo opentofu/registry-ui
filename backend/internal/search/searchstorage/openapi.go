@@ -15,31 +15,6 @@ package searchstorage
 //       items:
 //         $ref: '#/definitions/GeneratedIndexItem'
 
-/*
-   /search:
-       get:
-           operationId: Search
-           parameters:
-               - description: The search query string. This should be a URL encoded string.
-                 in: query
-                 name: q
-                 required: true
-                 type: string
-           produces:
-               - application/json
-           responses:
-               "200":
-                   description: A list of search results matching the query.
-                   schema:
-                       type: array
-                       items:
-                           $ref: '#/definitions/SearchResultItem'
-               "400":
-                   description: Invalid search query.
-           tags:
-               - Search
-*/
-
 // SearchResultItem describes a single search result item.
 //
 // swagger:model SearchResultItem
@@ -59,7 +34,7 @@ type SearchResultItem struct {
 	// A brief description of the result item.
 	Description string `json:"description"`
 	// A map of variables used to generate the link for the result item.
-	LinkVariables map[string]string `json:"link"`
+	LinkVariables map[string]string `json:"link_variables"`
 	// The number of times the search term matched in this result.
 	TermMatchCount string `json:"term_match_count"`
 	// The rank of the result in the search results.
