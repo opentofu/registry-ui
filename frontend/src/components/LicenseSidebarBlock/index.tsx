@@ -27,7 +27,7 @@ export function LicenseSidebarBlock(props: BlockProps) {
   if (props.license === undefined) {
     content = <span className="flex h-em w-24 animate-pulse bg-gray-500/25" />;
   } else if (props.license === null || props.license.length === 0) {
-    content = "Unavailable";
+    content = "None detected";
   } else {
     const groupedLicenses = Object.groupBy(
       props.license,
