@@ -13,7 +13,7 @@ function LicenseSidebarBlockTitle() {
     <>
       License
       <Icon
-        title="License detection is best effort"
+        title="License detection is best effort. Please see the linked license file for details."
         path={info}
         className="size-4 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
       />
