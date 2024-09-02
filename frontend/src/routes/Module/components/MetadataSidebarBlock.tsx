@@ -3,9 +3,10 @@ import { getModuleVersionDataQuery } from "../query";
 import { useModuleParams } from "../hooks/useModuleParams";
 
 import {
-  RepoMetadataSidebarBlock,
-  RepoMetadataSidebarBlockSkeleton,
-} from "@/components/RepoMetadataSidebarBlock";
+  RepoSidebarBlock,
+  RepoSidebarBlockSkeleton,
+} from "@/components/RepoSidebarBlock";
+import { LicenseSidebarBlock } from "@/components/LicenseSidebarBlock";
 
 export function ModuleMetadataSidebarBlock() {
   const { namespace, name, target, version } = useModuleParams();
@@ -14,7 +15,19 @@ export function ModuleMetadataSidebarBlock() {
     getModuleVersionDataQuery(namespace, name, target, version),
   );
 
-  return <RepoMetadataSidebarBlock license={data.licenses} link={data.link} />;
+  return (
+    <>
+      <LicenseSidebarBlock license={data.licenses} />
+      <RepoSidebarBlock link={data.link} />
+    </>
+  );
 }
 
-export { RepoMetadataSidebarBlockSkeleton as ModuleMetadataSidebarBlockSkeleton };
+export function ModuleMetadataSidebarBlockSkeleton() {
+  return (
+    <>
+      <LicenseSidebarBlock />
+      <RepoSidebarBlockSkeleton />
+    </>
+  );
+}
