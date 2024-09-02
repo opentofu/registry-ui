@@ -103,7 +103,7 @@ func TestE2EDoubleRun(t *testing.T) {
 	}
 	// TODO this is only until these features get released in mainline tofu.
 	tofuBinaryPath := path.Join("moduleindex", "moduleschema", "testtofu", binaryName)
-	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath, testLicenseList)
+	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath, testLicenseList))
 
 	t.Logf("🏃 Starting first run...")
 	tofutestutils.Must(backendInstance.Generate(
