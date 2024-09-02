@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-            github.com/NAMESPACE/terraform-provider-NAME .
+            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
         type: object
     BaseDetails:
         properties:
@@ -456,6 +456,13 @@ definitions:
                 type: string
             is_blocked:
                 type: boolean
+            reverse_aliases:
+                description: |-
+                    ReverseAliases contains a list of providers that are aliases of the current one. This field is the inverse of
+                    CanonicalAddr.
+                items:
+                    $ref: '#/definitions/ProviderAddr'
+                type: array
             versions:
                 description: Versions holds the list of versions this provider supports.
                 items:
