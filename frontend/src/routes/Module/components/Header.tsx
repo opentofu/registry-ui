@@ -3,10 +3,11 @@ import { Paragraph } from "@/components/Paragraph";
 import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
 import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { ReactNode } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getModuleDataQuery } from "../query";
+import { useSuspenseQueries } from "@tanstack/react-query";
+import { getModuleDataQuery, getModuleVersionDataQuery } from "../query";
 import { formatDate } from "@/utils/formatDate";
 import { useModuleParams } from "../hooks/useModuleParams";
+import { ModuleSchemaError } from "./SchemaError";
 
 interface WrapperProps {
   children: ReactNode;
@@ -21,11 +22,14 @@ function Wrapper({ children }: WrapperProps) {
 }
 
 export function ModuleHeader() {
-  const { namespace, name, target } = useModuleParams();
+  const { namespace, name, target, version } = useModuleParams();
 
-  const { data } = useSuspenseQuery(
-    getModuleDataQuery(namespace, name, target),
-  );
+  const [{ data }, { data: versionData }] = useSuspenseQueries({
+    queries: [
+      getModuleDataQuery(namespace, name, target),
+      getModuleVersionDataQuery(namespace, name, target, version),
+    ],
+  });
 
   return (
     <Wrapper>
@@ -35,6 +39,7 @@ export function ModuleHeader() {
           {data.addr.namespace}/{data.addr.name}
         </PageTitle>
         {data.description && <Paragraph>{data.description}</Paragraph>}
+        {!!versionData.schema_error && <ModuleSchemaError />}
       </div>
       <InfoSection>
         <InfoSectionItem label="Owner">{data.addr.namespace}</InfoSectionItem>

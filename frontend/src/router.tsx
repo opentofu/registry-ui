@@ -30,7 +30,10 @@ import { providerDocsLoader } from "./routes/Provider/Docs/loader";
 import { providerLoader } from "./routes/Provider/loader";
 import { modulesLoader } from "./routes/Modules/loader";
 import { providerMiddleware } from "./routes/Provider/middleware";
-import { moduleMiddleware } from "./routes/Module/middleware";
+import {
+  moduleMetadataMiddleware,
+  moduleMiddleware,
+} from "./routes/Module/middleware";
 import { moduleLoader } from "./routes/Module/loader";
 import { moduleReadmeLoader } from "./routes/Module/Readme/loader";
 import { moduleExampleLoader } from "./routes/ModuleExample/loader";
@@ -107,6 +110,9 @@ export const router = createBrowserRouter(
                   children: [
                     {
                       element: <Module />,
+                      handle: {
+                        middleware: moduleMetadataMiddleware,
+                      },
                       children: [
                         {
                           index: true,
