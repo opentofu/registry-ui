@@ -1,4 +1,4 @@
-name: Generate (manual)
+name: Index (manual)
 permissions: {}
 on:
   workflow_dispatch:
