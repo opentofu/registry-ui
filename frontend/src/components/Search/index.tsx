@@ -111,9 +111,15 @@ type SearchProps = {
   placeholder: string;
 };
 
-export function Search(props: SearchProps) {
-  const { size: barSize, placeholder } = props;
+/*
+Search.defaultProps = {
+  size: "small",
+  placeholder: "Search resources (Press / to focus)",
+} as SearchProps;
 
+*/
+
+export function Search({ size, placeholder }: SearchProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const { data, isLoading } = useQuery(getSearchQuery(deferredQuery));
@@ -203,7 +209,7 @@ export function Search(props: SearchProps) {
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           className={
-            barSize === "small"
+            size === "small"
               ? "relative block h-9 w-96 appearance-none border border-transparent bg-gray-200 px-4 pl-8 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
               : "relative block h-12 w-full appearance-none border border-transparent bg-gray-200 px-4 pl-8 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
           }
@@ -219,7 +225,7 @@ export function Search(props: SearchProps) {
         <ComboboxOptions
           anchor="bottom start"
           className={
-            barSize === "small"
+            size === "small"
               ? "z-10 max-h-96 w-96 divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
               : "z-10 max-h-96 w-full divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
           }
@@ -255,8 +261,3 @@ export function Search(props: SearchProps) {
     </Combobox>
   );
 }
-
-Search.defaultProps = {
-  size: "small",
-  placeholder: "Search resources (Press / to focus)",
-} as SearchProps;

@@ -16,7 +16,7 @@ export const getSearchQuery = (query: string) =>
               return;
             }
 
-            await api(`search?q=${encodeURIComponent(query)}`, {
+            return await api(`search?q=${encodeURIComponent(query)}`, {
               signal,
             }).json<definitions["SearchResultItem"][]>();
           }
