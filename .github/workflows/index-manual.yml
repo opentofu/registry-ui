@@ -49,4 +49,4 @@ jobs:
           FORCE_REGENERATE: ${{inputs.force_regenerate}}
         run: |
           go generate ./...
-          go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}"
+          go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}"

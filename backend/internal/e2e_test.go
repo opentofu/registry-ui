@@ -13,6 +13,22 @@ import (
 	"github.com/opentofu/tofutestutils"
 )
 
+var testLicenseList = []string{
+	"AFL-1.1", "AFL-1.2", "AFL-2.0", "AFL-2.1", "AFL-3.0",
+	"Apache-1.1", "Apache-2.0",
+	"Artistic-1.0", "Artistic-1.0-Perl", "Artistic-1.0-cl8", "Artistic-2.0",
+	"0BSD", "BSD-1-Clause", "BSD-2-Clause", "BSD-2-Clause-Patent", "BSD-3-Clause", "BSD-3-Clause-LBNL",
+	"CDDL-1.0",
+	"EPL-1.0", "EPL-2.0",
+	"ICU",
+	"ISC",
+	"MIT", "MIT-0", "MIT-Modern-Variant", "MIT-feh",
+	"MPL-1.0", "MPL-1.1", "MPL-2.0", "MPL-2.0-no-copyleft-exception",
+	"Unlicense",
+	"Xnet",
+	"Zlib",
+}
+
 func TestE2E(t *testing.T) {
 	aws := tofutestutils.AWS(t)
 
@@ -45,7 +61,7 @@ func TestE2E(t *testing.T) {
 	}
 	// TODO this is only until these features get released in mainline tofu.
 	tofuBinaryPath := path.Join("moduleindex", "moduleschema", "testtofu", binaryName)
-	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath))
+	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath, testLicenseList))
 
 	tofutestutils.Must(backendInstance.Generate(
 		ctx,
@@ -87,7 +103,7 @@ func TestE2EDoubleRun(t *testing.T) {
 	}
 	// TODO this is only until these features get released in mainline tofu.
 	tofuBinaryPath := path.Join("moduleindex", "moduleschema", "testtofu", binaryName)
-	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath))
+	backendInstance := tofutestutils.Must2(backendFactory.Create(ctx, registryDir, workDir, docsDir, blocklist.New(), s3Params, 25, tofuBinaryPath, testLicenseList))
 
 	t.Logf("🏃 Starting first run...")
 	tofutestutils.Must(backendInstance.Generate(

@@ -28,5 +28,5 @@ jobs:
         run: |
           go generate ./...
           for NAMESPACE in ${NAMESPACES}; do
-            go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --namespace="${NAMESPACE}" --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json
+            go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --namespace="${NAMESPACE}" --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json
           done

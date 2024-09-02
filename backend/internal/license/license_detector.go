@@ -126,10 +126,6 @@ func WithCompatibleLicenses(licenses ...string) Opt {
 	}
 }
 
-func WithOSIApprovedLicenses() Opt {
-	return WithCompatibleLicenses(osiApprovedLicenses...)
-}
-
 type Config struct {
 	CompatibleLicenses  []string
 	ConfidenceThreshold float32
@@ -139,8 +135,12 @@ func (c *Config) ApplyDefaults() error {
 	if c.ConfidenceThreshold == 0.0 {
 		c.ConfidenceThreshold = 0.9
 	}
+	return nil
+}
+
+func (c *Config) Validate() error {
 	if len(c.CompatibleLicenses) == 0 {
-		c.CompatibleLicenses = osiApprovedLicenses
+		return fmt.Errorf("no licenses configured")
 	}
 	return nil
 }
@@ -178,6 +178,9 @@ func New(
 		}
 	}
 	if err := config.ApplyDefaults(); err != nil {
+		return nil, err
+	}
+	if err := config.Validate(); err != nil {
 		return nil, err
 	}
 	licenseMap := map[string]struct{}{}
