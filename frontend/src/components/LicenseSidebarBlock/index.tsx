@@ -29,8 +29,12 @@ export function LicenseSidebarBlock(props: BlockProps) {
   } else if (props.license === null || props.license.length === 0) {
     content = "None detected";
   } else {
+    const sortedLicenses = [...props.license].sort(
+      (a, b) => b.confidence - a.confidence,
+    );
+
     const groupedLicenses = Object.groupBy(
-      props.license,
+      sortedLicenses,
       (license) => license.link,
     );
 
