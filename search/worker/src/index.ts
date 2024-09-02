@@ -7,22 +7,25 @@ async function getClient(databaseUrl: string): Promise<Client> {
 		throw new Error('DATABASE_URL is required');
 	}
 
+	const now = performance.now();
 	const client = new Client(databaseUrl);
 	await client.connect();
+	console.log('Connected to database in', performance.now() - now, 'ms');
 	return client;
-}
-
-function applyCorsHeaders(response: Response) {
-	response.headers.set('Access-Control-Allow-Origin', '*');
-	response.headers.set('Access-Control-Allow-Methods', 'GET');
-	return response;
 }
 
 async function fetchData(client: Client, queryParam: string, ctx: ExecutionContext): Promise<Response> {
 	try {
+		const start = performance.now();
 		const results = await query(client, queryParam);
-		ctx.waitUntil(client.end());
-		return Response.json(results);
+		const end = performance.now();
+		console.log(`Query took ${end - start}ms`);
+		ctx.waitUntil(client.end()); // Don't block on closing the connection
+		return Response.json(results, {
+			headers: {
+				'Cache-Control': 'public, max-age=300', // Cache for 5 mins
+			},
+		});
 	} catch (error) {
 		console.error('Error during fetch:', error);
 		return new Response('An internal server error occurred', { status: 500 });
@@ -36,16 +39,18 @@ async function handleSearchRequest(request: Request, env: Env, ctx: ExecutionCon
 	}
 
 	const client = await getClient(env.DATABASE_URL);
+	console.log('Querying for:', validation.queryParam);
 	const response = await fetchData(client, validation.queryParam, ctx);
-
-	return applyCorsHeaders(response);
+	return response;
 }
 
 async function serveR2Object(request: Request, env: Env, objectKey: string) {
-	const cache = caches.default;
-	let response = await cache.match(request);
-	if (response) {
-		return applyCorsHeaders(new Response(response.body, response));
+	if (!objectKey) {
+		return new Response('Not Found', { status: 404 });
+	}
+
+	if (!env.BUCKET) {
+		return new Response('Internal Server Error, bucket not found', { status: 500 });
 	}
 
 	const object = await env.BUCKET.get(objectKey);
@@ -53,14 +58,19 @@ async function serveR2Object(request: Request, env: Env, objectKey: string) {
 		return new Response('Not Found', { status: 404 });
 	}
 
-	response = new Response(object.body, {
+	const response = new Response(object.body, {
 		headers: {
 			'Content-Type': object.httpMetadata!.contentType || 'application/octet-stream',
 			'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
 		},
 	});
-	await cache.put(request, response.clone());
-	return applyCorsHeaders(response);
+	return response;
+}
+
+function applyCorsHeaders(response: Response) {
+	response.headers.set('Access-Control-Allow-Origin', '*');
+	response.headers.set('Access-Control-Allow-Methods', 'GET');
+	return response;
 }
 
 export default {
@@ -70,9 +80,18 @@ export default {
 			return new Response('Method Not Allowed', { status: 405 });
 		}
 
-		const url = new URL(request.url);
+		const log = (message: string) => console.log(`[${request.method}]${url.pathname}${url.search} - ${message}`);
 
-		let response: Response;
+		const url = new URL(request.url);
+		log('Request received');
+
+		const cache = caches.default;
+		let response = await cache.match(request);
+		if (response) {
+			log('Cache hit');
+			return applyCorsHeaders(new Response(response.body, response));
+		}
+
 		switch (url.pathname) {
 			case '/search':
 				response = await handleSearchRequest(request, env, ctx);
@@ -86,6 +105,11 @@ export default {
 				break;
 		}
 
-		return response;
+		if (response.status === 200) {
+			log('Cache miss, storing response');
+			ctx.waitUntil(cache.put(request, response.clone()));
+		}
+
+		return applyCorsHeaders(response);
 	},
 };
