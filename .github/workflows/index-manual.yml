@@ -1,4 +1,4 @@
-name: Generate (manual)
+name: Index (manual)
 permissions: {}
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ on:
         default: ""
         description: "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername"
 concurrency:
-  group: generate
+  group: index
   cancel-in-progress: false
 jobs:
   generate:

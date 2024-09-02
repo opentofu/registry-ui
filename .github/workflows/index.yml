@@ -1,10 +1,10 @@
-name: Generate
+name: Index
 permissions: {}
 on:
   schedule:
     - cron: "0 * * * *" # Run every hour
 concurrency:
-  group: generate
+  group: index
   cancel-in-progress: false
 jobs:
   generate:
