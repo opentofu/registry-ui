@@ -301,6 +301,22 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 
 	// TODO remove versions that no longer exist.
 
+	if !canonicalAddr.Equals(addr.Addr) {
+		canonicalAddrStruct := providertypes.Addr(canonicalAddr)
+		providerData.CanonicalAddr = &canonicalAddrStruct
+	} else {
+		providerData.CanonicalAddr = nil
+	}
+
+	reverseAliases, err := d.metadataAPI.GetProviderReverseAliases(ctx, addr.Addr)
+	if err != nil {
+		return err
+	}
+	providerData.ReverseAliases = make([]providertypes.ProviderAddr, len(reverseAliases))
+	for i, reverseAlias := range reverseAliases {
+		providerData.ReverseAliases[i] = providertypes.Addr(reverseAlias)
+	}
+
 	return nil
 }
 
