@@ -184,6 +184,9 @@ export function Search(props: SearchProps) {
     <Combobox
       onClose={() => setQuery("")}
       onChange={(v: SearchResult) => {
+        if (!v) {
+          return;
+        }
         navigate(v.link);
       }}
     >
