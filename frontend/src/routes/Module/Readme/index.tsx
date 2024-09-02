@@ -5,6 +5,7 @@ import { getModuleReadmeQuery, getModuleVersionDataQuery } from "../query";
 import { useModuleParams } from "../hooks/useModuleParams";
 import { Suspense } from "react";
 import { EditLink } from "@/components/EditLink";
+import { ModuleMetaTitle } from "../components/MetaTitle";
 
 function ModuleReadmeContent() {
   const { namespace, name, version, target } = useModuleParams();
@@ -47,6 +48,7 @@ function ModuleReadmeContentSkeleton() {
 export function ModuleReadme() {
   return (
     <div className="p-5">
+      <ModuleMetaTitle />
       <Suspense fallback={<ModuleReadmeContentSkeleton />}>
         <ModuleReadmeContent />
       </Suspense>
