@@ -1,4 +1,5 @@
 import { definitions } from "@/api";
+import { api } from "@/query";
 import { queryOptions } from "@tanstack/react-query";
 
 export const getModuleVersionDataQuery = (
@@ -10,13 +11,11 @@ export const getModuleVersionDataQuery = (
   return queryOptions({
     queryKey: ["module-version", namespace, name, target, version],
     queryFn: async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_DATA_API_URL}/modules/${namespace}/${name}/${target}/${version}/index.json`,
-      );
+      const data = await api(
+        `modules/${namespace}/${name}/${target}/${version}/index.json`,
+      ).json<definitions["ModuleVersion"]>();
 
-      const data = await response.json();
-
-      return data as definitions["ModuleVersion"];
+      return data;
     },
   });
 };
@@ -29,13 +28,11 @@ export const getModuleDataQuery = (
   return queryOptions({
     queryKey: ["module", namespace, name, target],
     queryFn: async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_DATA_API_URL}/modules/${namespace}/${name}/${target}/index.json`,
-      );
+      const data = await api(
+        `modules/${namespace}/${name}/${target}/index.json`,
+      ).json<definitions["Module"]>();
 
-      const data = await response.json();
-
-      return data as definitions["Module"];
+      return data;
     },
   });
 };
@@ -49,11 +46,11 @@ export const getModuleReadmeQuery = (
   return queryOptions({
     queryKey: ["module-readme", namespace, name, target, version],
     queryFn: async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_DATA_API_URL}/modules/${namespace}/${name}/${target}/${version}/README.md`,
-      );
+      const data = await api(
+        `modules/${namespace}/${name}/${target}/${version}/README.md`,
+      ).text();
 
-      return response.text();
+      return data;
     },
   });
 };

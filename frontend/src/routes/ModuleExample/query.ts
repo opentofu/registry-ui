@@ -1,4 +1,4 @@
-import { queryClient } from "@/query";
+import { api, queryClient } from "@/query";
 import { queryOptions } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "../Module/query";
 import { NotFoundPageError } from "@/utils/errors";
@@ -20,11 +20,11 @@ export const getModuleExampleReadmeQuery = (
       example,
     ],
     queryFn: async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_DATA_API_URL}/modules/${namespace}/${name}/${target}/${version}/examples/${example}/README.md`,
-      );
+      const data = await api(
+        `modules/${namespace}/${name}/${target}/${version}/examples/${example}/README.md`,
+      ).text();
 
-      return response.text();
+      return data;
     },
   });
 };

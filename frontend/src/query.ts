@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import ky from "ky";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -7,3 +8,5 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+export const api = ky.create({ prefixUrl: import.meta.env.VITE_DATA_API_URL });
