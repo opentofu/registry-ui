@@ -16,14 +16,9 @@ export const getSearchQuery = (query: string) =>
               return;
             }
 
-            const response = await api(
-              `search?q=${encodeURIComponent(query)}`,
-              {
-                signal,
-              },
-            );
-
-            return await response.json<definitions["SearchResultItem"][]>();
+            await api(`search?q=${encodeURIComponent(query)}`, {
+              signal,
+            }).json<definitions["SearchResultItem"][]>();
           }
         : skipToken,
   });
