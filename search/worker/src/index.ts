@@ -12,6 +12,12 @@ async function getClient(databaseUrl: string): Promise<Client> {
 	return client;
 }
 
+function applyCorsHeaders(response: Response) {
+	response.headers.set('Access-Control-Allow-Origin', '*');
+	response.headers.set('Access-Control-Allow-Methods', 'GET');
+	return response;
+}
+
 async function fetchData(client: Client, queryParam: string, ctx: ExecutionContext): Promise<Response> {
 	try {
 		const results = await query(client, queryParam);
@@ -30,14 +36,16 @@ async function handleSearchRequest(request: Request, env: Env, ctx: ExecutionCon
 	}
 
 	const client = await getClient(env.DATABASE_URL);
-	return await fetchData(client, validation.queryParam, ctx);
+	const response = await fetchData(client, validation.queryParam, ctx);
+
+	return applyCorsHeaders(response);
 }
 
 async function serveR2Object(request: Request, env: Env, objectKey: string) {
 	const cache = caches.default;
 	let response = await cache.match(request);
 	if (response) {
-		return response;
+		return applyCorsHeaders(new Response(response.body, response));
 	}
 
 	const object = await env.BUCKET.get(objectKey);
@@ -52,7 +60,7 @@ async function serveR2Object(request: Request, env: Env, objectKey: string) {
 		},
 	});
 	await cache.put(request, response.clone());
-	return response;
+	return applyCorsHeaders(response);
 }
 
 export default {
@@ -77,10 +85,6 @@ export default {
 				response = await serveR2Object(request, env, objectKey);
 				break;
 		}
-
-		// Add cors headers
-		response.headers.set('Access-Control-Allow-Origin', '*');
-		response.headers.set('Access-Control-Allow-Methods', 'GET');
 
 		return response;
 	},
