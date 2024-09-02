@@ -449,6 +449,8 @@ definitions:
                 $ref: '#/definitions/ProviderAddr'
             blocked_reason:
                 type: string
+            canonical_addr:
+                $ref: '#/definitions/ProviderAddr'
             description:
                 description: Description is the extracted description for the provider. This may be empty.
                 type: string

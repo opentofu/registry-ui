@@ -219,6 +219,8 @@ github.com/opencontainers/image-spec v1.1.0 h1:8SG7/vwALn54lVB/0yZ/MMwhFrPYtpEHQ
 github.com/opencontainers/image-spec v1.1.0/go.mod h1:W4s4sFTMaBeK1BQLXbG4AdM2szdn85PY75RI83NrTrM=
 github.com/opentofu/libregistry v0.0.0-20240827104135-024554249b18 h1:VpxL0jH5660FOX1DNWeGWV6opU12N6VbKeo6zTkp4F0=
 github.com/opentofu/libregistry v0.0.0-20240827104135-024554249b18/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
+github.com/opentofu/libregistry v0.0.0-20240902140652-883944ac1490 h1:GrgjoNMwx1AgDi06n0qyOLG1x/NsMaWhlrv0gexxZN4=
+github.com/opentofu/libregistry v0.0.0-20240902140652-883944ac1490/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
 github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a h1:NyM/PPbc+kxxv2d4OKfE32C5fLtVTLceyg4YKKCYO9Y=
 github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a/go.mod h1:HzQhpVo/NJnGmN+7FPECCVCA5ijU7AUcvf39enBKYOc=
 github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09 h1:bA3Dy3Be9o896wdcQhK0Ky2Eco0ZwCWZgt73dSaYuDI=

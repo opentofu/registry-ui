@@ -19,6 +19,10 @@ type Provider struct {
 	//
 	// required: false
 	CanonicalAddr *ProviderAddr `json:"canonical_addr"`
+	// ReverseAliases contains a list of providers that are aliases of the current one. This field is the inverse of
+	// CanonicalAddr.
+	// required: false
+	ReverseAliases []ProviderAddr `json:"reverse_aliases"`
 	// Description is the extracted description for the provider. This may be empty.
 	//
 	// required: true
