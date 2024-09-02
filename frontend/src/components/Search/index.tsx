@@ -111,15 +111,10 @@ type SearchProps = {
   placeholder: string;
 };
 
-/*
-Search.defaultProps = {
-  size: "small",
-  placeholder: "Search resources (Press / to focus)",
-} as SearchProps;
-
-*/
-
-export function Search({ size, placeholder }: SearchProps) {
+export function Search({
+  size = "small",
+  placeholder = "Search resources (Press / to focus)",
+}: SearchProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const { data, isLoading } = useQuery(getSearchQuery(deferredQuery));
