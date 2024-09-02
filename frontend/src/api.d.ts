@@ -43,21 +43,20 @@ export interface paths {
   "/providers/index.json": {
     get: operations["GetProviderList"];
   };
-  "/search.json": {
+  "/search": {
+    get: operations["Search"];
+  };
+  "/search.ndjson": {
     get: operations["GetSearchIndex"];
   };
 }
 
 export interface definitions {
   /**
-   * @description Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
-   * github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
+   * @description Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
+   * github.com/NAMESPACE/terraform-provider-NAME .
    */
-  Addr: {
-    Name?: string;
-    Namespace?: string;
-    TargetSystem?: string;
-  };
+  Addr: { [key: string]: unknown };
   /** BaseDetails is an embedded struct describing a module or a submodule. */
   BaseDetails: {
     edit_link?: string;
@@ -72,6 +71,37 @@ export interface definitions {
     variables: { [key: string]: definitions["Variable"] };
   };
   DocItemName: string;
+  GeneratedIndexHeader: {
+    /** Format: date-time */
+    last_updated?: string;
+  };
+  GeneratedIndexItem: {
+    addition?: definitions["IndexItem"];
+    deletion?: definitions["ItemDeletion"];
+    header?: definitions["GeneratedIndexHeader"];
+    type: definitions["GeneratedIndexItemType"];
+  };
+  /** @description enum: ["header","add","delete"] */
+  GeneratedIndexItemType: string;
+  IndexID: string;
+  IndexItem: {
+    addr?: string;
+    description?: string;
+    id?: definitions["IndexID"];
+    /** Format: date-time */
+    last_updated?: string;
+    link?: { [key: string]: string };
+    parent_id?: definitions["IndexID"];
+    title?: string;
+    type?: definitions["IndexType"];
+    version?: string;
+  };
+  IndexType: string;
+  ItemDeletion: {
+    /** Format: date-time */
+    deleted_at: string;
+    id: definitions["IndexID"];
+  };
   /** License describes a license found in a repository. */
   License: {
     /**
@@ -92,7 +122,9 @@ export interface definitions {
   LicenseList: definitions["License"][];
   Module: {
     addr: definitions["ModuleAddr"];
+    blocked_reason?: string;
     description: string;
+    is_blocked: boolean;
     versions: definitions["ModuleVersionDescriptor"][];
   };
   /**
@@ -100,9 +132,6 @@ export interface definitions {
    * to generate this from a module.Addr.
    */
   ModuleAddr: {
-    Name?: string;
-    Namespace?: string;
-    TargetSystem?: string;
     /**
      * @description Contains the display version of the addr presentable to the end user. This may be
      * capitalized.
@@ -207,10 +236,7 @@ export interface definitions {
     /** @description Examples lists all examples for this version. */
     examples: { [key: string]: definitions["ModuleExample"] };
     id: definitions["VersionNumber"];
-    /**
-     * @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not OSI
-     * approved.
-     */
+    /** @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved. */
     incompatible_license: boolean;
     licenses: definitions["LicenseList"];
     /** @description Link holds the link to the repository browse URL. */
@@ -247,15 +273,15 @@ export interface definitions {
   /** Provider is a single provider with all its versions. */
   Provider: {
     addr: definitions["ProviderAddr"];
+    blocked_reason?: string;
     /** @description Description is the extracted description for the provider. This may be empty. */
     description: string;
+    is_blocked: boolean;
     /** @description Versions holds the list of versions this provider supports. */
     versions: definitions["ProviderVersionDescriptor"][];
   };
   /** ProviderAddr is an enriched model of provider.Addr with display properties for the frontend. */
   ProviderAddr: {
-    Name?: string;
-    Namespace?: string;
     /** @description Display contains the user-readable display variant of this addr. This may be capitalized. */
     display: string;
     /** @description Name contains the lower-case name part of the addr. */
@@ -296,6 +322,8 @@ export interface definitions {
     cdktf_docs: { [key: string]: definitions["ProviderDocs"] };
     docs: definitions["ProviderDocs"];
     id: definitions["VersionNumber"];
+    /** @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved. */
+    incompatible_license: boolean;
     license: definitions["LicenseList"];
     link?: string;
     /** Format: date-time */
@@ -312,6 +340,32 @@ export interface definitions {
     address: string;
     name: string;
     type: string;
+  };
+  /** SearchResultItem describes a single search result item. */
+  SearchResultItem: {
+    /** @description The address of the module or provider. */
+    addr: string;
+    /** @description A brief description of the result item. */
+    description: string;
+    /** @description The unique identifier for the result item. */
+    id: string;
+    /** @description The last updated timestamp for the result item. */
+    last_updated: string;
+    /** @description A map of variables used to generate the link for the result item. */
+    link_variables: { [key: string]: string };
+    /**
+     * Format: int32
+     * @description The rank of the result in the search results.
+     */
+    rank: number;
+    /** @description The number of times the search term matched in this result. */
+    term_match_count: string;
+    /** @description The title of the result item. */
+    title: string;
+    /** @description The type of the result item (e.g., module, provider, datasource etc). */
+    type: string;
+    /** @description The version of the module or provider */
+    version: string;
   };
   /** Submodule describes a submodule within a module. */
   Submodule: {
@@ -578,11 +632,27 @@ export interface operations {
       };
     };
   };
+  Search: {
+    parameters: {
+      query: {
+        /** The search query string. This should be a URL encoded string. */
+        q: string;
+      };
+    };
+    responses: {
+      /** A list of search results matching the query. */
+      200: {
+        schema: definitions["SearchResultItem"][];
+      };
+      /** Invalid search query. */
+      400: unknown;
+    };
+  };
   GetSearchIndex: {
     responses: {
-      /** A lunr.js search index for modules and providers. */
+      /** A newline-delimited search index suitable for insertion into a database. The records are not guaranteed to be in order. Each item is a GeneratedIndexItem. */
       200: {
-        schema: unknown;
+        schema: definitions["GeneratedIndexItem"][];
       };
     };
   };

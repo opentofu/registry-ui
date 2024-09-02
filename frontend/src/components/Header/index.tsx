@@ -4,9 +4,16 @@ import { Icon } from "../Icon";
 import { x } from "../../icons/x";
 import { slack } from "../../icons/slack";
 import { ThemeSwitcher } from "./ThemeSwitcher";
-import { Search } from "./Search";
+import { Search } from "../Search";
+import { useLocation } from "react-router-dom";
 
 export function Header() {
+  // if we're on the home page, dont show the search bar
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  const shouldShowSearch = !isHome;
+
   return (
     <header className="flex h-20 items-center border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-blue-950">
       <div className="mx-auto flex w-full max-w-screen-3xl items-end px-5">
@@ -32,7 +39,7 @@ export function Header() {
         </nav>
 
         <nav className="ml-auto flex h-9 items-center gap-6">
-          <Search />
+          {shouldShowSearch && <Search />}
           <a
             href="https://x.com/opentofuorg"
             aria-label="Follow us on X"
