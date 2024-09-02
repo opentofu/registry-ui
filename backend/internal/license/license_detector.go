@@ -135,13 +135,14 @@ type Config struct {
 	ConfidenceThreshold float32
 }
 
-func (c *Config) ApplyDefaults() {
+func (c *Config) ApplyDefaults() error {
 	if c.ConfidenceThreshold == 0.0 {
-		c.ConfidenceThreshold = 0.85
+		c.ConfidenceThreshold = 0.9
 	}
 	if len(c.CompatibleLicenses) == 0 {
 		c.CompatibleLicenses = osiApprovedLicenses
 	}
+	return nil
 }
 
 type DetectOpt func(config *DetectConfig) error
@@ -175,6 +176,9 @@ func New(
 		if err := opt(&config); err != nil {
 			return nil, err
 		}
+	}
+	if err := config.ApplyDefaults(); err != nil {
+		return nil, err
 	}
 	licenseMap := map[string]struct{}{}
 	for _, license := range config.CompatibleLicenses {
