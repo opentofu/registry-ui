@@ -16,6 +16,7 @@ import { SearchModuleResult } from "./ModuleResult";
 import { SearchProviderResult } from "./ProviderResult";
 import { SearchOtherResult } from "./OtherResult";
 import { definitions } from "@/api";
+import clsx from "clsx";
 
 function getSearchResultType(value: string) {
   switch (value) {
@@ -191,10 +192,18 @@ export function Search({
         navigate(v.link);
       }}
     >
-      <div className="relative w-full">
+      <div
+        className={clsx(
+          "relative",
+          size === "small" ? "w-96" : "w-full max-w-xl",
+        )}
+      >
         <Icon
           path={search}
-          className="absolute left-2 top-2 z-10 size-5 text-gray-600"
+          className={clsx(
+            "absolute z-10 text-gray-600",
+            size === "small" ? "left-2 top-2 size-5" : "left-3 top-3 size-6",
+          )}
         />
         <ComboboxInput
           ref={inputRef}
@@ -203,27 +212,27 @@ export function Search({
           }
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className={
-            size === "small"
-              ? "relative block h-9 w-96 appearance-none border border-transparent bg-gray-200 px-4 pl-8 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
-              : "relative block h-12 w-full appearance-none border border-transparent bg-gray-200 px-4 pl-8 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
-          }
+          className={clsx(
+            "relative block w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800",
+            size === "small" ? "h-9 pl-8" : "h-12 pl-10",
+          )}
         />
 
         {isLoading && (
           <Icon
             path={spinner}
-            className="absolute right-2 top-2 size-5 animate-spin"
+            className={clsx(
+              "absolute animate-spin",
+              size === "small"
+                ? "right-2 top-2 size-5"
+                : "right-3 top-3 size-6",
+            )}
           />
         )}
 
         <ComboboxOptions
           anchor="bottom start"
-          className={
-            size === "small"
-              ? "z-10 max-h-96 w-96 divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
-              : "z-10 max-h-96 w-full divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
-          }
+          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
         >
           {filtered.map((item) => (
             <div key={item.type}>
