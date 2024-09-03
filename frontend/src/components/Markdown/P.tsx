@@ -2,7 +2,9 @@ import { HTMLAttributes, ReactNode } from "react";
 import { Paragraph } from "../Paragraph";
 import clsx from "clsx";
 
-const admonitionRegex = /^(?<prefix>!>|~>|->)\s+(?<content>.*)$/;
+const WARNING_MARK = "~>";
+const DANGER_MARK = "!>";
+const NOTE_MARK = "->";
 
 function getAdmonitionClassName(prefix: string) {
   switch (prefix) {
@@ -30,16 +32,18 @@ function getAdmonitionMatch(children: ReactNode) {
     return null;
   }
 
-  const match = content.match(admonitionRegex);
-
-  if (!match?.groups?.prefix || !match?.groups?.content) {
-    return null;
+  if (
+    content.startsWith(WARNING_MARK) ||
+    content.startsWith(DANGER_MARK) ||
+    content.startsWith(NOTE_MARK)
+  ) {
+    return {
+      prefix: content.slice(0, 2),
+      content: content.slice(2).trim(),
+    };
   }
 
-  return {
-    prefix: match.groups.prefix,
-    content: match.groups.content,
-  };
+  return null;
 }
 
 export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
