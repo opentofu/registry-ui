@@ -1,8 +1,5 @@
 import { OldVersionBanner } from "@/components/OldVersionBanner";
-import {
-  LanguagePicker,
-  LanguagePickerSkeleton,
-} from "@/components/LanguagePicker";
+import { LanguagePicker } from "@/components/LanguagePicker";
 import { VersionInfo, VersionInfoSkeleton } from "@/components/VersionInfo";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getProviderDataQuery, getProviderVersionDataQuery } from "../query";
@@ -50,7 +47,7 @@ export function ProviderVersionInfo() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <VersionInfo currentVersion={version} latestVersion={latestVersion} />
-        <LanguagePicker languages={languages} />
+        {languages.length > 0 && <LanguagePicker languages={languages} />}
       </div>
       {version !== latestVersion && (
         <OldVersionBanner latestVersionLink={latestVersionLink} />
@@ -60,10 +57,5 @@ export function ProviderVersionInfo() {
 }
 
 export function ProviderVersionInfoSkeleton() {
-  return (
-    <div className="flex items-center justify-between">
-      <VersionInfoSkeleton />
-      <LanguagePickerSkeleton />
-    </div>
-  );
+  return <VersionInfoSkeleton />;
 }
