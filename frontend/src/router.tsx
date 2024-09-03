@@ -46,7 +46,7 @@ import { moduleSubmoduleLoader } from "./routes/ModuleSubmodule/loader";
 import { ModuleSubmoduleRouteContext } from "./routes/ModuleSubmodule/types";
 import { moduleSubmoduleReadmeLoader } from "./routes/ModuleSubmodule/Readme/loader";
 import { moduleSubmoduleMiddleware } from "./routes/ModuleSubmodule/middleware";
-import { ProviderDocsError } from "./routes/Provider/Docs/error";
+import { ProviderError } from "./routes/Provider/components/Error";
 
 export const router = createBrowserRouter(
   [
@@ -237,6 +237,7 @@ export const router = createBrowserRouter(
                   path: ":provider/:version?",
                   element: <Provider />,
                   loader: providerLoader,
+                  errorElement: <ProviderError />,
                   handle: {
                     middleware: providerMiddleware,
                     crumb: ({
@@ -259,7 +260,6 @@ export const router = createBrowserRouter(
                       path: "docs/:type/:doc",
                       element: <ProviderDocs />,
                       loader: providerDocsLoader,
-                      errorElement: <ProviderDocsError />,
                     },
                   ],
                 },

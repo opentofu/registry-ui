@@ -15,7 +15,7 @@ export function ProviderDocsContent() {
     ],
   });
 
-  const editLink = getProviderDoc(versionData.docs, type, doc)?.edit_link;
+  const editLink = getProviderDoc(versionData, type, doc, lang)?.edit_link;
 
   return (
     <>

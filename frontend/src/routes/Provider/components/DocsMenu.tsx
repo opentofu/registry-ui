@@ -4,14 +4,14 @@ import { chevron } from "@/icons/chevron";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useState, useTransition } from "react";
-import { useHref, useLinkClickHandler } from "react-router-dom";
+import { To, useHref, useLinkClickHandler } from "react-router-dom";
 
 import { NestedItem, transformStructure } from "../docsSidebar";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderVersionDataQuery } from "../query";
 
 type TabLinkProps = {
-  to: string;
+  to: To;
   label: string;
   active?: boolean;
 };
@@ -52,6 +52,7 @@ function DocsTreeViewItem({
   isOpenByDefault = false,
   nested = false,
 }: DocsTreeViewItemProps) {
+  const { lang } = useProviderParams();
   const [open, setOpen] = useState(isOpenByDefault);
   let button;
 
@@ -71,7 +72,10 @@ function DocsTreeViewItem({
   } else {
     button = (
       <TabLink
-        to={`docs/${item.type}/${item.name}`}
+        to={{
+          pathname: `docs/${item.type}/${item.name}`,
+          search: lang ? `?lang=${lang}` : "",
+        }}
         label={item.name}
         active={item.active}
       />
@@ -98,7 +102,7 @@ function DocsTreeViewItem({
 }
 
 export function ProviderDocsMenu() {
-  const { namespace, provider, version, doc, type } = useProviderParams();
+  const { namespace, provider, version, doc, type, lang } = useProviderParams();
 
   const { data } = useSuspenseQuery(
     getProviderVersionDataQuery(namespace, provider, version),
@@ -109,7 +113,14 @@ export function ProviderDocsMenu() {
   return (
     <TreeView className="mr-4 mt-4">
       <TreeViewItem>
-        <TabLink to="." label="Overview" active={!type && !doc} />
+        <TabLink
+          to={{
+            pathname: `.`,
+            search: lang ? `?lang=${lang}` : "",
+          }}
+          label="Overview"
+          active={!type && !doc}
+        />
       </TreeViewItem>
       {items.map((doc) => (
         <DocsTreeViewItem

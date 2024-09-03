@@ -30,13 +30,14 @@ export const getProviderDocsQuery = (
   return queryOptions({
     queryKey: ["provider-doc", namespace, provider, type, name, lang, version],
     queryFn: async () => {
-      const urlBase = `providers/${namespace}/${provider}/${version}`;
-      const requestURL =
-        type === undefined && name === undefined
-          ? `${urlBase}/index.md`
-          : `${urlBase}/${lang ? `cdktf/${lang}/` : ""}${type}/${name}.md`;
+      const urlBase = `providers/${namespace}/${provider}/${version}/${lang ? `cdktf/${lang}/` : ""}`;
 
-      const data = await api(requestURL).text();
+      const path =
+        type === undefined && name === undefined
+          ? `index.md`
+          : `${type}/${name}.md`;
+
+      const data = await api(`${urlBase}${path}`).text();
       return data;
     },
   });
