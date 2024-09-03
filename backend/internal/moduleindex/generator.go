@@ -197,6 +197,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 
 			moduleIndexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, "index.json")
 			entry := modules.GetModule(moduleAddr.Addr)
+			needsAdd := false
 			if entry == nil {
 				entry = &Module{
 					Addr:          moduleAddr,
@@ -205,9 +206,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					IsBlocked:     blocked,
 					BlockedReason: blockedReason,
 				}
-				lock.Lock()
-				modulesToAdd = append(modulesToAdd, entry)
-				lock.Unlock()
+				needsAdd = true
 			}
 
 			if entry.IsBlocked != blocked {
@@ -330,6 +329,11 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					return fmt.Errorf("failed to remove module from search index (%w)", err)
 				}
 			} else {
+				if needsAdd {
+					lock.Lock()
+					modulesToAdd = append(modulesToAdd, entry)
+					lock.Unlock()
+				}
 				versionListing, err := json.Marshal(entry)
 				if err != nil {
 					return fmt.Errorf("failed to marshal module index for %s (%w)", entry.Addr, err)
