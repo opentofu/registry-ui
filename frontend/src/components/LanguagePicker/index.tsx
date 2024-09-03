@@ -25,10 +25,6 @@ function Language({ name, code }: LanguageProps) {
   );
 }
 
-function LanguageSkeleton() {
-  return <span className="ml-2 flex h-10 w-24 animate-pulse bg-gray-500/25" />;
-}
-
 interface LanguagePickerProps {
   languages: Array<{ name: string; code: string }>;
 }
@@ -43,17 +39,6 @@ export function LanguagePicker({ languages }: LanguagePickerProps) {
       {languages.map(({ name, code }) => (
         <Language key={code} name={name} code={code} />
       ))}
-    </nav>
-  );
-}
-
-export function LanguagePickerSkeleton() {
-  return (
-    <nav className="flex items-center">
-      <span className="mr-2 text-gray-700 dark:text-gray-300">
-        Provider language
-      </span>
-      <LanguageSkeleton />
     </nav>
   );
 }
