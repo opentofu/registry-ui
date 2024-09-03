@@ -24,6 +24,7 @@ import { MarkdownTd } from "./Td";
 import { MarkdownTh } from "./Th";
 import { MarkdownImg } from "./Img";
 import { MarkdownOl } from "./Ol";
+import { MarkdownHr } from "./Hr";
 
 const production: Options = {
   development: false,
@@ -45,6 +46,7 @@ const production: Options = {
     th: MarkdownTh,
     img: MarkdownImg,
     ol: MarkdownOl,
+    hr: MarkdownHr,
   },
 };
 
