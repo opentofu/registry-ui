@@ -5,25 +5,31 @@ interface SearchProviderResultProps {
 }
 
 export function SearchProviderResult({ result }: SearchProviderResultProps) {
+  const description = (
+    <div className="line-clamp-3 text-xs text-gray-500">
+      {result.description}
+    </div>
+  );
+
   if (result.type === SearchResultType.ProviderResource) {
     return (
       <>
         <div className="text-sm">Resource: {result.displayTitle}</div>
-        <div className="text-xs text-gray-500">{result.description}</div>
+        {description}
       </>
     );
   } else if (result.type === SearchResultType.ProviderDatasource) {
     return (
       <>
         <div className="text-sm">Data source: {result.displayTitle}</div>
-        <div className="text-xs text-gray-500">{result.description}</div>
+        {description}
       </>
     );
   } else if (result.type === SearchResultType.ProviderFunction) {
     return (
       <>
         <div className="text-sm">Function: {result.displayTitle}</div>
-        <div className="text-xs text-gray-500">{result.description}</div>
+        {description}
       </>
     );
   }
@@ -31,7 +37,7 @@ export function SearchProviderResult({ result }: SearchProviderResultProps) {
   return (
     <>
       <div className="text-sm">{result.addr}</div>
-      <div className="text-xs text-gray-500">{result.description}</div>
+      {description}
     </>
   );
 }
