@@ -2,10 +2,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderDoc } from "../utils/getProviderDoc";
-import { MetaTitle } from "@/components/MetaTitle";
+import { MetaTags } from "@/components/MetaTags";
 import { Suspense } from "react";
 
-export function ProviderMetaTitleContent() {
+export function ProviderMetaTagsContent() {
   const { namespace, provider, version, doc, type, isLatest, lang } =
     useProviderParams();
 
@@ -25,13 +25,18 @@ export function ProviderMetaTitleContent() {
     title = `${version} - ${title}`;
   }
 
-  return <MetaTitle>{`${providerDoc.title} - ${title}`}</MetaTitle>;
+  return (
+    <MetaTags
+      title={`${providerDoc.title} - ${title}`}
+      description={providerDoc.description}
+    />
+  );
 }
 
-export function ProviderMetaTitle() {
+export function ProviderMetaTags() {
   return (
     <Suspense fallback={null}>
-      <ProviderMetaTitleContent />
+      <ProviderMetaTagsContent />
     </Suspense>
   );
 }

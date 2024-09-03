@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleSubmoduleDataQuery } from "../query";
 import { ModuleDependencies as ModuleDependenciesComponent } from "@/components/ModuleDependencies";
 import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
-import { ModuleSubmoduleMetaTitle } from "../components/MetaTitle";
+import { ModuleSubmoduleMetaTags } from "../components/MetaTags";
 
 export function ModuleSubmoduleDependencies() {
   const { namespace, name, target, version, submodule } =
@@ -14,7 +14,7 @@ export function ModuleSubmoduleDependencies() {
 
   return (
     <>
-      <ModuleSubmoduleMetaTitle page="Dependencies" />
+      <ModuleSubmoduleMetaTags page="Dependencies" />
       <ModuleDependenciesComponent
         moduleDependencies={data.dependencies}
         providerDependencies={data.providers}

@@ -6,19 +6,21 @@ import { SimpleLayout } from "@/components/SimpleLayout";
 import { Suspense } from "react";
 
 import { ProvidersList, ProvidersListSkeleton } from "./components/List";
-import { MetaTitle } from "@/components/MetaTitle";
+import { MetaTags } from "@/components/MetaTags";
+
+const title = "Providers";
+
+const description =
+  "Providers are plugins to OpenTofu and create or destroy resources using their backing API based on your OpenTofu configuration.";
 
 export function Providers() {
   return (
     <SimpleLayout>
-      <MetaTitle>Providers</MetaTitle>
+      <MetaTags title={title} description={description} />
       <div className="mb-5 flex justify-between">
         <div className="flex flex-col gap-5">
-          <PageTitle>Providers</PageTitle>
-          <Paragraph>
-            Providers are plugins to OpenTofu and create or destroy resources
-            using their backing API based on your OpenTofu configuration.
-          </Paragraph>
+          <PageTitle>{title}</PageTitle>
+          <Paragraph>{description}</Paragraph>
         </div>
         <Button
           target="_blank"

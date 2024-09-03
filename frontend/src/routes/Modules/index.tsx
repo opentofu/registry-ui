@@ -4,19 +4,21 @@ import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
 import { SimpleLayout } from "@/components/SimpleLayout";
 import { ModulesList, ModulesListSkeleton } from "./components/List";
-import { MetaTitle } from "@/components/MetaTitle";
+import { MetaTags } from "@/components/MetaTags";
+
+const title = "Modules";
+
+const description =
+  "Modules are reusable packages of OpenTofu code to speed up development.";
 
 export function Modules() {
   return (
     <SimpleLayout>
-      <MetaTitle>Modules</MetaTitle>
+      <MetaTags title={title} description={description} />
       <div className="mb-5 flex justify-between">
         <div className="flex flex-col gap-5">
-          <PageTitle>Modules</PageTitle>
-          <Paragraph>
-            Modules are reusable packages of OpenTofu code to speed up
-            development.
-          </Paragraph>
+          <PageTitle>{title}</PageTitle>
+          <Paragraph>{description}</Paragraph>
         </div>
         <Button
           target="_blank"

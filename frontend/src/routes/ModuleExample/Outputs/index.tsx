@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleExampleDataQuery } from "../query";
 import { ModuleOutputs as ModuleOutputsComponent } from "@/components/ModuleOutputs";
 import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
-import { ModuleExampleMetaTitle } from "../components/MetaTitle";
+import { ModuleExampleMetaTags } from "../components/MetaTags";
 
 export function ModuleExampleOutputs() {
   const { namespace, name, target, version, example } =
@@ -14,7 +14,7 @@ export function ModuleExampleOutputs() {
 
   return (
     <>
-      <ModuleExampleMetaTitle page="Outputs" />
+      <ModuleExampleMetaTags page="Outputs" />
       <ModuleOutputsComponent outputs={data.outputs} />
     </>
   );
