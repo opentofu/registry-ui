@@ -232,7 +232,7 @@ export function Search({
 
         <ComboboxOptions
           anchor="bottom start"
-          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
+          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
         >
           {filtered.map((item) => (
             <div key={item.type}>
