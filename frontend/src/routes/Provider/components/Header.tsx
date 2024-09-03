@@ -35,7 +35,7 @@ export function ProviderHeader() {
         {data.description && <Paragraph>{data.description}</Paragraph>}
       </div>
       <InfoSection>
-        <InfoSectionItem label="Owner">{data.addr.Namespace}</InfoSectionItem>
+        <InfoSectionItem label="Owner">{data.addr.namespace}</InfoSectionItem>
         <InfoSectionItem label="Latest version">
           {data.versions[0].id}
         </InfoSectionItem>
