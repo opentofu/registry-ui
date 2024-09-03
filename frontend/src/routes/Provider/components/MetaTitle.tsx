@@ -6,14 +6,14 @@ import { MetaTitle } from "@/components/MetaTitle";
 import { Suspense } from "react";
 
 export function ProviderMetaTitleContent() {
-  const { namespace, provider, version, doc, type, isLatest } =
+  const { namespace, provider, version, doc, type, isLatest, lang } =
     useProviderParams();
 
   const { data } = useSuspenseQuery(
     getProviderVersionDataQuery(namespace, provider, version),
   );
 
-  const providerDoc = getProviderDoc(data.docs, type, doc);
+  const providerDoc = getProviderDoc(data, type, doc, lang);
 
   if (!providerDoc) {
     return null;
