@@ -26,9 +26,13 @@ function getAdmonitionMatch(children: ReactNode) {
     content = children[0];
   }
 
+  if (!content) {
+    return null;
+  }
+
   const match = content.match(admonitionRegex);
 
-  if (!match || !match.groups) {
+  if (!match?.groups?.prefix || !match?.groups?.content) {
     return null;
   }
 
