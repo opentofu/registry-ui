@@ -8,11 +8,11 @@ const NOTE_MARK = "->";
 
 function getAdmonitionClassName(prefix: string) {
   switch (prefix) {
-    case "->":
+    case NOTE_MARK:
       return "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-100";
-    case "!>":
+    case DANGER_MARK:
       return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-100";
-    case "~>":
+    case WARNING_MARK:
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-100";
     default:
       return "";
