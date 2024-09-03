@@ -3,3 +3,8 @@ name = "registry-ui-search"
 main = "src/index.ts"
 compatibility_date = "2024-08-21"
 compatibility_flags = ["nodejs_compat"]
+
+[[r2_buckets]]
+binding = 'BUCKET'
+bucket_name = 'registry-ui-api'
+preview_bucket_name = 'registry-ui-api'
