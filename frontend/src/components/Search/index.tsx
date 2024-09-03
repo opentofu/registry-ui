@@ -18,6 +18,7 @@ import { SearchOtherResult } from "./OtherResult";
 import { definitions } from "@/api";
 import clsx from "clsx";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { Paragraph } from "../Paragraph";
 
 function getSearchResultType(value: string) {
   switch (value) {
@@ -119,7 +120,7 @@ export function Search({
 }: SearchProps) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 250);
-  const { data, isLoading } = useQuery(getSearchQuery(debouncedQuery));
+  const { data, isFetching } = useQuery(getSearchQuery(debouncedQuery));
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
@@ -185,7 +186,6 @@ export function Search({
 
   return (
     <Combobox
-      onClose={() => setQuery("")}
       onChange={(v: SearchResult) => {
         if (!v) {
           return;
@@ -208,9 +208,7 @@ export function Search({
         />
         <ComboboxInput
           ref={inputRef}
-          displayValue={(result: SearchResult) =>
-            (result || {}).displayTitle || ""
-          }
+          value={query}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           className={clsx(
@@ -219,7 +217,7 @@ export function Search({
           )}
         />
 
-        {isLoading && (
+        {isFetching && (
           <Icon
             path={spinner}
             className={clsx(
@@ -233,7 +231,7 @@ export function Search({
 
         <ComboboxOptions
           anchor="bottom start"
-          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
+          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] dark:divide-gray-900 dark:bg-gray-800"
         >
           {filtered.map((item) => (
             <div key={item.type}>
@@ -261,6 +259,11 @@ export function Search({
               ))}
             </div>
           ))}
+          {filtered.length === 0 && !isFetching && query && (
+            <Paragraph className="px-4 py-2 text-sm">
+              No results found
+            </Paragraph>
+          )}
         </ComboboxOptions>
       </div>
     </Combobox>
