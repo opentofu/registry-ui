@@ -2,9 +2,9 @@ import { HTMLAttributes, ReactNode } from "react";
 import { Paragraph } from "../Paragraph";
 import clsx from "clsx";
 
-const admonitionRegex = /^(?<prefix>!>|~>|->)\s+(?<text>.*)$/;
+const admonitionRegex = /^(?<prefix>!>|~>|->)\s+(?<content>.*)$/;
 
-const getAdmonitionClassName = (prefix: string) => {
+function getAdmonitionClassName(prefix: string) {
   switch (prefix) {
     case "->":
       return "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-100";
@@ -15,39 +15,46 @@ const getAdmonitionClassName = (prefix: string) => {
     default:
       return "";
   }
-};
+}
 
-function getFirstLine(children: ReactNode) {
+function getAdmonitionMatch(children: ReactNode) {
+  let content = "";
+
   if (typeof children === "string") {
-    return children;
+    content = children;
+  } else if (Array.isArray(children) && typeof children[0] === "string") {
+    content = children[0];
   }
 
-  return Array.isArray(children) && typeof children[0] === "string"
-    ? children[0]
-    : null;
+  const match = content.match(admonitionRegex);
+
+  if (!match || !match.groups) {
+    return null;
+  }
+
+  return {
+    prefix: match.groups.prefix,
+    content: match.groups.content,
+  };
 }
 
 export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
-  const firstLine = getFirstLine(children);
+  const admonitionMatch = getAdmonitionMatch(children);
 
-  if (firstLine && admonitionRegex.test(firstLine)) {
-    const match = firstLine.match(admonitionRegex);
+  if (admonitionMatch) {
+    const { prefix, content } = admonitionMatch;
+    const className = getAdmonitionClassName(prefix);
+    const remainingContent = Array.isArray(children) ? children.slice(1) : null;
 
-    if (match?.groups) {
-      const { prefix, text } = match.groups;
-      const className = getAdmonitionClassName(prefix);
-      const remainingLines = Array.isArray(children) ? children.slice(1) : null;
-
-      return (
-        <div
-          role="alert"
-          className={clsx("mt-5 px-3 py-2 [li>&:first-child]:mt-0", className)}
-        >
-          {text}
-          {remainingLines}
-        </div>
-      );
-    }
+    return (
+      <div
+        role="alert"
+        className={clsx("mt-5 px-3 py-2 [li>&:first-child]:mt-0", className)}
+      >
+        {content}
+        {remainingContent}
+      </div>
+    );
   }
 
   return (
