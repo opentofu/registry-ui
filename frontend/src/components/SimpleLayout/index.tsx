@@ -1,6 +1,7 @@
 import { Header } from "../Header";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { ReactNode } from "react";
+import { Footer } from "../Footer";
 
 interface SimpleLayoutProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
         <Breadcrumbs />
         {children}
       </main>
+      <Footer />
     </>
   );
 }
