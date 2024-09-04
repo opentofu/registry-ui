@@ -3,10 +3,12 @@ import { Header } from "../../components/Header";
 import { Paragraph } from "../../components/Paragraph";
 import PatternBg from "../../components/PatternBg";
 import { Footer } from "@/components/Footer";
+import { MetaTags } from "@/components/MetaTags";
 
 export function Home() {
   return (
     <>
+      <MetaTags />
       <PatternBg />
       <Header />
       <main className="container m-auto flex flex-col items-center text-center">

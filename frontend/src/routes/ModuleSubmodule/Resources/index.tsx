@@ -3,7 +3,7 @@ import { getModuleSubmoduleDataQuery } from "../query";
 
 import { ModuleResources as ModuleResourcesComponent } from "@/components/ModuleResources";
 import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
-import { ModuleSubmoduleMetaTitle } from "../components/MetaTitle";
+import { ModuleSubmoduleMetaTags } from "../components/MetaTags";
 
 export function ModuleSubmoduleResources() {
   const { namespace, name, target, version, submodule } =
@@ -15,7 +15,7 @@ export function ModuleSubmoduleResources() {
 
   return (
     <>
-      <ModuleSubmoduleMetaTitle page="Resources" />
+      <ModuleSubmoduleMetaTags page="Resources" />
       <ModuleResourcesComponent resources={data.resources} />
     </>
   );

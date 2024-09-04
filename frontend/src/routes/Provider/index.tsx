@@ -24,7 +24,7 @@ import {
   ProviderMetadataSidebarBlock,
   ProviderMetadataSidebarBlockSkeleton,
 } from "./components/MetadataSidebarBlock";
-import { ProviderMetaTitle } from "./components/MetaTitle";
+import { ProviderMetaTags } from "./components/MetaTags";
 
 export function Provider() {
   return (
@@ -54,7 +54,7 @@ export function Provider() {
         </SidebarPanel>
       }
     >
-      <ProviderMetaTitle />
+      <ProviderMetaTags />
       <div className="flex flex-col gap-5 px-5">
         <Suspense
           fallback={

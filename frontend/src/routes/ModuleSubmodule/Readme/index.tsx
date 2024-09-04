@@ -4,7 +4,7 @@ import { Markdown } from "@/components/Markdown";
 import { getModuleSubmoduleReadmeQuery } from "../query";
 import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
 import { Suspense } from "react";
-import { ModuleSubmoduleMetaTitle } from "../components/MetaTitle";
+import { ModuleSubmoduleMetaTags } from "../components/MetaTags";
 
 function ModuleSubmoduleReadmeContent() {
   const { namespace, name, target, version, submodule } =
@@ -38,7 +38,7 @@ function ModuleSubmoduleReadmeContentSkeleton() {
 export function ModuleSubmoduleReadme() {
   return (
     <div className="p-5">
-      <ModuleSubmoduleMetaTitle />
+      <ModuleSubmoduleMetaTags />
       <Suspense fallback={<ModuleSubmoduleReadmeContentSkeleton />}>
         <ModuleSubmoduleReadmeContent />
       </Suspense>

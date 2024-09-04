@@ -3,7 +3,7 @@ import { getModuleVersionDataQuery } from "../query";
 
 import { useModuleParams } from "../hooks/useModuleParams";
 import { ModuleResources as ModuleResourcesComponent } from "@/components/ModuleResources";
-import { ModuleMetaTitle } from "../components/MetaTitle";
+import { ModuleMetaTags } from "../components/MetaTags";
 
 export function ModuleResources() {
   const { namespace, name, target, version } = useModuleParams();
@@ -14,7 +14,7 @@ export function ModuleResources() {
 
   return (
     <>
-      <ModuleMetaTitle page="Resources" />
+      <ModuleMetaTags page="Resources" />
       <ModuleResourcesComponent resources={data.resources} />
     </>
   );

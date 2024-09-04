@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "../query";
 import { useModuleParams } from "../hooks/useModuleParams";
 import { ModuleInputs as ModuleInputsComponent } from "@/components/ModuleInputs";
-import { ModuleMetaTitle } from "../components/MetaTitle";
+import { ModuleMetaTags } from "../components/MetaTags";
 
 export function ModuleInputs() {
   const { namespace, name, target, version } = useModuleParams();
@@ -13,7 +13,7 @@ export function ModuleInputs() {
 
   return (
     <>
-      <ModuleMetaTitle page="Inputs" />
+      <ModuleMetaTags page="Inputs" />
       <ModuleInputsComponent inputs={data.variables} />
     </>
   );

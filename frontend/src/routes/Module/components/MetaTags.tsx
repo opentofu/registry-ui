@@ -1,15 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleDataQuery } from "../query";
 
-import { MetaTitle } from "@/components/MetaTitle";
+import { MetaTags } from "@/components/MetaTags";
 import { useModuleParams } from "../hooks/useModuleParams";
 import { Suspense } from "react";
 
-interface ModuleMetaTitleProps {
+interface ModuleMetaTagsProps {
   page?: string;
 }
 
-function ModuleMetaTitleContent({ page }: ModuleMetaTitleProps) {
+function ModuleMetaTagsContent({ page }: ModuleMetaTagsProps) {
   const { namespace, name, target, version, isLatest } = useModuleParams();
 
   const { data } = useSuspenseQuery(
@@ -26,13 +26,13 @@ function ModuleMetaTitleContent({ page }: ModuleMetaTitleProps) {
     title = `${page} - ${title}`;
   }
 
-  return <MetaTitle>{title}</MetaTitle>;
+  return <MetaTags title={title} description={data.description} />;
 }
 
-export function ModuleMetaTitle({ page }: ModuleMetaTitleProps) {
+export function ModuleMetaTags({ page }: ModuleMetaTagsProps) {
   return (
     <Suspense fallback={null}>
-      <ModuleMetaTitleContent page={page} />
+      <ModuleMetaTagsContent page={page} />
     </Suspense>
   );
 }

@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleSubmoduleDataQuery } from "../query";
 import { ModuleInputs } from "@/components/ModuleInputs";
 import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
-import { ModuleSubmoduleMetaTitle } from "../components/MetaTitle";
+import { ModuleSubmoduleMetaTags } from "../components/MetaTags";
 
 export function ModuleSubmoduleInputs() {
   const { namespace, name, target, version, submodule } =
@@ -14,7 +14,7 @@ export function ModuleSubmoduleInputs() {
 
   return (
     <>
-      <ModuleSubmoduleMetaTitle page="Inputs" />
+      <ModuleSubmoduleMetaTags page="Inputs" />
       <ModuleInputs inputs={data.variables} />
     </>
   );
