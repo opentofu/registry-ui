@@ -91,7 +91,9 @@ func (l List) String() string {
 	return strings.Join(str, ", ")
 }
 
-// License describes a license found in a repository.
+// License describes a license found in a repository. Note: the license detection is best effort. When displaying the
+// license to the user, always show a link to the actual license and warn users that they have to inspect the license
+// themselves.
 //
 // swagger:model License
 type License struct {

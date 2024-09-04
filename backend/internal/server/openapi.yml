@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-            github.com/NAMESPACE/terraform-provider-NAME .
+            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
         type: object
     BaseDetails:
         properties:
@@ -95,6 +95,10 @@ definitions:
             - deleted_at
         type: object
     License:
+        description: |-
+            License describes a license found in a repository. Note: the license detection is best effort. When displaying the
+            license to the user, always show a link to the actual license and warn users that they have to inspect the license
+            themselves.
         properties:
             confidence:
                 description: Confidence indicates how accurate the license detection is.
@@ -117,7 +121,6 @@ definitions:
             - confidence
             - is_compatible
             - file
-        title: License describes a license found in a repository.
         type: object
     LicenseList:
         items:
@@ -731,10 +734,7 @@ definitions:
         title: Variable describes a variable as the UI expects it.
         type: object
     VersionNumber:
-        description: |-
-            VersionNumber describes the semver version number. Note that in contrast to provider versions module versions
-            do not have a compulsory "v" prefix. Call ToVCSVersion() before you call Normalize() in order to get the correct
-            VCS version.
+        title: VersionNumber describes the semver version number.
         type: string
 host: api.opentofu.org
 info:
