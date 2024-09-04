@@ -10,11 +10,11 @@ function Block({ children }: { children: ReactNode }) {
   return (
     <SidebarBlock title="How to use this provider">
       <Paragraph className="my-4">
-        Copy this code info your OpenTofu configuration and run run{" "}
+        Copy this code into your OpenTofu configuration and run run{" "}
         <code className="text-sm text-purple-700 dark:text-purple-300">
           tofu init
-        </code>
-        {" "}to install this provider.
+        </code>{" "}
+        to install this provider.
       </Paragraph>
       {children}
     </SidebarBlock>

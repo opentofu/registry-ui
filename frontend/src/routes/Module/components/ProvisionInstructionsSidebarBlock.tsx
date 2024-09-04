@@ -10,7 +10,7 @@ function Block({ children }: { children: ReactNode }) {
   return (
     <SidebarBlock title="Provision instructions">
       <Paragraph className="my-4">
-        Copy this code info your OpenTofu configuration and add any variables
+        Copy this code into your OpenTofu configuration and add any variables
         necessary, then run{" "}
         <code className="text-sm text-purple-700 dark:text-purple-300">
           tofu init
