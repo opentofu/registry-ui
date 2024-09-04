@@ -39,15 +39,18 @@ export function LicenseSidebarBlock(props: BlockProps) {
     );
 
     const licenses = Object.entries(groupedLicenses).map(([link, license]) => (
-      <li className="flex flex-col items-start gap-2" key={link}>
-        <a
-          href={link}
-          className="underline"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {license[0].file}
-        </a>
+      <li className="flex flex-col items-start gap-1" key={link}>
+        <span>
+          File:{" "}
+          <a
+            href={link}
+            className="underline"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            {license[0].file}
+          </a>
+        </span>
         <span className="text-gray-800 dark:text-gray-300">
           {license?.map((license, index, arr) => (
             <Fragment key={license.spdx}>
