@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
-            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
+            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
+            github.com/NAMESPACE/terraform-provider-NAME .
         type: object
     BaseDetails:
         properties:
@@ -112,6 +112,11 @@ definitions:
             spdx:
                 description: SPDX is the SPDX identifier for the license.
                 type: string
+        required:
+            - spdx
+            - confidence
+            - is_compatible
+            - file
         title: License describes a license found in a repository.
         type: object
     LicenseList:
