@@ -1,0 +1,12 @@
+name: "Beta: Add a provider/module"
+description: "The beta does not include the full registry dataset. Use this issue to request the inclusion of a provider."
+labels: ["feedback"]
+body:
+  - type: textarea
+    id: repository
+    attributes:
+      label: Repository URL
+      placeholder: https://github.com/...
+      value:
+    validations:
+      required: true

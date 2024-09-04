@@ -1,0 +1,11 @@
+name: "Backend bug"
+description: "Report a problem with the indexed dataset"
+labels: ["bug","Backend"]
+body:
+  - type: textarea
+    id: text
+    attributes:
+      label: Please explain the bug
+      value:
+    validations:
+      required: true
