@@ -1,3 +1,4 @@
+import { Footer } from "../Footer";
 import { Header } from "../Header";
 import { ReactNode } from "react";
 
@@ -16,6 +17,7 @@ export function SidebarLayout({ children, before, after }: SidebarLayoutProps) {
         <main className="min-w-0 flex-1">{children}</main>
         {after}
       </div>
+      <Footer />
     </>
   );
 }

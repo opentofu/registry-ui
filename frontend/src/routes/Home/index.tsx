@@ -2,6 +2,7 @@ import { Search } from "@/components/Search";
 import { Header } from "../../components/Header";
 import { Paragraph } from "../../components/Paragraph";
 import PatternBg from "../../components/PatternBg";
+import { Footer } from "@/components/Footer";
 
 export function Home() {
   return (
@@ -50,6 +51,7 @@ export function Home() {
           placeholder="Search providers, resources, or modules"
         />
       </main>
+      <Footer />
     </>
   );
 }
