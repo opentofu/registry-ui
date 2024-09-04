@@ -21,6 +21,18 @@ function LicenseSidebarBlockTitle() {
   );
 }
 
+function getSeparator(index: number, length: number) {
+  let separator = "";
+
+  if (index < length - 2) {
+    separator = ", ";
+  } else if (index === length - 2) {
+    separator = " and ";
+  }
+
+  return separator;
+}
+
 export function LicenseSidebarBlock(props: BlockProps) {
   let content: ReactNode;
 
@@ -35,27 +47,30 @@ export function LicenseSidebarBlock(props: BlockProps) {
 
     const groupedLicenses = Object.groupBy(
       sortedLicenses,
-      (license) => license.link,
+      (license) => license.link || "",
     );
 
     const licenses = Object.entries(groupedLicenses).map(([link, license]) => (
-      <li className="flex flex-col items-start gap-2" key={link}>
-        <a
-          href={link}
-          className="underline"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {license[0].file}
-        </a>
-        <span className="text-gray-800 dark:text-gray-300">
-          {license?.map((license, index, arr) => (
-            <Fragment key={license.spdx}>
-              {license.spdx}
-              {index < arr.length - 1 && ", "}
-            </Fragment>
-          ))}
-        </span>
+      <li key={link} className="text-gray-800 dark:text-gray-300">
+        {license?.map((license, index, arr) => (
+          <Fragment key={license.spdx}>
+            {license.spdx}
+            {getSeparator(index, arr.length)}
+          </Fragment>
+        ))}{" "}
+        in{" "}
+        {link ? (
+          <a
+            href={link}
+            className="text-gray-900 underline dark:text-white"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            {license[0].file}
+          </a>
+        ) : (
+          license[0].file
+        )}
       </li>
     ));
 

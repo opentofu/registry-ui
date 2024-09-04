@@ -53,8 +53,8 @@ export interface paths {
 
 export interface definitions {
   /**
-   * @description Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-   * github.com/NAMESPACE/terraform-provider-NAME .
+   * @description Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+   * github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
    */
   Addr: { [key: string]: unknown };
   /** BaseDetails is an embedded struct describing a module or a submodule. */
@@ -102,21 +102,25 @@ export interface definitions {
     deleted_at: string;
     id: definitions["IndexID"];
   };
-  /** License describes a license found in a repository. */
+  /**
+   * @description License describes a license found in a repository. Note: the license detection is best effort. When displaying the
+   * license to the user, always show a link to the actual license and warn users that they have to inspect the license
+   * themselves.
+   */
   License: {
     /**
      * Format: float
      * @description Confidence indicates how accurate the license detection is.
      */
-    confidence?: number;
+    confidence: number;
     /** @description File holds the file in the repository where the license was detected. */
-    file?: string;
+    file: string;
     /** @description IsCompatible signals if the license is compatible with the OpenTofu project. */
-    is_compatible?: boolean;
+    is_compatible: boolean;
     /** @description Link may contain a link to the license file for humans to view. This may be empty. */
     link?: string;
     /** @description SPDX is the SPDX identifier for the license. */
-    spdx?: string;
+    spdx: string;
   };
   /** List is a list of licenses found in a repository. */
   LicenseList: definitions["License"][];
@@ -274,9 +278,15 @@ export interface definitions {
   Provider: {
     addr: definitions["ProviderAddr"];
     blocked_reason?: string;
+    canonical_addr?: definitions["ProviderAddr"];
     /** @description Description is the extracted description for the provider. This may be empty. */
     description: string;
     is_blocked: boolean;
+    /**
+     * @description ReverseAliases contains a list of providers that are aliases of the current one. This field is the inverse of
+     * CanonicalAddr.
+     */
+    reverse_aliases?: definitions["ProviderAddr"][];
     /** @description Versions holds the list of versions this provider supports. */
     versions: definitions["ProviderVersionDescriptor"][];
   };
