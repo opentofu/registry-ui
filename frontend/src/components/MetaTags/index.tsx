@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
 interface MetaTagsProps {
-  title: string;
+  title?: string;
   description?: string;
 }
 
