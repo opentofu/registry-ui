@@ -140,7 +140,7 @@ type Config struct {
 	CompatibleLicenses  []string
 	ConfidenceThreshold float32
 	// ConfidenceOverrideThreshold is the limit at which a detected license overrides all other detected licenses.
-	// Defaults to 98.
+	// Defaults to 98%.
 	ConfidenceOverrideThreshold float32
 }
 
