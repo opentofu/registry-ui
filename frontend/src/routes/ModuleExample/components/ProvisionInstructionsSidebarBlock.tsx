@@ -8,7 +8,7 @@ import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 
 function Block({ children }: { children: ReactNode }) {
   return (
-    <SidebarBlock title="Provision instructions">
+    <SidebarBlock title="How to use this module example">
       <Paragraph className="my-4">
         Copy this code info your OpenTofu configuration and add any variables
         necessary, then run{" "}
