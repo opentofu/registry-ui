@@ -120,7 +120,9 @@ export function Search({
 }: SearchProps) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 250);
-  const { data, isFetching } = useQuery(getSearchQuery(debouncedQuery));
+  const { data, isFetching, isPending, isPlaceholderData } = useQuery(
+    getSearchQuery(debouncedQuery),
+  );
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
@@ -184,6 +186,13 @@ export function Search({
     };
   }, []);
 
+  const shouldShowNoResultsInfo =
+    filtered.length === 0 &&
+    query &&
+    !isFetching &&
+    !isPending &&
+    !isPlaceholderData;
+
   return (
     <Combobox
       onChange={(v: SearchResult) => {
@@ -231,7 +240,7 @@ export function Search({
 
         <ComboboxOptions
           anchor="bottom start"
-          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] dark:divide-gray-900 dark:bg-gray-800"
+          className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
         >
           {filtered.map((item) => (
             <div key={item.type}>
@@ -259,7 +268,7 @@ export function Search({
               ))}
             </div>
           ))}
-          {filtered.length === 0 && !isFetching && query && (
+          {shouldShowNoResultsInfo && (
             <Paragraph className="px-4 py-2 text-sm">
               No results found
             </Paragraph>
