@@ -3,9 +3,10 @@ import { getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
 
 import {
-  RepoMetadataSidebarBlock,
-  RepoMetadataSidebarBlockSkeleton,
-} from "@/components/RepoMetadataSidebarBlock";
+  RepoSidebarBlock,
+  RepoSidebarBlockSkeleton,
+} from "@/components/RepoSidebarBlock";
+import { LicenseSidebarBlock } from "@/components/LicenseSidebarBlock";
 
 export function ProviderMetadataSidebarBlock() {
   const { namespace, provider, version } = useProviderParams();
@@ -14,7 +15,19 @@ export function ProviderMetadataSidebarBlock() {
     getProviderVersionDataQuery(namespace, provider, version),
   );
 
-  return <RepoMetadataSidebarBlock license={data.license} link={data.link} />;
+  return (
+    <>
+      <LicenseSidebarBlock license={data.license} />
+      <RepoSidebarBlock link={data.link} />
+    </>
+  );
 }
 
-export { RepoMetadataSidebarBlockSkeleton as ProviderMetadataSidebarBlockSkeleton };
+export function ProviderMetadataSidebarBlockSkeleton() {
+  return (
+    <>
+      <LicenseSidebarBlock />
+      <RepoSidebarBlockSkeleton />
+    </>
+  );
+}
