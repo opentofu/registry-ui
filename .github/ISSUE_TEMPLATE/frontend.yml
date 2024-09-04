@@ -1,0 +1,33 @@
+name: "Frontend bug"
+description: "Report a rendering error or bug in the frontend"
+labels: ["bug","frontend"]
+body:
+  - type: textarea
+    id: url
+    attributes:
+      label: URL of the page that's broken
+      placeholder: https://search.opentofu.org/...
+      value:
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      value:
+    validations:
+      required: true
+  - type: textarea
+    id: browser
+    attributes:
+      label: OS, browser version, installed extensions
+      value:
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional information
+      value:
+    validations:
+      required: false
