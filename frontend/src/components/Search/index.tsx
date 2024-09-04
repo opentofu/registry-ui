@@ -108,8 +108,8 @@ type Results = Array<{
 }>;
 
 type SearchProps = {
-  size: "small" | "large";
-  placeholder: string;
+  size?: "small" | "large";
+  placeholder?: string;
 };
 
 export function Search({

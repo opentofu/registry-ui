@@ -5,7 +5,7 @@ export function HeaderLogo() {
       fill="none"
       viewBox="0 0 154 48"
       aria-hidden="true"
-      className="h-12 hover:text-brand-500"
+      className="h-12"
     >
       <path
         fill="currentColor"
