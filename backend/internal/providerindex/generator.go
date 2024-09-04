@@ -281,7 +281,7 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 			}
 			var versionNotFound *vcs.VersionNotFoundError
 			if errors.As(err, &versionNotFound) {
-				d.log.Warn(ctx, "Version %s not found for provider %s, skipping (%v)", addr.Addr, err)
+				d.log.Warn(ctx, "Version %s not found for provider %s, skipping (%v)", version.Version, addr.Addr, err)
 				// We don't care, don't add it to the version list.
 				continue
 			}
