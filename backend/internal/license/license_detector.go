@@ -96,14 +96,19 @@ func (l List) String() string {
 // swagger:model License
 type License struct {
 	// SPDX is the SPDX identifier for the license.
+	// required: true
 	SPDX string `json:"spdx"`
 	// Confidence indicates how accurate the license detection is.
+	// required: true
 	Confidence float32 `json:"confidence"`
 	// IsCompatible signals if the license is compatible with the OpenTofu project.
+	// required: true
 	IsCompatible bool `json:"is_compatible"`
 	// File holds the file in the repository where the license was detected.
+	// required: true
 	File string `json:"file"`
 	// Link may contain a link to the license file for humans to view. This may be empty.
+	// required: false
 	Link string `json:"link,omitempty"`
 }
 
