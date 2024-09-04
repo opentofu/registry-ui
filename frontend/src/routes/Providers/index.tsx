@@ -6,10 +6,12 @@ import { SimpleLayout } from "@/components/SimpleLayout";
 import { Suspense } from "react";
 
 import { ProvidersList, ProvidersListSkeleton } from "./components/List";
+import { MetaTitle } from "@/components/MetaTitle";
 
 export function Providers() {
   return (
     <SimpleLayout>
+      <MetaTitle>Providers</MetaTitle>
       <div className="mb-5 flex justify-between">
         <div className="flex flex-col gap-5">
           <PageTitle>Providers</PageTitle>

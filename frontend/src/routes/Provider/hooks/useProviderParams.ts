@@ -1,9 +1,8 @@
 import { useLoaderData, useParams, useSearchParams } from "react-router-dom";
+import { ProviderRouteContext } from "../types";
 
 export function useProviderParams() {
-  const { version } = useLoaderData() as {
-    version: string;
-  };
+  const { version, rawVersion } = useLoaderData() as ProviderRouteContext;
 
   const { namespace, provider, type, doc } = useParams<{
     namespace: string;
@@ -21,5 +20,6 @@ export function useProviderParams() {
     type,
     doc,
     lang: searchParams.get("lang"),
+    isLatest: rawVersion === "latest",
   };
 }

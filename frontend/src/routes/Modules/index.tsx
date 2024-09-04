@@ -4,10 +4,12 @@ import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
 import { SimpleLayout } from "@/components/SimpleLayout";
 import { ModulesList, ModulesListSkeleton } from "./components/List";
+import { MetaTitle } from "@/components/MetaTitle";
 
 export function Modules() {
   return (
     <SimpleLayout>
+      <MetaTitle>Modules</MetaTitle>
       <div className="mb-5 flex justify-between">
         <div className="flex flex-col gap-5">
           <PageTitle>Modules</PageTitle>
