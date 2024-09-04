@@ -1,13 +1,30 @@
+import { github } from "@/icons/github";
+import { Icon } from "../Icon";
 import { SidebarBlock } from "../SidebarBlock";
 
 function getLinkLabel(url: string) {
-  const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+  try {
+    const parsedUrl = new URL(url);
 
-  if (!match) {
-    return null;
+    switch (parsedUrl.hostname) {
+      case "github.com": {
+        const pathParts = parsedUrl.pathname.split("/");
+
+        return (
+          <>
+            <Icon path={github} className="mt-1.5 size-em" />
+            <span>
+              {pathParts[1]}/{pathParts[2]}
+            </span>
+          </>
+        );
+      }
+      default:
+        return `${parsedUrl.hostname}${parsedUrl.pathname}`;
+    }
+  } catch {
+    return url;
   }
-
-  return `${match[1]}/${match[2]}`;
 }
 
 interface BlockProps {
@@ -20,7 +37,7 @@ export function RepoSidebarBlock(props: BlockProps) {
       {props.link ? (
         <a
           href={props.link}
-          className="underline"
+          className="inline-flex gap-2 underline"
           target="_blank"
           rel="noreferrer noopener"
         >
