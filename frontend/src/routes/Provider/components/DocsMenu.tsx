@@ -3,7 +3,7 @@ import { TreeView, TreeViewItem } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { To, useHref, useLinkClickHandler } from "react-router-dom";
 
 import { NestedItem, transformStructure } from "../docsSidebar";
@@ -55,12 +55,17 @@ function DocsTreeViewItem({
   const { lang } = useProviderParams();
   const [open, setOpen] = useState(isOpenByDefault);
   let button;
+  const listId = useId();
+  const buttonId = useId();
 
   if (item.items) {
     button = (
       <button
         className="flex gap-2 px-4 py-2 text-left text-inherit hover:bg-gray-100 dark:hover:bg-blue-900"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
+        id={buttonId}
       >
         <Icon
           path={chevron}
@@ -86,7 +91,7 @@ function DocsTreeViewItem({
     <TreeViewItem nested={nested} className={nested ? "ml-2" : ""}>
       {button}
       {open && item.items && (
-        <TreeView className="ml-4">
+        <TreeView className="ml-4" id={listId} aria-labelledby={buttonId}>
           {item.items.map((subitem) => (
             <DocsTreeViewItem
               key={subitem.name}
