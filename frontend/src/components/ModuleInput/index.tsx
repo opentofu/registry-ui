@@ -16,7 +16,7 @@ export function ModuleInput({
 }: ModuleInputProps) {
   return (
     <li>
-      <h4 id={name} className="group scroll-mt-24">
+      <h4 id={name} className="group scroll-mt-5">
         {name}{" "}
         <code className="text-mono text-sm text-purple-700 dark:text-purple-300">
           ({type})
