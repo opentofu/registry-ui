@@ -10,7 +10,7 @@ type Path string
 
 const MaxPathLength = 255
 
-var pathPartRe = regexp.MustCompile("^[a-zA-Z0-9_.-]+(/[a-zA-Z0-9_.-]+)*$")
+var pathPartRe = regexp.MustCompile("^[a-zA-Z0-9_.@-]+(/[a-zA-Z0-9_.@-]+)*$")
 
 func (p Path) Validate() error {
 	if len(p) > MaxPathLength {

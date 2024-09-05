@@ -10,7 +10,7 @@ type DocItemName string
 
 const docItemNameMaxLength = 255
 
-var docItemNameRe = regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
+var docItemNameRe = regexp.MustCompile("^[a-zA-Z0-9 ._@-]+$")
 
 func (n DocItemName) Validate() error {
 	if len(n) > docItemNameMaxLength || !docItemNameRe.MatchString(string(n)) {
