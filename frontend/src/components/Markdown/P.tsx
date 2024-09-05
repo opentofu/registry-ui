@@ -57,7 +57,10 @@ export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
     return (
       <div
         role="alert"
-        className={clsx("mt-5 px-3 py-2 [li>&:first-child]:mt-0", className)}
+        className={clsx(
+          "mt-5 px-3 py-2 first:mt-0 [li>&:first-child]:mt-0",
+          className,
+        )}
       >
         {content}
         {remainingContent}
@@ -66,7 +69,7 @@ export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
   }
 
   return (
-    <Paragraph className="mt-5 leading-7 [li>&:first-child]:mt-0">
+    <Paragraph className="mt-5 leading-7 first:mt-0 [li>&:first-child]:mt-0">
       {children}
     </Paragraph>
   );
