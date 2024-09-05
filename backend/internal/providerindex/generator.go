@@ -321,16 +321,18 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 }
 
 func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {
+	// We get the VCS version before normalizing as the tag name may be different.
+	vcsVersion := version.Version.ToVCSVersion()
 	version.Version = version.Version.Normalize()
 	d.log.Info(ctx, "Scraping documentation for %s version %s...", addr, version.Version)
 
 	// TODO get the release date instead of the tag date
-	tag, err := d.vcsClient.GetTagVersion(ctx, canonicalAddr.ToRepositoryAddr(), version.Version.ToVCSVersion())
+	tag, err := d.vcsClient.GetTagVersion(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
 	if err != nil {
 		return providertypes.ProviderVersion{}, err
 	}
 
-	workingCopy, err := d.vcsClient.Checkout(ctx, canonicalAddr.ToRepositoryAddr(), version.Version.ToVCSVersion())
+	workingCopy, err := d.vcsClient.Checkout(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
 	if err != nil {
 		return providertypes.ProviderVersion{}, err
 	}
