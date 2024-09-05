@@ -9,7 +9,7 @@ interface ModuleOutputProps {
 export function ModuleOutput({ name, description }: ModuleOutputProps) {
   return (
     <li>
-      <h4 id={name} className="group scroll-mt-24">
+      <h4 id={name} className="group scroll-mt-5">
         {name}
         <HeadingLink id={name} label={`${name} output`} />
       </h4>
