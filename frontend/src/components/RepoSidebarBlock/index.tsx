@@ -12,7 +12,7 @@ function getLinkLabel(url: string) {
 
         return (
           <>
-            <Icon path={github} className="mt-1.5 size-em" />
+            <Icon path={github} className="mt-1.5 size-em shrink-0" />
             <span>
               {pathParts[1]}/{pathParts[2]}
             </span>
