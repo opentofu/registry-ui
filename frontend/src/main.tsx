@@ -7,7 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { queryClient } from "./query";
 import { router } from "./router";
 import { AnnouncementBar } from "./components/AnnouncementBar";
-import announcement from "../announcement.md";
+import { content as announcement } from "../announcement.md";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
