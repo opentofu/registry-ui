@@ -14,8 +14,6 @@ function getAdmonitionClassName(prefix: string) {
       return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-100";
     case WARNING_MARK:
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-100";
-    default:
-      return "";
   }
 }
 
