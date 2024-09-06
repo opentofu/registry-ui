@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Overview",
+    "path": "index.md",
+    "slug": ""
+  },
+  {
+    "title": "Users",
+    "items": [
+      {
+        "title": "For user",
+        "path": "users/index.md",
+        "slug": "users"
+      },
+      {
+        "title": "Using a module",
+        "path": "users/modules.md",
+        "slug": "users/modules"
+      }
+    ]
+  }
+]
