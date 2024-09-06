@@ -1,6 +1,6 @@
 # The OpenTofu Registry
 
-The OpenTofu Registry provides an API for OpenTofu to locate providers and modules. This documentation will guide you through the most important steps in using the registry or publishing your modules and providers. 
+The OpenTofu Registry provides an API for OpenTofu to locate providers and modules. This documentation will guide you through the most important steps in using the registry or publishing your modules and providers.
 
 ## For users
 
@@ -30,4 +30,3 @@ This section shows you how to create and publish a module.
 - [Creating a module](/docs/modules/creating)
 - [Publishing a module](/docs/modules/publishing)
 - [Adding a module to the OpenTofu Registry](/docs/modules/adding)
-
