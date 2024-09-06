@@ -1,12 +1,9 @@
-import { Plugin, unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkRehype from "remark-rehype";
-import rehypeStringify from "rehype-stringify";
-import remarkFrontmatter from "remark-frontmatter";
+import { Plugin } from "unified";
 import { matter } from "vfile-matter";
 import { Document } from "./types";
-
 import sidebar from "../../../docs/sidebar.json";
+import { processor } from "@/components/Markdown/processor";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const docs = import.meta.glob("../../../docs/**/*.md", {
   eager: true,
@@ -19,21 +16,17 @@ const extractFrontmatter: Plugin = () => {
   };
 };
 
-const processor = unified()
-  .use(remarkParse)
-  .use(remarkFrontmatter)
-  .use(extractFrontmatter)
-  .use(remarkRehype)
-  .use(rehypeStringify);
+const processorWithFrontmatter = processor().use(extractFrontmatter);
 
 const documents = Object.fromEntries(
   Object.entries(docs).map(([path, document]) => {
-    const { data, value } = processor.processSync(document);
+    const { data, result } = processorWithFrontmatter.processSync(document);
+
     return [
       path,
       {
         data: data.matter,
-        content: value,
+        content: renderToStaticMarkup(result),
       },
     ];
   }),

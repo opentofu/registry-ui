@@ -1,6 +1,5 @@
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { useLoaderData } from "react-router-dom";
-import { Markdown } from "@/components/Markdown";
 import { SidebarPanel } from "@/components/SidebarPanel";
 import { DocsSidebarMenu } from "./components/SidebarMenu";
 import { MetaTags } from "@/components/MetaTags";
@@ -18,9 +17,7 @@ export function Docs() {
       }
     >
       <MetaTags title={docs.data.title} description={docs.data.description} />
-      <div className="p-5">
-        <Markdown text={docs.content} />
-      </div>
+      <div className="p-5" dangerouslySetInnerHTML={{ __html: docs.content }} />
     </SidebarLayout>
   );
 }
