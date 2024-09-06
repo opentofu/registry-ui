@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import { NavLink, To } from "react-router-dom";
 import sidebar from "../../../../docs/sidebar.json";
+import { SidebarItem } from "../types";
 
 type TabLinkProps = {
   to: To;
@@ -30,18 +31,6 @@ function TabLink({ to, label }: TabLinkProps) {
     </NavLink>
   );
 }
-
-type SidebarItem =
-  | {
-      title: string;
-      items: SidebarItem[];
-    }
-  | {
-      title: string;
-      slug: string;
-      path: string;
-      items?: never;
-    };
 
 type DocsTreeViewItemProps = {
   item: SidebarItem;
@@ -107,17 +96,5 @@ export function DocsSidebarMenu() {
         <DocsTreeViewItem key={item.title} item={item} isOpenByDefault />
       ))}
     </TreeView>
-  );
-}
-
-export function ProviderDocsMenuSkeleton() {
-  return (
-    <div className="mr-4 mt-4 flex animate-pulse flex-col gap-5">
-      <span className="flex h-em w-48 bg-gray-500/25" />
-      <span className="flex h-em w-52 bg-gray-500/25" />
-      <span className="flex h-em w-36 bg-gray-500/25" />
-      <span className="flex h-em w-64 bg-gray-500/25" />
-      <span className="flex h-em w-56 bg-gray-500/25" />
-    </div>
   );
 }
