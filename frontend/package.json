@@ -55,6 +55,7 @@
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.5.0",
     "unified": "^11.0.5",
+    "unplugin-macros": "^0.13.3",
     "vfile-matter": "^5.0.0",
     "vite": "^5.4.2",
     "vite-tsconfig-paths": "^5.0.1"
