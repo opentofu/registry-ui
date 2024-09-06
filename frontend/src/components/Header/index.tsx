@@ -40,6 +40,11 @@ export function Header() {
             label="Modules"
             isActive={(id) => id.startsWith("module")}
           />
+          <HeaderLink
+            to="/docs"
+            label="Docs"
+            isActive={(id) => id === "docs"}
+          />
         </nav>
 
         <nav className="ml-auto flex h-9 items-center gap-6">
