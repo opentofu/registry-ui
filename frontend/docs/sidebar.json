@@ -5,17 +5,87 @@
     "slug": ""
   },
   {
-    "title": "Users",
+    "title": "For users",
     "items": [
       {
-        "title": "For user",
+        "title": "Overview",
         "path": "users/index.md",
         "slug": "users"
+      },
+      {
+        "title": "Using a provider",
+        "path": "users/providers.md",
+        "slug": "users/providers"
       },
       {
         "title": "Using a module",
         "path": "users/modules.md",
         "slug": "users/modules"
+      },
+      {
+        "title": "Security",
+        "path": "users/security.md",
+        "slug": "users/security"
+      }
+    ]
+  },
+  {
+    "title": "For provider authors",
+    "items": [
+      {
+        "title": "Overview",
+        "path": "providers/index.md",
+        "slug": "providers"
+      },
+      {
+        "title": "Creating a provider",
+        "path": "providers/creating.md",
+        "slug": "providers/creating"
+      },
+      {
+        "title": "Publishing your provider",
+        "path": "providers/publishing.md",
+        "slug": "providers/publishing"
+      },
+      {
+        "title": "Adding GPG signatures",
+        "path": "providers/gpg.md",
+        "slug": "providers/gpg"
+      },
+      {
+        "title": "Writing docs for your provider",
+        "path": "providers/docs.md",
+        "slug": "providers/docs"
+      },
+      {
+        "title": "Adding a provider to the registry",
+        "path": "providers/adding.md",
+        "slug": "providers/adding"
+      }
+    ]
+  },
+  {
+    "title": "For module authors",
+    "items": [
+      {
+        "title": "Overview",
+        "path": "modules/index.md",
+        "slug": "modules"
+      },
+      {
+        "title": "Creating a module",
+        "path": "modules/creating.md",
+        "slug": "modules/creating"
+      },
+      {
+        "title": "Publishing a module",
+        "path": "modules/publishing.md",
+        "slug": "modules/publishing"
+      },
+      {
+        "title": "Adding a module to the OpenTofu Registry",
+        "path": "modules/adding.md",
+        "slug": "modules/adding"
       }
     ]
   }
