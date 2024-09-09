@@ -1,14 +1,19 @@
-import { HTMLAttributes } from "react";
+import { AnchorHTMLAttributes } from "react";
+
+function isExternalLink(href: string) {
+  return href.startsWith("http");
+}
 
 export function MarkdownA({
   children,
+  href,
   ...rest
-}: HTMLAttributes<HTMLAnchorElement>) {
+}: AnchorHTMLAttributes<HTMLAnchorElement>) {
   return (
     <a
+      href={href}
       className="text-gray-900 underline underline-offset-2 dark:text-gray-200"
-      target="_blank"
-      rel="noopener noreferrer"
+      rel={href && isExternalLink(href) ? "noreferrer" : undefined}
       {...rest}
     >
       {children}
