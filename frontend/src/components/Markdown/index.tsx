@@ -27,6 +27,8 @@ import { MarkdownOl } from "./Ol";
 import { MarkdownHr } from "./Hr";
 import { MarkdownBlockquote } from "./Blockquote";
 import { MarkdownH4 } from "./H4";
+import { MarkdownDetails } from "./Details";
+import { MarkdownSummary } from "./Summary";
 
 const production: Options = {
   development: false,
@@ -51,6 +53,8 @@ const production: Options = {
     ol: MarkdownOl,
     hr: MarkdownHr,
     blockquote: MarkdownBlockquote,
+    details: MarkdownDetails,
+    summary: MarkdownSummary,
   },
 };
 

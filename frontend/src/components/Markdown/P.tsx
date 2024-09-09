@@ -54,7 +54,6 @@ export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
 
     return (
       <div
-        role="alert"
         className={clsx(
           "mt-5 px-3 py-2 first:mt-0 [li>&:first-child]:mt-0",
           className,

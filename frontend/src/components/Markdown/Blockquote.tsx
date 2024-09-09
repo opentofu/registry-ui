@@ -84,9 +84,8 @@ export function MarkdownBlockquote({
 
     return (
       <div
-        role="alert"
         className={clsx(
-          "mt-5 px-3 py-2 first:mt-0 [&>h6]:mt-4 [&>p]:mt-2 [li>&:first-child]:mt-0",
+          "mt-5 px-3 py-2 first:mt-0 [&>details]:mt-2.5 [&>h6]:mt-4 [&>p]:mt-2.5 [li>&:first-child]:mt-0",
           className,
         )}
       >
