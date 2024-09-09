@@ -3,6 +3,7 @@ import { Fragment, ReactNode } from "react";
 import { definitions } from "@/api";
 import { Icon } from "../Icon";
 import { info } from "@/icons/info";
+import { groupBy } from "es-toolkit";
 
 interface BlockProps {
   license?: definitions["LicenseList"];
@@ -33,10 +34,7 @@ export function LicenseSidebarBlock(props: BlockProps) {
       (a, b) => b.confidence - a.confidence,
     );
 
-    const groupedLicenses = Object.groupBy(
-      sortedLicenses,
-      (license) => license.link,
-    );
+    const groupedLicenses = groupBy(sortedLicenses, (license) => license.link);
 
     const licenses = Object.entries(groupedLicenses).map(([link, license]) => (
       <li className="flex flex-col items-start gap-2" key={link}>
