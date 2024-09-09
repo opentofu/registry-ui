@@ -35,7 +35,7 @@ export function ProviderInstructionSidebarBlock() {
   }
 }
 
-provider "${data.addr.namespace}" {
+provider "${data.addr.name}" {
   # Configuration options
 }`;
 
