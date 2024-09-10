@@ -26,11 +26,15 @@ export function ProviderInstructionSidebarBlock() {
 
   const { data } = useSuspenseQuery(getProviderDataQuery(namespace, provider));
 
+  // strip the v from the version to display in the provider instructions
+  // e.g. v0.1.0 -> 0.1.0
+  const versionConstraint = version.replace(/^v/, "");
+
   const instruction = `terraform {
   required_providers {
     ${data.addr.name} = {
       source = "${data.addr.namespace}/${data.addr.name}"
-      version = "${version}"
+      version = "${versionConstraint}"
     }
   }
 }
