@@ -20,26 +20,28 @@ function getAdmonitionClassName(prefix: string) {
 }
 
 function getAdmonitionMatch(children: ReactNode) {
-  let content = "";
+  let text = "";
 
   if (typeof children === "string") {
-    content = children;
+    text = children;
   } else if (Array.isArray(children) && typeof children[0] === "string") {
-    content = children[0];
+    text = children[0];
   }
 
-  if (!content) {
+  if (!text) {
     return null;
   }
 
   if (
-    content.startsWith(WARNING_MARK) ||
-    content.startsWith(DANGER_MARK) ||
-    content.startsWith(NOTE_MARK)
+    text.startsWith(WARNING_MARK) ||
+    text.startsWith(DANGER_MARK) ||
+    text.startsWith(NOTE_MARK)
   ) {
+    const content = text.slice(2);
+
     return {
-      prefix: content.slice(0, 2),
-      content: content.slice(2).trim(),
+      prefix: text.slice(0, 2),
+      content: content.trim() ? content : null,
     };
   }
 
