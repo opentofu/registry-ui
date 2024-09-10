@@ -100,8 +100,9 @@ to honor the wishes of the provider/module author.
 
 ### Frontend
 
-In order to run the frontend, enter the [frontend](frontend) directory and run `npm run dev`. You can create a `.env`
-file to configure where the generated dataset and search API are:
+In order to run the frontend, enter the [frontend](frontend) directory, install required dependencies by running
+`pnpm install` and then run `pnpm run dev`. You can create a `.env` file to configure where the generated dataset and
+search API are:
 
 ```env
 VITE_DATA_API_URL=http://localhost:8000
