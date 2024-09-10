@@ -7,8 +7,10 @@ import remarkRehype from "remark-rehype";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import rehypeReact, { Options } from "rehype-react";
-import rehypeSanitize from "rehype-sanitize";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeRaw from "rehype-raw";
+import remarkDirective from "remark-directive";
+import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import { unified } from "unified";
 import { MarkdownH1 } from "./H1";
 import { MarkdownP } from "./P";
@@ -25,6 +27,12 @@ import { MarkdownTh } from "./Th";
 import { MarkdownImg } from "./Img";
 import { MarkdownOl } from "./Ol";
 import { MarkdownHr } from "./Hr";
+import { MarkdownBlockquote } from "./Blockquote";
+import { visit, CONTINUE } from "unist-util-visit";
+import { merge } from "es-toolkit";
+import { Admonition, AdmonitionType } from "./Admonition";
+import { Plugin } from "unified";
+import { Directives } from "mdast-util-directive";
 
 const production: Options = {
   development: false,
@@ -47,7 +55,44 @@ const production: Options = {
     img: MarkdownImg,
     ol: MarkdownOl,
     hr: MarkdownHr,
+    blockquote: MarkdownBlockquote,
+    admonition: Admonition,
   },
+};
+
+const makeDirectives: Plugin = () => {
+  const admonitionTypes: string[] = Object.values(AdmonitionType);
+
+  return (tree) => {
+    visit(
+      tree,
+      ["textDirective", "leafDirective", "containerDirective"],
+      (node, index, parent) => {
+        const directiveNode = node as Directives;
+
+        if (!admonitionTypes.includes(directiveNode.name)) return CONTINUE;
+
+        // parent.children.splice(index, 1, {
+        //   type: "element",
+        //   data: {
+        //     hName: "admonition",
+        //     hProperties: {
+        //       type: directiveNode.name,
+        //     },
+        //   },
+        //   children: node.children,
+        // });
+
+        directiveNode.data ??= {};
+
+        directiveNode.data.hName = "admonition";
+
+        directiveNode.data.hProperties = {
+          type: directiveNode.name,
+        };
+      },
+    );
+  };
 };
 
 interface MarkdownProps {
@@ -61,10 +106,24 @@ export function Markdown({ text }: MarkdownProps) {
         .use(remarkParse)
         .use(remarkFrontmatter)
         .use(remarkGfm)
-        .use(remarkRehype, { allowDangerousHtml: true }) // This is okay to use dangerous html because we are sanitizing later on in the pipeline
-        .use(rehypeRaw)
-        .use(rehypeSanitize)
+        .use(remarkGithubAdmonitionsToDirectives)
+        .use(remarkDirective)
+        .use(makeDirectives)
+        .use(remarkRehype, {
+          // This is okay to use dangerous html because we are sanitizing later on in the pipeline
+          allowDangerousHtml: true,
+        })
         .use(rehypeSlug)
+        .use(rehypeRaw, {
+          passThrough: ["admonition"],
+        })
+        .use(
+          rehypeSanitize,
+          merge(defaultSchema, {
+            tagNames: ["admonition"],
+            attributes: { admonition: ["type"] },
+          }),
+        )
         .use(rehypeReact, production)
         .processSync(text),
     [text],
