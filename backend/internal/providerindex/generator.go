@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/opentofu/libregistry/logger"
@@ -329,7 +330,21 @@ func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr provide
 	// TODO get the release date instead of the tag date
 	tag, err := d.vcsClient.GetTagVersion(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
 	if err != nil {
-		return providertypes.ProviderVersion{}, err
+		var verNotFoundError *vcs.VersionNotFoundError
+		if !errors.As(err, &verNotFoundError) {
+			return providertypes.ProviderVersion{}, err
+		}
+
+		// Fallback for missing/added v prefix.
+		if strings.HasPrefix(string(vcsVersion), "v") {
+			vcsVersion = vcs.VersionNumber(strings.TrimPrefix(string(vcsVersion), "v"))
+		} else {
+			vcsVersion = "v" + vcsVersion
+		}
+		tag, err = d.vcsClient.GetTagVersion(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
+		if err != nil {
+			return providertypes.ProviderVersion{}, err
+		}
 	}
 
 	workingCopy, err := d.vcsClient.Checkout(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
