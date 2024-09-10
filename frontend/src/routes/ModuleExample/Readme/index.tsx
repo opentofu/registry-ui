@@ -1,4 +1,4 @@
-import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { Markdown } from "@/components/Markdown";
 import {
@@ -9,25 +9,47 @@ import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 import { Suspense } from "react";
 import { ModuleExampleMetaTags } from "../components/MetaTags";
 import { EditLink } from "@/components/EditLink";
+import { EmptyState } from "@/components/EmptyState";
 
-function ModuleExampleReadmeContent() {
+function ModuleExampleReadmeContentMarkdown({
+  editLink,
+}: {
+  editLink: string | undefined;
+}) {
   const { namespace, name, target, version, example } =
     useModuleExampleParams();
 
-  const [{ data }, { data: exampleData }] = useSuspenseQueries({
-    queries: [
-      getModuleExampleReadmeQuery(namespace, name, target, version, example),
-      getModuleExampleDataQuery(namespace, name, target, version, example),
-    ],
-  });
-
-  const editLink = exampleData.edit_link;
+  const { data } = useSuspenseQuery(
+    getModuleExampleReadmeQuery(namespace, name, target, version, example),
+  );
 
   return (
     <>
       <Markdown text={data} />
       {editLink && <EditLink url={editLink} />}
     </>
+  );
+}
+
+function ModuleExampleReadmeContent() {
+  const { namespace, name, target, version, example } =
+    useModuleExampleParams();
+
+  const { data: exampleData } = useSuspenseQuery(
+    getModuleExampleDataQuery(namespace, name, target, version, example),
+  );
+
+  if (!exampleData.readme) {
+    return (
+      <EmptyState
+        text="This example does not have a README."
+        className="mt-5"
+      />
+    );
+  }
+
+  return (
+    <ModuleExampleReadmeContentMarkdown editLink={exampleData.edit_link} />
   );
 }
 
@@ -53,6 +75,7 @@ export function ModuleExampleReadme() {
   return (
     <div className="p-5">
       <ModuleExampleMetaTags />
+
       <Suspense fallback={<ModuleExampleReadmeContentSkeleton />}>
         <ModuleExampleReadmeContent />
       </Suspense>

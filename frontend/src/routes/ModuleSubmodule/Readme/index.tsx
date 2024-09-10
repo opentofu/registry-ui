@@ -1,4 +1,4 @@
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { Markdown } from "@/components/Markdown";
 import {
@@ -9,31 +9,47 @@ import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
 import { Suspense } from "react";
 import { ModuleSubmoduleMetaTags } from "../components/MetaTags";
 import { EditLink } from "@/components/EditLink";
+import { EmptyState } from "@/components/EmptyState";
 
-function ModuleSubmoduleReadmeContent() {
+function ModuleSubmoduleReadmeContentMarkdown({
+  editLink,
+}: {
+  editLink: string | undefined;
+}) {
   const { namespace, name, target, version, submodule } =
     useModuleSubmoduleParams();
 
-  const [{ data }, { data: submoduleData }] = useSuspenseQueries({
-    queries: [
-      getModuleSubmoduleReadmeQuery(
-        namespace,
-        name,
-        target,
-        version,
-        submodule,
-      ),
-      getModuleSubmoduleDataQuery(namespace, name, target, version, submodule),
-    ],
-  });
-
-  const editLink = submoduleData.edit_link;
+  const { data } = useSuspenseQuery(
+    getModuleSubmoduleReadmeQuery(namespace, name, target, version, submodule),
+  );
 
   return (
     <>
       <Markdown text={data} />
       {editLink && <EditLink url={editLink} />}
     </>
+  );
+}
+
+function ModuleSubmoduleReadmeContent() {
+  const { namespace, name, target, version, submodule } =
+    useModuleSubmoduleParams();
+
+  const { data: submoduleData } = useSuspenseQuery(
+    getModuleSubmoduleDataQuery(namespace, name, target, version, submodule),
+  );
+
+  if (!submoduleData.readme) {
+    return (
+      <EmptyState
+        text="This submodule does not have a README."
+        className="mt-5"
+      />
+    );
+  }
+
+  return (
+    <ModuleSubmoduleReadmeContentMarkdown editLink={submoduleData.edit_link} />
   );
 }
 
@@ -59,6 +75,7 @@ export function ModuleSubmoduleReadme() {
   return (
     <div className="p-5">
       <ModuleSubmoduleMetaTags />
+
       <Suspense fallback={<ModuleSubmoduleReadmeContentSkeleton />}>
         <ModuleSubmoduleReadmeContent />
       </Suspense>
