@@ -1,20 +1,40 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 
 import { Markdown } from "@/components/Markdown";
-import { getModuleSubmoduleReadmeQuery } from "../query";
+import {
+  getModuleSubmoduleDataQuery,
+  getModuleSubmoduleReadmeQuery,
+} from "../query";
 import { useModuleSubmoduleParams } from "../hooks/useModuleSubmoduleParams";
 import { Suspense } from "react";
 import { ModuleSubmoduleMetaTags } from "../components/MetaTags";
+import { EditLink } from "@/components/EditLink";
 
 function ModuleSubmoduleReadmeContent() {
   const { namespace, name, target, version, submodule } =
     useModuleSubmoduleParams();
 
-  const { data } = useSuspenseQuery(
-    getModuleSubmoduleReadmeQuery(namespace, name, target, version, submodule),
-  );
+  const [{ data }, { data: submoduleData }] = useSuspenseQueries({
+    queries: [
+      getModuleSubmoduleReadmeQuery(
+        namespace,
+        name,
+        target,
+        version,
+        submodule,
+      ),
+      getModuleSubmoduleDataQuery(namespace, name, target, version, submodule),
+    ],
+  });
 
-  return <Markdown text={data} />;
+  const editLink = submoduleData.edit_link;
+
+  return (
+    <>
+      <Markdown text={data} />
+      {editLink && <EditLink url={editLink} />}
+    </>
+  );
 }
 
 function ModuleSubmoduleReadmeContentSkeleton() {
