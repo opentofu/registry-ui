@@ -54,7 +54,7 @@ func TestE2E(t *testing.T) {
 		Region:     aws.Region(),
 	}
 
-	backendFactory := tofutestutils.Must2(factory.New(log))
+	backendFactory := tofutestutils.Must2(factory.New(log, ""))
 	binaryName := "tofu"
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"
@@ -96,7 +96,7 @@ func TestE2EDoubleRun(t *testing.T) {
 		Region:     aws.Region(),
 	}
 
-	backendFactory := tofutestutils.Must2(factory.New(log))
+	backendFactory := tofutestutils.Must2(factory.New(log, ""))
 	binaryName := "tofu"
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"

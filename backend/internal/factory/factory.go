@@ -46,9 +46,10 @@ type S3Parameters struct {
 	Region     string
 }
 
-func New(log logger.Logger) (BackendFactory, error) {
+func New(log logger.Logger, githubToken string) (BackendFactory, error) {
 	return &backendFactory{
-		logger: log,
+		logger:      log,
+		githubToken: githubToken,
 	}, nil
 }
 
@@ -67,7 +68,8 @@ type BackendFactory interface {
 }
 
 type backendFactory struct {
-	logger logger.Logger
+	logger      logger.Logger
+	githubToken string
 }
 
 func (b backendFactory) Create(
@@ -81,7 +83,7 @@ func (b backendFactory) Create(
 	tofuBinaryPath string,
 	approvedLicenses []string,
 ) (internal.Backend, error) {
-	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath, approvedLicenses)
+	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath, approvedLicenses, b.githubToken)
 }
 
 func getBackend(
@@ -95,6 +97,7 @@ func getBackend(
 	parallelism int,
 	tofuBinaryPath string,
 	approvedLicenses []string,
+	githubToken string,
 ) (internal.Backend, error) {
 	if err := os.MkdirAll(workDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create workdir %s (%w)", workDir, err)
@@ -117,6 +120,7 @@ func getBackend(
 		github.WithSkipCleanupWorkingCopyOnClose(true),
 		github.WithCheckoutRootDirectory(workDir),
 		github.WithLogger(log),
+		github.WithToken(githubToken),
 	)
 	if err != nil {
 		return nil, err

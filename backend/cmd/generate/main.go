@@ -100,7 +100,8 @@ func main() {
 		}
 	}
 
-	backendFactory, err := factory.New(mainLogger)
+	ghToken := os.Getenv("GITHUB_TOKEN")
+	backendFactory, err := factory.New(mainLogger, ghToken)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
 		os.Exit(1)
