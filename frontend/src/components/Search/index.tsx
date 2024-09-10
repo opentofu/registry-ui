@@ -5,7 +5,7 @@ import {
   ComboboxOptions,
 } from "@headlessui/react";
 import { useQuery } from "@tanstack/react-query";
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSearchQuery } from "../../q";
 import { search } from "../../icons/search";
@@ -17,6 +17,7 @@ import { SearchProviderResult } from "./ProviderResult";
 import { SearchOtherResult } from "./OtherResult";
 import { definitions } from "@/api";
 import clsx from "clsx";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 function getSearchResultType(value: string) {
   switch (value) {
@@ -117,8 +118,8 @@ export function Search({
   placeholder = "Search resources (Press / to focus)",
 }: SearchProps) {
   const [query, setQuery] = useState("");
-  const deferredQuery = useDeferredValue(query);
-  const { data, isLoading } = useQuery(getSearchQuery(deferredQuery));
+  const debouncedQuery = useDebouncedValue(query, 250);
+  const { data, isLoading } = useQuery(getSearchQuery(debouncedQuery));
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
