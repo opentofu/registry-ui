@@ -14,8 +14,6 @@ function getAdmonitionClassName(prefix: string) {
       return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-100";
     case WARNING_MARK:
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-100";
-    default:
-      return "";
   }
 }
 
@@ -58,7 +56,6 @@ export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
 
     return (
       <div
-        role="alert"
         className={clsx(
           "mt-5 px-3 py-2 first:mt-0 [li>&:first-child]:mt-0",
           className,

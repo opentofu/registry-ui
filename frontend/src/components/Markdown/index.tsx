@@ -25,6 +25,10 @@ import { MarkdownTh } from "./Th";
 import { MarkdownImg } from "./Img";
 import { MarkdownOl } from "./Ol";
 import { MarkdownHr } from "./Hr";
+import { MarkdownBlockquote } from "./Blockquote";
+import { MarkdownH4 } from "./H4";
+import { MarkdownDetails } from "./Details";
+import { MarkdownSummary } from "./Summary";
 
 const production: Options = {
   development: false,
@@ -38,6 +42,7 @@ const production: Options = {
     h1: MarkdownH1,
     h2: MarkdownH2,
     h3: MarkdownH3,
+    h4: MarkdownH4,
     p: MarkdownP,
     code: MarkdownCode,
     pre: MarkdownPre,
@@ -47,6 +52,9 @@ const production: Options = {
     img: MarkdownImg,
     ol: MarkdownOl,
     hr: MarkdownHr,
+    blockquote: MarkdownBlockquote,
+    details: MarkdownDetails,
+    summary: MarkdownSummary,
   },
 };
 
