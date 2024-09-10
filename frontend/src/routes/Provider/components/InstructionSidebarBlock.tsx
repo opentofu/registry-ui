@@ -1,10 +1,10 @@
-import { ReactNode } from "react";
 import { Code } from "@/components/Code";
 import { Paragraph } from "@/components/Paragraph";
 import { SidebarBlock } from "@/components/SidebarBlock";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getProviderDataQuery } from "../query";
+import { ReactNode } from "react";
 import { useProviderParams } from "../hooks/useProviderParams";
+import { getProviderDataQuery } from "../query";
 
 function Block({ children }: { children: ReactNode }) {
   return (
@@ -28,7 +28,7 @@ export function ProviderInstructionSidebarBlock() {
 
   const instruction = `terraform {
   required_providers {
-    ${data.addr.namespace} = {
+    ${data.addr.name} = {
       source = "${data.addr.namespace}/${data.addr.name}"
       version = "${version}"
     }
