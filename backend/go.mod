@@ -9,7 +9,7 @@ require (
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/lib/pq v1.10.9
 	github.com/mitchellh/go-spdx v0.1.0
-	github.com/opentofu/libregistry v0.0.0-20240905103355-13386c198ea1
+	github.com/opentofu/libregistry v0.0.0-20240910082859-9c6ed0d4e8c9
 	github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09
 	github.com/opentofu/tofutestutils v0.0.0-20240821111804-5fcfb797e0a7
 	golang.org/x/sync v0.8.0

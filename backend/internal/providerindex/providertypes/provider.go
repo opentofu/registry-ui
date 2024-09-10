@@ -27,6 +27,17 @@ type Provider struct {
 	//
 	// required: true
 	Description string `json:"description"`
+	// Popularity indicates how popular the underlying repository is in the VCS system.
+	// required: true
+	Popularity int `json:"popularity"`
+	// ForkCount indicates how many forks this provider has.
+	// required: true
+	ForkCount int `json:"fork_count"`
+	// ForkOfLink may contain a link to a repository this provider is forked from.
+	ForkOfLink string `json:"fork_of_link,omitempty"`
+	// ForkOf indicates which provider this repository is forked from. This field may be empty even if
+	// the ForkOfLink field is filled.
+	ForkOf ProviderAddr `json:"fork_of,omitempty"`
 	// Versions holds the list of versions this provider supports.
 	//
 	// required: true

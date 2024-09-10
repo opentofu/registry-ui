@@ -254,20 +254,8 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 			continue
 		}
 		if !repoInfoFetched {
-			// Make sure to fetch the description for the search index:
+			d.extractRepoInfo(ctx, addr, providerData)
 			repoInfoFetched = true
-			repoInfo, err := d.vcsClient.GetRepositoryInfo(ctx, addr.ToRepositoryAddr())
-			if err != nil {
-				var repoNotFound *vcs.RepositoryNotFoundError
-				if errors.As(err, &repoNotFound) {
-					d.log.Warn(ctx, "Repository not found for provider %s, skipping... (%v)", addr.String(), err)
-					break
-				}
-				// We handle description errors as soft errors because they are purely presentational.
-				d.log.Warn(ctx, "Cannot update repository description for provider %s (%v)", addr.String(), err)
-			} else {
-				providerData.Description = repoInfo.Description
-			}
 		}
 
 		providerVersion, err := d.scrapeVersion(ctx, addr, canonicalAddr, version, blocked, blockedReason)
@@ -319,6 +307,45 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	}
 
 	return nil
+}
+
+func (d *documentationGenerator) extractRepoInfo(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider) {
+	// Make sure to fetch the description for the search index:
+	repoInfo, err := d.vcsClient.GetRepositoryInfo(ctx, addr.ToRepositoryAddr())
+	if err != nil {
+		var repoNotFound *vcs.RepositoryNotFoundError
+		if errors.As(err, &repoNotFound) {
+			d.log.Warn(ctx, "Repository not found for provider %s, skipping... (%v)", addr.String(), err)
+			return
+		}
+		// We handle description errors as soft errors because they are purely presentational.
+		d.log.Warn(ctx, "Cannot update repository description for provider %s (%v)", addr.String(), err)
+		return
+	}
+	providerData.Description = repoInfo.Description
+	providerData.ForkCount = repoInfo.ForkCount
+
+	forkRepo := repoInfo.ForkOf
+	if forkRepo == nil {
+		return
+	}
+	link, err := d.vcsClient.GetRepositoryBrowseURL(ctx, *forkRepo)
+	if err != nil {
+		d.log.Warn(ctx, "Cannot determine repository browse URL for %s (%v)", forkRepo.String(), err)
+		return
+	}
+	providerData.ForkOfLink = link
+
+	forkedAddr, err := provider.AddrFromRepository(*forkRepo)
+	if err != nil {
+		d.log.Warn(ctx, "Cannot convert repository name %s to a provider addr (%v)", forkRepo.String(), err)
+		return
+	}
+	_, err = d.metadataAPI.GetProvider(ctx, forkedAddr, false)
+	if err != nil {
+		return
+	}
+	providerData.ForkOf = providertypes.Addr(forkedAddr)
 }
 
 func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {

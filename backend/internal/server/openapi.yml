@@ -368,7 +368,7 @@ definitions:
                 description: Examples lists all examples for this version.
                 type: object
             id:
-                $ref: '#/definitions/VersionNumber'
+                $ref: '#/definitions/ModuleVersionNumber'
             incompatible_license:
                 description: IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
                 type: boolean
@@ -431,7 +431,7 @@ definitions:
     ModuleVersionDescriptor:
         properties:
             id:
-                $ref: '#/definitions/VersionNumber'
+                $ref: '#/definitions/ModuleVersionNumber'
             published:
                 format: date-time
                 type: string
@@ -440,6 +440,12 @@ definitions:
             - published
         title: ModuleVersionDescriptor describes a single version.
         type: object
+    ModuleVersionNumber:
+        description: |-
+            VersionNumber describes the semver version number. Note that in contrast to provider versions module versions
+            do not have a compulsory "v" prefix. Call ToVCSVersion() before you call Normalize() in order to get the correct
+            VCS version.
+        type: string
     Output:
         properties:
             description:
@@ -462,8 +468,21 @@ definitions:
             description:
                 description: Description is the extracted description for the provider. This may be empty.
                 type: string
+            fork_count:
+                description: ForkCount indicates how many forks this provider has.
+                format: int64
+                type: integer
+            fork_of:
+                $ref: '#/definitions/ProviderAddr'
+            fork_of_link:
+                description: ForkOfLink may contain a link to a repository this provider is forked from.
+                type: string
             is_blocked:
                 type: boolean
+            popularity:
+                description: Popularity indicates how popular the underlying repository is in the VCS system.
+                format: int64
+                type: integer
             reverse_aliases:
                 description: |-
                     ReverseAliases contains a list of providers that are aliases of the current one. This field is the inverse of
@@ -479,6 +498,8 @@ definitions:
         required:
             - addr
             - description
+            - popularity
+            - fork_count
             - versions
             - is_blocked
         title: Provider is a single provider with all its versions.
@@ -578,7 +599,7 @@ definitions:
             docs:
                 $ref: '#/definitions/ProviderDocs'
             id:
-                $ref: '#/definitions/VersionNumber'
+                $ref: '#/definitions/ProviderVersionNumber'
             incompatible_license:
                 description: IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
                 type: boolean
@@ -601,7 +622,7 @@ definitions:
     ProviderVersionDescriptor:
         properties:
             id:
-                $ref: '#/definitions/VersionNumber'
+                $ref: '#/definitions/ProviderVersionNumber'
             published:
                 format: date-time
                 type: string
@@ -610,6 +631,9 @@ definitions:
             - published
         title: ProviderVersionDescriptor describes a provider version.
         type: object
+    ProviderVersionNumber:
+        title: VersionNumber describes the semver version number.
+        type: string
     Resource:
         properties:
             address:
@@ -733,9 +757,6 @@ definitions:
             - required
         title: Variable describes a variable as the UI expects it.
         type: object
-    VersionNumber:
-        title: VersionNumber describes the semver version number.
-        type: string
 host: api.opentofu.org
 info:
     description: The API to fetch documentation index and documentation files from the OpenTofu registry.
