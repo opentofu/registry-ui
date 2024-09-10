@@ -1,10 +1,10 @@
-import { ReactNode } from "react";
 import { Code } from "@/components/Code";
 import { Paragraph } from "@/components/Paragraph";
 import { SidebarBlock } from "@/components/SidebarBlock";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getProviderDataQuery } from "../query";
+import { ReactNode } from "react";
 import { useProviderParams } from "../hooks/useProviderParams";
+import { getProviderDataQuery } from "../query";
 
 function Block({ children }: { children: ReactNode }) {
   return (
@@ -26,11 +26,15 @@ export function ProviderInstructionSidebarBlock() {
 
   const { data } = useSuspenseQuery(getProviderDataQuery(namespace, provider));
 
+  // strip the v from the version to display in the provider instructions
+  // e.g. v0.1.0 -> 0.1.0
+  const versionConstraint = version.replace(/^v/, "");
+
   const instruction = `terraform {
   required_providers {
-    ${data.addr.namespace} = {
+    ${data.addr.name} = {
       source = "${data.addr.namespace}/${data.addr.name}"
-      version = "${version}"
+      version = "${versionConstraint}"
     }
   }
 }
