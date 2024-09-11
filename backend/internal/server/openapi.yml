@@ -135,8 +135,29 @@ definitions:
                 type: string
             description:
                 type: string
+            fork_count:
+                description: ForkCount indicates how many forks this provider has.
+                format: int64
+                type: integer
+            fork_of:
+                $ref: '#/definitions/ModuleAddr'
+            fork_of_link:
+                description: ForkOfLink may contain a link to a repository this provider is forked from.
+                type: string
             is_blocked:
                 type: boolean
+            popularity:
+                description: Popularity indicates how popular the underlying repository is in the VCS system.
+                format: int64
+                type: integer
+            upstream_fork_count:
+                description: UpstreamForkCount contains the number of forks of the upstream repository.
+                format: int64
+                type: integer
+            upstream_popularity:
+                description: UpstreamPopularity contains the popularity of the original repository this repository is forked of.
+                format: int64
+                type: integer
             versions:
                 items:
                     $ref: '#/definitions/ModuleVersionDescriptor'
@@ -146,6 +167,8 @@ definitions:
             - description
             - versions
             - is_blocked
+            - popularity
+            - fork_count
         type: object
     ModuleAddr:
         description: |-
