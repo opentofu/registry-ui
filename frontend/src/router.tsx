@@ -289,11 +289,13 @@ export const router = createBrowserRouter(
         }
       }
 
-      return Promise.all(
-        matches.map((match) => {
-          return match.resolve(async (handler) => {
+      const matchesToLoad = matches.filter((m) => m.shouldLoad);
+
+      const results = await Promise.all(
+        matchesToLoad.map((match) =>
+          match.resolve(async (handler) => {
             if (response) {
-              return { type: "data", result: response };
+              return response;
             }
 
             let result = await handler(context);
@@ -312,9 +314,17 @@ export const router = createBrowserRouter(
               };
             }
 
-            return { type: "data", result };
-          });
-        }),
+            return result;
+          }),
+        ),
+      );
+
+      return results.reduce(
+        (acc, result, i) =>
+          Object.assign(acc, {
+            [matchesToLoad[i].route.id]: result,
+          }),
+        {},
       );
     },
   },
