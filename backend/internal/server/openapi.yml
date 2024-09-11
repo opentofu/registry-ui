@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
-            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
+            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
+            github.com/NAMESPACE/terraform-provider-NAME .
         type: object
     BaseDetails:
         properties:
@@ -794,9 +794,9 @@ info:
     license:
         name: MPL-2.0
     title: OpenTofu Registry Docs API
-    version: 1.0.0-alpha1
+    version: 1.0.0-beta
 paths:
-    /modules/{namespace}/{name}/{target}/{version}/README.md:
+    /registry/docs/modules/{namespace}/{name}/{target}/{version}/README.md:
         get:
             operationId: GetModuleReadme
             parameters:
@@ -829,7 +829,7 @@ paths:
                         type: file
             tags:
                 - Modules
-    /modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md:
+    /registry/docs/modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md:
         get:
             operationId: GetModuleExampleReadme
             parameters:
@@ -867,7 +867,7 @@ paths:
                         type: file
             tags:
                 - Modules
-    /modules/{namespace}/{name}/{target}/{version}/index.json:
+    /registry/docs/modules/{namespace}/{name}/{target}/{version}/index.json:
         get:
             operationId: GetModuleVersion
             parameters:
@@ -900,7 +900,7 @@ paths:
                         $ref: '#/definitions/ModuleVersion'
             tags:
                 - Modules
-    /modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md:
+    /registry/docs/modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md:
         get:
             operationId: GetSubmoduleReadme
             parameters:
@@ -938,7 +938,7 @@ paths:
                         type: file
             tags:
                 - Modules
-    /modules/{namespace}/{name}/{target}/index.json:
+    /registry/docs/modules/{namespace}/{name}/{target}/index.json:
         get:
             operationId: GetModule
             parameters:
@@ -966,7 +966,7 @@ paths:
                         $ref: '#/definitions/Module'
             tags:
                 - Modules
-    /modules/index.json:
+    /registry/docs/modules/index.json:
         get:
             operationId: GetModuleList
             produces:
@@ -978,7 +978,7 @@ paths:
                         $ref: '#/definitions/ModuleList'
             tags:
                 - Modules
-    /providers/{namespace}/{name}/{version}/{kind}s/{document}.md:
+    /registry/docs/providers/{namespace}/{name}/{version}/{kind}s/{document}.md:
         get:
             operationId: GetProviderDocItem
             parameters:
@@ -1021,7 +1021,7 @@ paths:
                         type: file
             tags:
                 - Providers
-    /providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md:
+    /registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md:
         get:
             operationId: GetProviderCDKTFDocItem
             parameters:
@@ -1075,7 +1075,7 @@ paths:
                         type: file
             tags:
                 - Providers
-    /providers/{namespace}/{name}/{version}/cdktf/{language}/index.md:
+    /registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/index.md:
         get:
             operationId: GetProviderCDKTFDoc
             parameters:
@@ -1114,7 +1114,7 @@ paths:
                         type: file
             tags:
                 - Providers
-    /providers/{namespace}/{name}/{version}/index.json:
+    /registry/docs/providers/{namespace}/{name}/{version}/index.json:
         get:
             operationId: GetProviderVersion
             parameters:
@@ -1142,7 +1142,7 @@ paths:
                         $ref: '#/definitions/ProviderVersion'
             tags:
                 - Providers
-    /providers/{namespace}/{name}/{version}/index.md:
+    /registry/docs/providers/{namespace}/{name}/{version}/index.md:
         get:
             operationId: GetProviderDoc
             parameters:
@@ -1170,7 +1170,7 @@ paths:
                         type: file
             tags:
                 - Providers
-    /providers/{namespace}/{name}/index.json:
+    /registry/docs/providers/{namespace}/{name}/index.json:
         get:
             operationId: GetProvider
             parameters:
@@ -1193,7 +1193,7 @@ paths:
                         $ref: '#/definitions/Provider'
             tags:
                 - Providers
-    /providers/index.json:
+    /registry/docs/providers/index.json:
         get:
             operationId: GetProviderList
             produces:
@@ -1205,7 +1205,7 @@ paths:
                         $ref: '#/definitions/ProviderList'
             tags:
                 - Providers
-    /search:
+    /registry/docs/search:
         get:
             operationId: Search
             parameters:
@@ -1227,7 +1227,7 @@ paths:
                     description: Invalid search query.
             tags:
                 - Search
-    /search.ndjson:
+    /registry/docs/search.ndjson:
         get:
             operationId: GetSearchIndex
             produces:
