@@ -323,6 +323,7 @@ func (d *documentationGenerator) extractRepoInfo(ctx context.Context, addr provi
 		return
 	}
 	providerData.Description = repoInfo.Description
+	providerData.Popularity = repoInfo.Popularity
 	providerData.ForkCount = repoInfo.ForkCount
 
 	forkRepo := repoInfo.ForkOf
@@ -346,6 +347,14 @@ func (d *documentationGenerator) extractRepoInfo(ctx context.Context, addr provi
 		return
 	}
 	providerData.ForkOf = providertypes.Addr(forkedAddr)
+
+	upstreamRepoInfo, err := d.vcsClient.GetRepositoryInfo(ctx, *forkRepo)
+	if err != nil {
+		d.log.Warn(ctx, "Cannot fetch upstream repository info for %s (%v)", forkRepo.String(), err)
+		return
+	}
+	providerData.UpstreamPopularity = upstreamRepoInfo.Popularity
+	providerData.UpstreamForkCount = upstreamRepoInfo.ForkCount
 }
 
 func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {

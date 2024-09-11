@@ -490,6 +490,14 @@ definitions:
                 items:
                     $ref: '#/definitions/ProviderAddr'
                 type: array
+            upstream_fork_count:
+                description: UpstreamForkCount contains the number of forks of the upstream repository.
+                format: int64
+                type: integer
+            upstream_popularity:
+                description: UpstreamPopularity contains the popularity of the original repository this repository is forked of.
+                format: int64
+                type: integer
             versions:
                 description: Versions holds the list of versions this provider supports.
                 items:

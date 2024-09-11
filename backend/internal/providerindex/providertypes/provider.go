@@ -38,6 +38,10 @@ type Provider struct {
 	// ForkOf indicates which provider this repository is forked from. This field may be empty even if
 	// the ForkOfLink field is filled.
 	ForkOf ProviderAddr `json:"fork_of,omitempty"`
+	// UpstreamPopularity contains the popularity of the original repository this repository is forked of.
+	UpstreamPopularity int `json:"upstream_popularity"`
+	// UpstreamForkCount contains the number of forks of the upstream repository.
+	UpstreamForkCount int `json:"upstream_fork_count"`
 	// Versions holds the list of versions this provider supports.
 	//
 	// required: true
