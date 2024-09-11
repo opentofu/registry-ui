@@ -2,7 +2,7 @@ package moduleindex
 
 // GetModuleList returns a module list from storage.
 //
-// swagger:operation GET /modules/index.json Modules GetModuleList
+// swagger:operation GET /registry/docs/modules/index.json Modules GetModuleList
 // ---
 // produces:
 // - application/json
@@ -14,7 +14,7 @@ package moduleindex
 
 // GetModule returns a list of all versions of a module.
 //
-// swagger:operation GET /modules/{namespace}/{name}/{target}/index.json Modules GetModule
+// swagger:operation GET /registry/docs/modules/{namespace}/{name}/{target}/index.json Modules GetModule
 // ---
 // produces:
 // - application/json
@@ -42,7 +42,7 @@ package moduleindex
 
 // GetModuleVersion returns the details of one specific module version.
 //
-// swagger:operation GET /modules/{namespace}/{name}/{target}/{version}/index.json Modules GetModuleVersion
+// swagger:operation GET /registry/docs/modules/{namespace}/{name}/{target}/{version}/index.json Modules GetModuleVersion
 // ---
 // produces:
 // - application/json
@@ -75,7 +75,7 @@ package moduleindex
 
 // GetModuleReadme returns the readme of a module.
 //
-// swagger:operation GET /modules/{namespace}/{name}/{target}/{version}/README.md Modules GetModuleReadme
+// swagger:operation GET /registry/docs/modules/{namespace}/{name}/{target}/{version}/README.md Modules GetModuleReadme
 // ---
 // parameters:
 // - name: namespace
@@ -108,7 +108,7 @@ package moduleindex
 
 // GetSubmoduleReadme returns the readme of a submodule.
 //
-// swagger:operation GET /modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md Modules GetSubmoduleReadme
+// swagger:operation GET /registry/docs/modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md Modules GetSubmoduleReadme
 // ---
 // parameters:
 // - name: namespace
@@ -146,7 +146,7 @@ package moduleindex
 
 // GetModuleExampleReadme returns the readme of a module example.
 //
-// swagger:operation GET /modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md Modules GetModuleExampleReadme
+// swagger:operation GET /registry/docs/modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md Modules GetModuleExampleReadme
 // ---
 // parameters:
 // - name: namespace

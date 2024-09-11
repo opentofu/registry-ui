@@ -233,7 +233,7 @@ func completeJob(db *sql.DB, id int) error {
 
 func downloadSearchMetaIndex() (io.ReadCloser, error) {
 	// Get the data
-	resp, err := http.Get("https://api.opentofu.org/search.ndjson")
+	resp, err := http.Get("https://api.opentofu.org/registry/docs/search.ndjson")
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 	query := fmt.Sprintf(`
 		INSERT INTO entities (id, type, addr, version, title, description, link_variables, last_updated)
 		VALUES %s
-		ON CONFLICT (id) DO UPDATE 
+		ON CONFLICT (id) DO UPDATE
 		SET type = EXCLUDED.type,
 				addr = EXCLUDED.addr,
 				version = EXCLUDED.version,
