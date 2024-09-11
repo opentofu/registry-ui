@@ -3,7 +3,7 @@ package searchstorage
 // GetSearchIndex returns a newline-delimited search index suitable for insertion into a database. The records are not
 // guaranteed to be in order.
 //
-// swagger:operation GET /search.ndjson Search GetSearchIndex
+// swagger:operation GET /registry/docs/search.ndjson Search GetSearchIndex
 // ---
 // produces:
 // - application/x-ndjson
@@ -53,7 +53,7 @@ type SearchResultItem struct {
 
 // Search returns a list of search results matching the query.
 //
-// swagger:operation GET /search Search Search
+// swagger:operation GET /registry/docs/search Search Search
 // ---
 // produces:
 // - application/json

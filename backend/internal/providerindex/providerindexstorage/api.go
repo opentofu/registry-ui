@@ -13,7 +13,7 @@ type API interface {
 	// GetProviderList returns a provider list from storage. If there is no provider list, it will return a ready-to-use
 	// empty provider list alongside a *ProviderListNotFoundError.
 	//
-	// swagger:operation GET /providers/index.json Providers GetProviderList
+	// swagger:operation GET /registry/docs/providers/index.json Providers GetProviderList
 	// ---
 	// produces:
 	// - application/json
@@ -27,7 +27,7 @@ type API interface {
 
 	// GetProvider returns a list of all versions of a provider.
 	//
-	// swagger:operation GET /providers/{namespace}/{name}/index.json Providers GetProvider
+	// swagger:operation GET /registry/docs/providers/{namespace}/{name}/index.json Providers GetProvider
 	// ---
 	// produces:
 	// - application/json
@@ -53,7 +53,7 @@ type API interface {
 
 	// GetProviderVersion returns the details of one specific provider version.
 	//
-	// swagger:operation GET /providers/{namespace}/{name}/{version}/index.json Providers GetProviderVersion
+	// swagger:operation GET /registry/docs/providers/{namespace}/{name}/{version}/index.json Providers GetProviderVersion
 	// ---
 	// produces:
 	// - application/json
@@ -84,7 +84,7 @@ type API interface {
 
 	// GetProviderDoc returns a root provider document if it exists.
 	//
-	// swagger:operation GET /providers/{namespace}/{name}/{version}/index.md Providers GetProviderDoc
+	// swagger:operation GET /registry/docs/providers/{namespace}/{name}/{version}/index.md Providers GetProviderDoc
 	// ---
 	// parameters:
 	// - name: namespace
@@ -114,7 +114,7 @@ type API interface {
 
 	// GetProviderDocItem returns a provider document.
 	//
-	// swagger:operation GET /providers/{namespace}/{name}/{version}/{kind}s/{document}.md Providers GetProviderDocItem
+	// swagger:operation GET /registry/docs/providers/{namespace}/{name}/{version}/{kind}s/{document}.md Providers GetProviderDocItem
 	// ---
 	// parameters:
 	// - name: namespace
@@ -155,7 +155,7 @@ type API interface {
 
 	// GetProviderCDKTFDoc returns a CDKTF root document.
 	//
-	// swagger:operation GET /providers/{namespace}/{name}/{version}/cdktf/{language}/index.md Providers GetProviderCDKTFDoc
+	// swagger:operation GET /registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/index.md Providers GetProviderCDKTFDoc
 	// ---
 	// parameters:
 	// - name: namespace
@@ -191,7 +191,7 @@ type API interface {
 
 	// GetProviderCDKTFDocItem returns a CDKTF document item.
 	//
-	// swagger:operation GET /providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md Providers GetProviderCDKTFDocItem
+	// swagger:operation GET /registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md Providers GetProviderCDKTFDocItem
 	// ---
 	// parameters:
 	// - name: namespace
