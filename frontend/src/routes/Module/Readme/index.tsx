@@ -68,7 +68,6 @@ export function ModuleReadme() {
   return (
     <div className="p-5">
       <ModuleMetaTags />
-
       <Suspense fallback={<ModuleReadmeContentSkeleton />}>
         <ModuleReadmeContent />
       </Suspense>

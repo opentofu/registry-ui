@@ -75,7 +75,6 @@ export function ModuleSubmoduleReadme() {
   return (
     <div className="p-5">
       <ModuleSubmoduleMetaTags />
-
       <Suspense fallback={<ModuleSubmoduleReadmeContentSkeleton />}>
         <ModuleSubmoduleReadmeContent />
       </Suspense>
