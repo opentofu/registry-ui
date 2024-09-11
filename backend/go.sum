@@ -233,6 +233,8 @@ github.com/opentofu/libregistry v0.0.0-20240910082859-9c6ed0d4e8c9 h1:UgpXQNzmL0
 github.com/opentofu/libregistry v0.0.0-20240910082859-9c6ed0d4e8c9/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
 github.com/opentofu/libregistry v0.0.0-20240911094842-bfb6ed3cfb33 h1:NWhgKmeTGQY5tINnhJQyvEyZRPelh248f3/74NpJJbM=
 github.com/opentofu/libregistry v0.0.0-20240911094842-bfb6ed3cfb33/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
+github.com/opentofu/libregistry v0.0.0-20240911130704-36ad231a7168 h1:2bwgWOJ90nzGuDeQFY6EBA/T6R3C3rnXYw7VFMURQnM=
+github.com/opentofu/libregistry v0.0.0-20240911130704-36ad231a7168/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
 github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a h1:NyM/PPbc+kxxv2d4OKfE32C5fLtVTLceyg4YKKCYO9Y=
 github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a/go.mod h1:HzQhpVo/NJnGmN+7FPECCVCA5ijU7AUcvf39enBKYOc=
 github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09 h1:bA3Dy3Be9o896wdcQhK0Ky2Eco0ZwCWZgt73dSaYuDI=
