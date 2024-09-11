@@ -49,6 +49,8 @@ async function serveR2Object(request: Request, env: Env, objectKey: string) {
 		return new Response('Not Found', { status: 404 });
 	}
 
+	console.log('Serving object:', objectKey);
+
 	if (!env.BUCKET) {
 		return new Response('Internal Server Error, bucket not found', { status: 500 });
 	}
@@ -93,6 +95,7 @@ export default {
 		}
 
 		switch (url.pathname) {
+			case '/registry/docs/search':
 			case '/search':
 				response = await handleSearchRequest(request, env, ctx);
 				break;
@@ -100,6 +103,11 @@ export default {
 				response = await serveR2Object(request, env, 'index.html');
 				break;
 			default:
+				if (url.pathname.startsWith('/registry/docs/')) {
+					const objectKey = url.pathname.replace('/registry/docs/', '');
+					response = await serveR2Object(request, env, objectKey);
+					break;
+				}
 				const objectKey = url.pathname.slice(1);
 				response = await serveR2Object(request, env, objectKey);
 				break;
