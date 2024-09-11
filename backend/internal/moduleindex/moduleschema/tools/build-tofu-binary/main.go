@@ -34,10 +34,11 @@ func buildTofu(repoDir string, testTofuDir string, binaryPath string) {
 		return
 	}
 	if _, err := os.Stat(repoDir); err != nil {
-		runCommand(testTofuDir, "git", "clone", "https://github.com/opentofu/opentofu.git", "--shallow", repoDir)
+		runCommand(testTofuDir, "git", "clone", "https://github.com/opentofu/opentofu.git", repoDir)
 	}
-	runCommand(repoDir, "git", "pull")
+
 	runCommand(repoDir, "git", "checkout", "experiment/json_config_dump")
+	runCommand(repoDir, "git", "pull")
 	runCommand(repoDir, "go", "build", "-o", filepath.ToSlash(binaryPath), "./cmd/tofu/main.go")
 }
 
