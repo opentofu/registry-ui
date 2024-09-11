@@ -9,7 +9,7 @@ require (
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/lib/pq v1.10.9
 	github.com/mitchellh/go-spdx v0.1.0
-	github.com/opentofu/libregistry v0.0.0-20240905103355-13386c198ea1
+	github.com/opentofu/libregistry v0.0.0-20240911094842-bfb6ed3cfb33
 	github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09
 	github.com/opentofu/tofutestutils v0.0.0-20240821111804-5fcfb797e0a7
 	golang.org/x/sync v0.8.0
@@ -24,6 +24,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
+	github.com/apparentlymart/go-shquot v0.0.1 // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect
