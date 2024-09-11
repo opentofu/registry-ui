@@ -39,6 +39,7 @@ func main() {
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"
 	}
+	ghToken := os.Getenv("GITHUB_TOKEN")
 	tofuBinaryPath := path.Join("internal", "moduleindex", "moduleschema", "testtofu", binaryName)
 	s3Params := factory.S3Parameters{
 		AccessKey:  os.Getenv("AWS_ACCESS_KEY_ID"),
@@ -100,7 +101,6 @@ func main() {
 		}
 	}
 
-	ghToken := os.Getenv("GITHUB_TOKEN")
 	backendFactory, err := factory.New(mainLogger, ghToken)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
