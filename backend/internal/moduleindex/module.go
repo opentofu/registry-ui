@@ -20,6 +20,22 @@ type Module struct {
 	IsBlocked bool `json:"is_blocked"`
 	// required: false
 	BlockedReason string `json:"blocked_reason,omitempty"`
+
+	// Popularity indicates how popular the underlying repository is in the VCS system.
+	// required: true
+	Popularity int `json:"popularity"`
+	// ForkCount indicates how many forks this provider has.
+	// required: true
+	ForkCount int `json:"fork_count"`
+	// ForkOfLink may contain a link to a repository this provider is forked from.
+	ForkOfLink string `json:"fork_of_link,omitempty"`
+	// ForkOf indicates which module this repository is forked from. This field may be empty even if
+	// the ForkOfLink field is filled.
+	ForkOf ModuleAddr `json:"fork_of,omitempty"`
+	// UpstreamPopularity contains the popularity of the original repository this repository is forked of.
+	UpstreamPopularity int `json:"upstream_popularity"`
+	// UpstreamForkCount contains the number of forks of the upstream repository.
+	UpstreamForkCount int `json:"upstream_fork_count"`
 }
 
 func (m *Module) Validate() error {

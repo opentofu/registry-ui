@@ -251,19 +251,8 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 
 				if !repoInfoFetched {
 					// Make sure to fetch the description for the search index:
+					g.fetchRepoInfo(ctx, entry)
 					repoInfoFetched = true
-					repoInfo, err := g.vcsClient.GetRepositoryInfo(ctx, entry.Addr.ToRepositoryAddr())
-					if err != nil {
-						var repoNotFound *vcs.RepositoryNotFoundError
-						if errors.As(err, &repoNotFound) {
-							g.log.Warn(ctx, "Repository not found for module %s, skipping... (%v)", entry.Addr.String(), err)
-							break
-						}
-						// We handle description errors as soft errors because they are purely presentational.
-						g.log.Warn(ctx, "Cannot update repository description for module %s (%v)", entry.Addr.String(), err)
-					} else {
-						entry.Description = repoInfo.Description
-					}
 				}
 
 				publicationTime := time.Time{}
@@ -769,4 +758,50 @@ func (g generator) extractModuleResources(moduleSchema moduleschema.ModuleSchema
 		}
 	}
 	d.Resources = result
+}
+
+func (g generator) fetchRepoInfo(ctx context.Context, entry *Module) {
+	repoInfo, err := g.vcsClient.GetRepositoryInfo(ctx, entry.Addr.ToRepositoryAddr())
+	if err != nil {
+		var repoNotFound *vcs.RepositoryNotFoundError
+		if errors.As(err, &repoNotFound) {
+			g.log.Warn(ctx, "Repository not found for module %s, skipping... (%v)", entry.Addr.String(), err)
+			return
+		}
+		// We handle description errors as soft errors because they are purely presentational.
+		g.log.Warn(ctx, "Cannot update repository description for module %s (%v)", entry.Addr.String(), err)
+	}
+	entry.Description = repoInfo.Description
+	entry.Popularity = repoInfo.Popularity
+	entry.ForkCount = repoInfo.ForkCount
+
+	forkRepo := repoInfo.ForkOf
+	if forkRepo == nil {
+		return
+	}
+	link, err := g.vcsClient.GetRepositoryBrowseURL(ctx, *forkRepo)
+	if err != nil {
+		g.log.Warn(ctx, "Cannot determine repository browse URL for %s (%v)", forkRepo.String(), err)
+		return
+	}
+	entry.ForkOfLink = link
+
+	forkedAddr, err := module.AddrFromRepository(*forkRepo)
+	if err != nil {
+		g.log.Warn(ctx, "Cannot convert repository name %s to a module addr (%v)", forkRepo.String(), err)
+		return
+	}
+	_, err = g.metadataAPI.GetModule(ctx, forkedAddr)
+	if err != nil {
+		return
+	}
+	entry.ForkOf = Addr(forkedAddr)
+
+	upstreamRepoInfo, err := g.vcsClient.GetRepositoryInfo(ctx, *forkRepo)
+	if err != nil {
+		g.log.Warn(ctx, "Cannot fetch upstream repository info for %s (%v)", forkRepo.String(), err)
+		return
+	}
+	entry.UpstreamPopularity = upstreamRepoInfo.Popularity
+	entry.UpstreamForkCount = upstreamRepoInfo.ForkCount
 }
