@@ -1,20 +1,34 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query";
 
 import { Markdown } from "@/components/Markdown";
-import { getModuleExampleReadmeQuery } from "../query";
+import {
+  getModuleExampleDataQuery,
+  getModuleExampleReadmeQuery,
+} from "../query";
 import { useModuleExampleParams } from "../hooks/useModuleExampleParams";
 import { Suspense } from "react";
 import { ModuleExampleMetaTags } from "../components/MetaTags";
+import { EditLink } from "@/components/EditLink";
 
 function ModuleExampleReadmeContent() {
   const { namespace, name, target, version, example } =
     useModuleExampleParams();
 
-  const { data } = useSuspenseQuery(
-    getModuleExampleReadmeQuery(namespace, name, target, version, example),
-  );
+  const [{ data }, { data: exampleData }] = useSuspenseQueries({
+    queries: [
+      getModuleExampleReadmeQuery(namespace, name, target, version, example),
+      getModuleExampleDataQuery(namespace, name, target, version, example),
+    ],
+  });
 
-  return <Markdown text={data} />;
+  const editLink = exampleData.edit_link;
+
+  return (
+    <>
+      <Markdown text={data} />
+      {editLink && <EditLink url={editLink} />}
+    </>
+  );
 }
 
 function ModuleExampleReadmeContentSkeleton() {
