@@ -49,8 +49,6 @@ async function serveR2Object(request: Request, env: Env, objectKey: string) {
 		return new Response('Not Found', { status: 404 });
 	}
 
-	console.log('Serving object:', objectKey);
-
 	if (!env.BUCKET) {
 		return new Response('Internal Server Error, bucket not found', { status: 500 });
 	}
