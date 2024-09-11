@@ -39,7 +39,7 @@ func buildTofu(repoDir string, testTofuDir string, binaryPath string) {
 
 	runCommand(repoDir, "git", "pull")
 	runCommand(repoDir, "git", "checkout", "experiment/json_config_dump")
-	runCommand(repoDir, "go", "build", "-o", filepath.ToSlash(binaryPath), "./cmd/tofu/main.go")
+	runCommand(repoDir, "go", "build", "-o", filepath.ToSlash(binaryPath), "github.com/opentofu/opentofu/cmd/tofu")
 }
 
 func runCommand(wd string, argv ...string) {
