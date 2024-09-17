@@ -239,6 +239,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			for _, ver := range metadataVersions {
 				if err := ver.Validate(); err != nil {
 					g.log.Warn(ctx, "Module %s version %s has an invalid version number, skipping...", moduleAddr.String(), ver.Version)
+					versionsToRemove = append(versionsToRemove, ver)
 					continue
 				}
 				vcsVer := ver.Version.ToVCSVersion()
