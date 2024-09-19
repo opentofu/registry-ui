@@ -83,7 +83,7 @@
         "slug": "modules/publishing"
       },
       {
-        "title": "Adding a module to the OpenTofu Registry",
+        "title": "Adding a module to the Registry",
         "path": "modules/adding.md",
         "slug": "modules/adding"
       }
