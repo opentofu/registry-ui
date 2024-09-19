@@ -9,7 +9,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSearchQuery } from "../../q";
 import { search } from "../../icons/search";
-import { spinner } from "../../icons/spinner";
 import { Icon } from "../Icon";
 import { SearchResult, SearchResultType } from "./types";
 import { SearchModuleResult } from "./ModuleResult";
@@ -18,6 +17,7 @@ import { SearchOtherResult } from "./OtherResult";
 import { definitions } from "@/api";
 import clsx from "clsx";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { Paragraph } from "../Paragraph";
 
 function getSearchResultType(value: string) {
   switch (value) {
@@ -119,7 +119,7 @@ export function Search({
 }: SearchProps) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 250);
-  const { data, isLoading } = useQuery(getSearchQuery(debouncedQuery));
+  const { data, isFetching } = useQuery(getSearchQuery(debouncedQuery));
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
@@ -183,9 +183,12 @@ export function Search({
     };
   }, []);
 
+  const canShowLoadingInfo = isFetching || query !== debouncedQuery;
+  const canShowNoResultsInfo = filtered.length === 0 && !canShowLoadingInfo;
+  const canShowResults = !canShowLoadingInfo && !canShowNoResultsInfo;
+
   return (
     <Combobox
-      onClose={() => setQuery("")}
       onChange={(v: SearchResult) => {
         if (!v) {
           return;
@@ -208,9 +211,7 @@ export function Search({
         />
         <ComboboxInput
           ref={inputRef}
-          displayValue={(result: SearchResult) =>
-            (result || {}).displayTitle || ""
-          }
+          value={query}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           className={clsx(
@@ -219,48 +220,48 @@ export function Search({
           )}
         />
 
-        {isLoading && (
-          <Icon
-            path={spinner}
-            className={clsx(
-              "absolute animate-spin",
-              size === "small"
-                ? "right-2 top-2 size-5"
-                : "right-3 top-3 size-6",
-            )}
-          />
-        )}
-
         <ComboboxOptions
           anchor="bottom start"
           className="z-10 max-h-96 w-[var(--input-width)] divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
         >
-          {filtered.map((item) => (
-            <div key={item.type}>
-              <h2 className="px-4 py-2 text-sm font-semibold">{item.label}</h2>
-              {item.results.map((result) => (
-                <ComboboxOption
-                  key={result.id}
-                  value={result}
-                  className="cursor-pointer px-4 py-2 data-[focus]:bg-brand-500 data-[focus]:text-inherit dark:data-[focus]:bg-brand-800"
-                  as="div"
-                >
-                  {(item.type === SearchResultType.Provider ||
-                    item.type === SearchResultType.ProviderResource ||
-                    item.type === SearchResultType.ProviderDatasource ||
-                    item.type === SearchResultType.ProviderFunction) && (
-                    <SearchProviderResult result={result} />
-                  )}
-                  {item.type === SearchResultType.Module && (
-                    <SearchModuleResult result={result} />
-                  )}
-                  {item.type === SearchResultType.Other && (
-                    <SearchOtherResult result={result} />
-                  )}
-                </ComboboxOption>
-              ))}
+          {canShowResults
+            ? filtered.map((item) => (
+                <div key={item.type}>
+                  <h2 className="px-4 py-2 text-sm font-semibold">
+                    {item.label}
+                  </h2>
+                  {item.results.map((result) => (
+                    <ComboboxOption
+                      key={result.id}
+                      value={result}
+                      className="cursor-pointer px-4 py-2 data-[focus]:bg-brand-500 data-[focus]:text-inherit dark:data-[focus]:bg-brand-800"
+                      as="div"
+                    >
+                      {(item.type === SearchResultType.Provider ||
+                        item.type === SearchResultType.ProviderResource ||
+                        item.type === SearchResultType.ProviderDatasource ||
+                        item.type === SearchResultType.ProviderFunction) && (
+                        <SearchProviderResult result={result} />
+                      )}
+                      {item.type === SearchResultType.Module && (
+                        <SearchModuleResult result={result} />
+                      )}
+                      {item.type === SearchResultType.Other && (
+                        <SearchOtherResult result={result} />
+                      )}
+                    </ComboboxOption>
+                  ))}
+                </div>
+              ))
+            : null}
+          {!canShowResults && (
+            <div className="flex h-12 items-center px-4 text-sm">
+              {canShowLoadingInfo && (
+                <Paragraph className="dark:text-white">Loading...</Paragraph>
+              )}
+              {canShowNoResultsInfo && <Paragraph>No results found</Paragraph>}
             </div>
-          ))}
+          )}
         </ComboboxOptions>
       </div>
     </Combobox>
