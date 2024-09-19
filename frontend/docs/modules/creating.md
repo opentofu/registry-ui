@@ -6,6 +6,8 @@ In order to create a module for reuse, simply write your OpenTofu code the way y
 
 Your module may also create resources that a user may want to use further. For example, you may create a virtual machine and want to supply your user with the ID of that virtual machine. To return values from your module, you can use [output](https://opentofu.org/docs/language/values/outputs/) blocks.
 
+You can read more about how modules work [in the OpenTofu documentation](https://opentofu.org/docs/language/modules/).
+
 ## Readme
 
 Once the code is done, make sure that you add a `README.md` file and explain to your users how to use your module. This file will show up in the Registry Search if the license allows for it.
