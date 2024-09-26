@@ -9,7 +9,6 @@ This section contains the documentation for OpenTofu users.
 - [Overview](/docs/users)
 - [Using a provider](/docs/users/providers)
 - [Using a module](/docs/users/modules)
-- [Security](/docs/users/security)
 
 ## For provider authors
 
