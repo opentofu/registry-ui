@@ -12,7 +12,7 @@ As per the recommendation from HashiCorp for Terraform, the easiest option to wr
 
 OpenTofu supports providers written in any language as long as they can be compiled to a static binary. Providers written in languages that don't compile to a static binary may or may not work, depending on the host operating system.
 
-In order to start the provider, OpenTofu uses [go-plugin](https://github.com/hashicorp/go-plugin). This process is as follows:
+In order to start the provider OpenTofu uses [go-plugin](https://github.com/hashicorp/go-plugin). This process is as follows:
 
 1. OpenTofu starts the plugin with the `PLUGIN_MIN_PORT`, `PLUGIN_MAX_PORT`, `PLUGIN_PROTOCOL_VERSIONS` and the `PLUGIN_CLIENT_CERT` environment variables set. While OpenTofu currently doesn't use them, your implementation should also implement handling the `PLUGIN_UNIX_SOCKET_DIR`, `PLUGIN_UNIX_SOCKET_GROUP`, and `PLUGIN_MULTIPLEX_GRPC` environment variables.
 2. On Windows, the plugin will scan from `PLUGIN_MIN_PORT` and `PLUGIN_MAX_PORT` to find an open port and open a TCP listen socket on that port, binding to `127.0.0.1`.
