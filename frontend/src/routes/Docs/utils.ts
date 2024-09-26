@@ -4,12 +4,12 @@ import sidebar from "../../../docs/sidebar.json";
 import { processor } from "@/components/Markdown/processor";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const docs = import.meta.glob("../../../docs/**/*.md", {
-  eager: true,
-  as: "raw",
-});
+export function getSlugPathMap() {
+  const docs = import.meta.glob("../../../docs/**/*.md", {
+    eager: true,
+    as: "raw",
+  });
 
-function getSlugPathMap() {
   const processorWithFrontmatter = processor().use(() => {
     return (_, file) => {
       matter(file);
@@ -46,5 +46,3 @@ function getSlugPathMap() {
 
   return slugPathMap;
 }
-
-export const slugPathMap = getSlugPathMap();
