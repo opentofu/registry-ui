@@ -36,4 +36,4 @@ As of OpenTofu 1.8, OpenTofu does not yet implement using the `moved` block betw
 
 ## Next steps
 
-Once you have written your provider code, you can proceed to [publishing your provider](/docs/providers/publishing).
+Once you have written your provider code, you can proceed to [write your documentation](/docs/providers/docs).

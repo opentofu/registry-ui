@@ -21,11 +21,6 @@
         "title": "Using a module",
         "path": "users/modules.md",
         "slug": "users/modules"
-      },
-      {
-        "title": "Security",
-        "path": "users/security.md",
-        "slug": "users/security"
       }
     ]
   },
@@ -43,19 +38,14 @@
         "slug": "providers/creating"
       },
       {
-        "title": "Publishing your provider",
-        "path": "providers/publishing.md",
-        "slug": "providers/publishing"
-      },
-      {
-        "title": "Adding GPG signatures",
-        "path": "providers/gpg.md",
-        "slug": "providers/gpg"
-      },
-      {
         "title": "Writing docs for your provider",
         "path": "providers/docs.md",
         "slug": "providers/docs"
+      },
+      {
+        "title": "Publishing your provider",
+        "path": "providers/publishing.md",
+        "slug": "providers/publishing"
       },
       {
         "title": "Adding a provider to the registry",
