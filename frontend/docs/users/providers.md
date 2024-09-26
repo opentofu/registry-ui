@@ -51,4 +51,9 @@ resource "github_repository" "myrepo" {
 }
 ```
 
+## Reporting provider issues
+
+If you find a bug in a provider, please report the issue directly to the provider author. The OpenTofu team cannot fix provider issues.
+
 -> Provider namespaces and names in the OpenTofu registry translate directly to GitHub URLs in the form of `github.com/NAMESPACE/terraform-provider-NAME`.
+
