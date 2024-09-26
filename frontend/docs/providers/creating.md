@@ -8,7 +8,7 @@ As per the recommendation from HashiCorp for Terraform, the easiest option to wr
 
 ## Manually (only for the adventurous)
 
-~> Support for programming languages other than Go is very limited. For production use we recommend using the Terraform Plugin Framework.
+~> Support for programming languages other than Go and bypassing the official SDK/framework is very limited. For production use we recommend using Go and the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework).
 
 OpenTofu supports providers written in any language as long as they can be compiled to a static binary. Providers written in languages that don't compile to a static binary may or may not work, depending on the host operating system.
 
