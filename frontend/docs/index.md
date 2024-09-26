@@ -16,9 +16,8 @@ This section guides you through the steps of creating and publishing an OpenTofu
 
 - [Overview](/docs/providers)
 - [Creating a provider](/docs/providers/creating)
-- [Publishing your provider](/docs/providers/publishing)
-- [Adding GPG signatures](/docs/providers/gpg)
 - [Writing docs for your provider](/docs/providers/docs)
+- [Publishing your provider](/docs/providers/publishing)
 - [Adding a provider to the registry](/docs/providers/adding)
 
 ## For module authors
