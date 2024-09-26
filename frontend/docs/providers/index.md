@@ -4,8 +4,7 @@ This section of the documentation guides you through the basic steps of creating
 
 ## In this section
 
-- [Creating a provider](providers/creating)
-- [Publishing your provider](providers/publishing)
-- [Adding GPG signatures](providers/gpg)
-- [Writing docs for your provider](providers/docs)
-- [Adding a provider to the registry](providers/adding)
+- [Creating a provider](/docs/providers/creating)
+- [Writing docs for your provider](/docs/providers/docs)
+- [Publishing your provider](/docs/providers/publishing)
+- [Adding a provider to the registry](/docs/providers/adding)

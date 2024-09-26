@@ -6,28 +6,28 @@ The OpenTofu Registry provides an API for OpenTofu to locate providers and modul
 
 This section contains the documentation for OpenTofu users.
 
-- [Overview](users)
-- [Using a provider](users/providers)
-- [Using a module](users/modules)
-- [Security](users/security)
+- [Overview](/docs/users)
+- [Using a provider](/docs/users/providers)
+- [Using a module](/docs/users/modules)
+- [Security](/docs/users/security)
 
 ## For provider authors
 
 This section guides you through the steps of creating and publishing an OpenTofu provider.
 
-- [Overview](providers)
-- [Creating a provider](providers/creating)
-- [Publishing your provider](providers/publishing)
-- [Adding GPG signatures](providers/gpg)
-- [Writing docs for your provider](providers/docs)
-- [Adding a provider to the registry](providers/adding)
+- [Overview](/docs/providers)
+- [Creating a provider](/docs/providers/creating)
+- [Publishing your provider](/docs/providers/publishing)
+- [Adding GPG signatures](/docs/providers/gpg)
+- [Writing docs for your provider](/docs/providers/docs)
+- [Adding a provider to the registry](/docs/providers/adding)
 
 ## For module authors
 
 This section shows you how to create and publish a module.
 
-- [Overview](modules)
-- [Creating a module](modules/creating)
-- [Publishing a module](modules/publishing)
-- [Adding a module to the OpenTofu Registry](modules/adding)
+- [Overview](/docs/modules)
+- [Creating a module](/docs/modules/creating)
+- [Publishing a module](/docs/modules/publishing)
+- [Adding a module to the OpenTofu Registry](/docs/modules/adding)
 
