@@ -6,4 +6,3 @@ OpenTofu is but a tool that works with integrations made by the community called
 
 - [Using a provider](/docs/users/providers)
 - [Using a module](/docs/users/modules)
-- [Security](/docs/users/security)
