@@ -47,6 +47,8 @@ import { ModuleSubmoduleRouteContext } from "./routes/ModuleSubmodule/types";
 import { moduleSubmoduleReadmeLoader } from "./routes/ModuleSubmodule/Readme/loader";
 import { moduleSubmoduleMiddleware } from "./routes/ModuleSubmodule/middleware";
 import { ProviderError } from "./routes/Provider/components/Error";
+import { Docs } from "./routes/Docs";
+import { docsLoader } from "./routes/Docs/loader";
 
 export const router = createBrowserRouter(
   [
@@ -57,6 +59,12 @@ export const router = createBrowserRouter(
           id: "home",
           index: true,
           element: <Home />,
+        },
+        {
+          id: "docs",
+          path: "/docs/*",
+          element: <Docs />,
+          loader: docsLoader,
         },
         {
           id: "providers",
