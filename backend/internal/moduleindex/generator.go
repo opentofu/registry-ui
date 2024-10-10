@@ -348,7 +348,12 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 	}
 	for _, m := range modules.Modules {
 		if err := m.Validate(); err != nil {
-			return fmt.Errorf("invalid module (%w)", err)
+			// We are ignoring invalid version numbers here because the dataset contains them, but when a module is
+			// refreshed, it should be excluded above.
+			var invalidVersionNumber *module.InvalidVersionNumber
+			if !errors.As(err, &invalidVersionNumber) {
+				return fmt.Errorf("invalid module (%w)", err)
+			}
 		}
 	}
 	marshalled, err := json.Marshal(modules)
