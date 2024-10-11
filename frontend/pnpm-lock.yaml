@@ -130,7 +130,7 @@ importers:
         version: 11.0.5
       unplugin-macros:
         specifier: ^0.13.3
-        version: 0.13.3(rollup@4.21.2)
+        version: 0.13.3(rollup@4.24.0)
       vfile-matter:
         specifier: ^5.0.0
         version: 5.0.0
@@ -2862,13 +2862,13 @@ snapshots:
 
   '@remix-run/router@1.19.2': {}
 
-  '@rollup/pluginutils@5.1.2(rollup@4.21.2)':
+  '@rollup/pluginutils@5.1.2(rollup@4.24.0)':
     dependencies:
       '@types/estree': 1.0.5
       estree-walker: 2.0.2
       picomatch: 2.3.1
     optionalDependencies:
-      rollup: 4.21.2
+      rollup: 4.24.0
 
   '@rollup/rollup-android-arm-eabi@4.24.0':
     optional: true
@@ -4967,13 +4967,13 @@ snapshots:
       unist-util-is: 6.0.0
       unist-util-visit-parents: 6.0.1
 
-  unplugin-macros@0.13.3(rollup@4.21.2):
+  unplugin-macros@0.13.3(rollup@4.24.0):
     dependencies:
-      '@rollup/pluginutils': 5.1.2(rollup@4.21.2)
+      '@rollup/pluginutils': 5.1.2(rollup@4.24.0)
       ast-kit: 1.2.1
       magic-string-ast: 0.6.2
       unplugin: 1.14.1
-      vite: 5.4.3
+      vite: 5.4.6
       vite-node: 2.0.5
     transitivePeerDependencies:
       - '@types/node'
