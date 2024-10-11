@@ -4,7 +4,7 @@ In order for your provider to show up in the OpenTofu Registry Search properly, 
 
 ## Documentation structure
 
-You can place your documentation in the `docs` or `website/docs` folder in your repository. Please create the files in the following naming convention:
+You can place your documentation in the `docs` folder in your repository. Please create the files using the following naming convention:
 
 - `/docs/guides/<guide>.md` for guides.
 - `/docs/resources/<resource>.md` for resources. (Note: if your resource is called `yourprovider_yourresource`, you should only include `yourresource` here.)

@@ -8,7 +8,11 @@ Once you have finished [creating your provider](/docs/providers/creating) and [w
 
 If you used the [terraform-provider-scaffolding-framework](https://github.com/hashicorp/terraform-provider-scaffolding-framework) as your starting point, it also includes the necessary GitHub Actions and [goreleaser file](https://github.com/hashicorp/terraform-provider-scaffolding-framework/blob/main/.goreleaser.yml) needed to create a release.
 
-You will need to create the secrets called `GPG_PRIVATE_KEY` and `PASSPHRASE` in order to sign your release. This is required for the Terraform Registry and recommended for the OpenTofu Registry.  Please follow the [GitHub documentation on generating a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key). (You do not need to add it to your GitHub account, but you will need to [submit the key to the OpenTofu Registry](/docs/providers/adding) in the next step).
+You will need to create the secrets called `GPG_PRIVATE_KEY` and `PASSPHRASE` in order to sign your release. GPG keys ensure the integrity of your provider binaries. While OpenTofu allows you to submit a provider without a GPG key for compatibility reasons, adding a GPG key helps keep your users safe and is also required if you intend to submit your provider to the Terraform Registry. The workflow in the terraform-provider-scaffolding-framework repository assumes you will use a GPG key.
+
+Please follow the [GitHub documentation on generating a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key). You do not need to add the public key to your GitHub account, but instead you can [submit it to the OpenTofu Registry](/docs/providers/adding) in the next step.
+
+~> Keep your private key safe! If your private key becomes public, others will be able to produce correctly signed binaries for your provider! The private key should only be in your GitHub secrets and backed up on your own computer. You should never need to submit the private key anywhere.
 
 Once this is set up, proceed to create a release named `vYOURVERSION` on GitHub and wait for the GitHub Actions job to complete.
 

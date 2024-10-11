@@ -16,4 +16,4 @@ After your provider is merged, you can proceed to add your GPG key. You will nee
 4. In the `Provider Namespace` field enter your username or organization name.
 5. In the `Provider GPG Key` field paste your GPG key.
 
-~> The GPG key applies to all providers in under your username or organization. Don't submit a GPG key if you have providers that are not signed or are signed with a key you don't have.
+~> The GPG key applies to all providers under your username or organization. Don't submit a GPG key if you have providers that are not signed or are signed with a key you don't have.
