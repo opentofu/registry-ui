@@ -1,0 +1,82 @@
+[
+  {
+    "title": "Overview",
+    "path": "index.md",
+    "slug": ""
+  },
+  {
+    "title": "For users",
+    "items": [
+      {
+        "title": "Overview",
+        "path": "users/index.md",
+        "slug": "users"
+      },
+      {
+        "title": "Using a provider",
+        "path": "users/providers.md",
+        "slug": "users/providers"
+      },
+      {
+        "title": "Using a module",
+        "path": "users/modules.md",
+        "slug": "users/modules"
+      }
+    ]
+  },
+  {
+    "title": "For provider authors",
+    "items": [
+      {
+        "title": "Overview",
+        "path": "providers/index.md",
+        "slug": "providers"
+      },
+      {
+        "title": "Creating a provider",
+        "path": "providers/creating.md",
+        "slug": "providers/creating"
+      },
+      {
+        "title": "Writing docs for your provider",
+        "path": "providers/docs.md",
+        "slug": "providers/docs"
+      },
+      {
+        "title": "Publishing your provider",
+        "path": "providers/publishing.md",
+        "slug": "providers/publishing"
+      },
+      {
+        "title": "Adding a provider to the registry",
+        "path": "providers/adding.md",
+        "slug": "providers/adding"
+      }
+    ]
+  },
+  {
+    "title": "For module authors",
+    "items": [
+      {
+        "title": "Overview",
+        "path": "modules/index.md",
+        "slug": "modules"
+      },
+      {
+        "title": "Creating a module",
+        "path": "modules/creating.md",
+        "slug": "modules/creating"
+      },
+      {
+        "title": "Publishing a module",
+        "path": "modules/publishing.md",
+        "slug": "modules/publishing"
+      },
+      {
+        "title": "Adding a module to the Registry",
+        "path": "modules/adding.md",
+        "slug": "modules/adding"
+      }
+    ]
+  }
+]
