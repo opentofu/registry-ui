@@ -572,20 +572,12 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 
 	const directoryPrefix = "modules"
 
-	// This section guards against files named "modules"
-	entries, err := workingCopy.ReadDir("")
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		if entry.Name() == directoryPrefix && !entry.IsDir() {
-			return nil
-		}
-	}
-
-	entries, err = workingCopy.ReadDir(directoryPrefix)
+	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
 		if os.IsNotExist(err) {
+			return nil
+		}
+		if strings.Contains(err.Error(), "not a directory") {
 			return nil
 		}
 		return err
@@ -633,20 +625,12 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 	// that the submodule exists. However, we do not index the contents of the submodule.
 	const directoryPrefix = "examples"
 
-	// This section guards against files named "examples"
-	entries, err := workingCopy.ReadDir("")
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		if entry.Name() == directoryPrefix && !entry.IsDir() {
-			return nil
-		}
-	}
-
-	entries, err = workingCopy.ReadDir(directoryPrefix)
+	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
 		if os.IsNotExist(err) {
+			return nil
+		}
+		if strings.Contains(err.Error(), "not a directory") {
 			return nil
 		}
 		return err
