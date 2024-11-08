@@ -28,9 +28,12 @@ type DocumentationGenerator interface {
 	// Generate generates all module index files incrementally and removes items no longer in the registry.
 	Generate(ctx context.Context, opts ...Opts) error
 
-	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
-	// registry.
+	// GenerateNamespace generates provider index files incrementally for one namespace.
 	GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error
+
+	// GenerateNamespacePrefix generates provider index files incrementally for multiple namespaces matching the given
+	// prefix.
+	GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error
 
 	// GenerateSingleProvider generates module index files for a single provider only.
 	GenerateSingleProvider(ctx context.Context, addr provider.Addr, opts ...Opts) error
@@ -117,8 +120,28 @@ func (d *documentationGenerator) Generate(ctx context.Context, opts ...Opts) err
 func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
 	d.log.Info(ctx, "Listing all providers in namespace %s...", namespace)
 	providerList, err := d.metadataAPI.ListProvidersByNamespace(ctx, namespace, true)
+
+	d.log.Info(ctx, "Loaded %d providers", len(providerList))
+
+	err = d.scrape(ctx, providerList, opts)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (d *documentationGenerator) GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error {
+	d.log.Info(ctx, "Listing all providers with the namespace prefix %s...", namespacePrefix)
+	providerListFull, err := d.metadataAPI.ListProviders(ctx, true)
+	if err != nil {
+		return err
+	}
+	var providerList []provider.Addr
+	for _, providerAddr := range providerListFull {
+		if strings.HasPrefix(providerAddr.Namespace, namespacePrefix) {
+			providerList = append(providerList, providerAddr)
+		}
 	}
 	d.log.Info(ctx, "Loaded %d providers", len(providerList))
 
