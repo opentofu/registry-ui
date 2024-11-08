@@ -77,6 +77,7 @@ type GenerateOpt func(c *GenerateConfig) error
 type GenerateConfig struct {
 	SkipUpdateProviders bool
 	SkipUpdateModules   bool
+	NamespacePrefix     string
 	Namespace           string
 	Name                string
 	TargetSystem        string
@@ -206,6 +207,16 @@ var namespaceRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
 var nameRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
 var targetSystemRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
 
+func WithNamespacePrefix(namespacePrefix string) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		if !namespaceRe.MatchString(namespacePrefix) {
+			return fmt.Errorf("invalid namespace: %s", namespaceRe)
+		}
+		c.NamespacePrefix = namespacePrefix
+		return nil
+	}
+}
+
 func WithNamespace(namespace string) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		if !namespaceRe.MatchString(namespace) {
@@ -318,6 +329,10 @@ func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
 			if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
+		} else if cfg.NamespacePrefix != "" {
+			if err := b.moduleIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
+				return fmt.Errorf("failed to generate modules (%w)", err)
+			}
 		} else {
 			if err := b.moduleIndexGenerator.Generate(ctx, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
@@ -331,6 +346,10 @@ func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
 			}
 		} else if cfg.Namespace != "" {
 			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+				return fmt.Errorf("failed to index providers (%w)", err)
+			}
+		} else if cfg.NamespacePrefix != "" {
+			if err := b.providerIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		} else {

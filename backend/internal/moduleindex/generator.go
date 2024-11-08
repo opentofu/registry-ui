@@ -49,6 +49,9 @@ type Generator interface {
 	Generate(ctx context.Context, opts ...Opts) error
 	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
 	// registry.
+	GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error
+	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
+	// registry.
 	GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error
 	// GenerateNamespaceAndName generates module index files incrementally for one namespace and removes items no longer in the
 	// registry.
@@ -124,6 +127,26 @@ func (g generator) GenerateNamespaceAndName(ctx context.Context, namespace strin
 	}
 	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
 		return !(moduleAddr.Namespace == namespace && moduleAddr.Name == name)
+	}, opts)
+}
+
+func (g generator) GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error {
+	namespacePrefix = module.NormalizeNamespace(namespacePrefix)
+	g.log.Info(ctx, "Listing all modules...")
+	moduleListFull, err := g.metadataAPI.ListModules(ctx)
+	if err != nil {
+		return err
+	}
+
+	var moduleList []module.Addr
+	for _, module := range moduleListFull {
+		if strings.HasPrefix(module.Namespace, namespacePrefix) {
+			moduleList = append(moduleList, module)
+		}
+	}
+
+	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
+		return !strings.HasPrefix(moduleAddr.Namespace, namespacePrefix)
 	}, opts)
 }
 
