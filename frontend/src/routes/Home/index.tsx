@@ -46,7 +46,7 @@ export function Home() {
         </h2>
         <Paragraph className="mb-7 mt-5 text-balance">
           This technology preview contains documentation for a select few
-          providers, namespaces, and modules in the OpenTofu registry.{" "}
+          providers, namespaces, and modules in the OpenTofu registry.<br />
           <strong>Note:</strong> the data in this interface may not be up to date during the beta phase.
         </Paragraph>
         <Search
