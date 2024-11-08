@@ -47,8 +47,8 @@ const indexPrefix = "modules"
 type Generator interface {
 	// Generate generates all module index files incrementally and removes items no longer in the registry.
 	Generate(ctx context.Context, opts ...Opts) error
-	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
-	// registry.
+	// GenerateNamespacePrefix generates module index files incrementally for all namespaces matching a given
+	// prefix and removes modules from the index that no longer exist.
 	GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error
 	// GenerateNamespace generates module index files incrementally for one namespace and removes items no longer in the
 	// registry.

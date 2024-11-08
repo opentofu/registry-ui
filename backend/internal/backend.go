@@ -209,6 +209,9 @@ var targetSystemRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
 
 func WithNamespacePrefix(namespacePrefix string) GenerateOpt {
 	return func(c *GenerateConfig) error {
+		if c.Namespace != "" {
+			return fmt.Errorf("filtering for both namespace and namespace prefix is not supported")
+		}
 		if !namespaceRe.MatchString(namespacePrefix) {
 			return fmt.Errorf("invalid namespace: %s", namespaceRe)
 		}
@@ -219,6 +222,9 @@ func WithNamespacePrefix(namespacePrefix string) GenerateOpt {
 
 func WithNamespace(namespace string) GenerateOpt {
 	return func(c *GenerateConfig) error {
+		if c.NamespacePrefix != "" {
+			return fmt.Errorf("filtering for both namespace and namespace prefix is not supported")
+		}
 		if !namespaceRe.MatchString(namespace) {
 			return fmt.Errorf("invalid namespace: %s", namespaceRe)
 		}

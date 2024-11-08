@@ -56,7 +56,7 @@ func main() {
 	flag.StringVar(&licensesFile, "licenses-file", licensesFile, "JSON file containing a list of approved licenses to include when indexing. (required)")
 	flag.BoolVar(&skipUpdateProviders, "skip-update-providers", skipUpdateProviders, "Skip updating provider indexes.")
 	flag.BoolVar(&skipUpdateModules, "skip-update-modules", skipUpdateModules, "Skip updating module indexes.")
-	flag.StringVar(&namespacePrefix, "namespace-prefix", namespace, "Limit updates to a namespace.")
+	flag.StringVar(&namespacePrefix, "namespace-prefix", namespace, "Limit updates to a namespace prefix.")
 	flag.StringVar(&namespace, "namespace", namespace, "Limit updates to a namespace.")
 	flag.StringVar(&name, "name", name, "Limit updates to a name. Only works in conjunction with -namespace. For providers, this will result in a single provider getting updated. For modules, this will update all target systems under a name.")
 	flag.StringVar(&targetSystem, "target-system", targetSystem, "Limit updates to a target system for module updates only. Only works in conjunction with -namespace and -name.")
