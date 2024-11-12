@@ -87,6 +87,11 @@ func main() {
 
 	ctx := context.Background()
 
+	if err := setRLimit(ctx, mainLogger); err != nil {
+		mainLogger.Error(ctx, err.Error())
+		os.Exit(1)
+	}
+
 	approvedLicenses, err := readLicensesFile(ctx, licensesFile)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
