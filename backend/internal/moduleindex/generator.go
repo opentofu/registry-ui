@@ -594,6 +594,11 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 	// that the submodule exists. However, we do not index the contents of the submodule.
 
 	const directoryPrefix = "modules"
+	// Check if the modules directory is actually a file.
+	if _, err := workingCopy.Open(directoryPrefix); err == nil {
+		// This is a file, ignore it.
+		return nil
+	}
 	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -643,6 +648,11 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 	// Note: we extract the fact that an example exists even if the license is not OK because we just index the fact
 	// that the submodule exists. However, we do not index the contents of the submodule.
 	const directoryPrefix = "examples"
+	// Check if the examples directory is actually a file.
+	if _, err := workingCopy.Open(directoryPrefix); err == nil {
+		// This is a file, ignore it.
+		return nil
+	}
 	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
 		if os.IsNotExist(err) {
