@@ -62,7 +62,7 @@ If you find a bug in a provider, please report the issue directly to the provide
 If you are a user of a specific provider, and you would like to ask a provider author to submit their GPG key, you can use the following template to open an issue with the provider:
 
 ```markdown
-Hello folks, thank you for your work on this provider.
+Hello team, thank you for your work on this provider.
 
 I'm using this provider with OpenTofu and I would like to ask you to
 submit your GPG public key to the OpenTofu registry in order to enable
