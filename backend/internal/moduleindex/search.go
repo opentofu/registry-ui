@@ -34,7 +34,8 @@ func (m moduleSearch) indexModuleVersion(ctx context.Context, addr ModuleAddr, m
 			"target_system": addr.TargetSystem,
 			"version":       string(response.ID),
 		},
-		ParentID: "",
+		ParentID:   "",
+		Popularity: module.Popularity,
 	}
 	if err := m.searchAPI.AddItem(ctx, versionItem); err != nil {
 		return err

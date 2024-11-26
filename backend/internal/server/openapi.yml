@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-            github.com/NAMESPACE/terraform-provider-NAME .
+            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
         type: object
     BaseDetails:
         properties:
@@ -74,6 +74,9 @@ definitions:
                 type: object
             parent_id:
                 $ref: '#/definitions/IndexID'
+            popularity:
+                format: int64
+                type: integer
             title:
                 type: string
             type:

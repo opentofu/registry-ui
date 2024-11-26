@@ -17,11 +17,12 @@ type IndexItem struct {
 	LinkVariables map[string]string `json:"link"`
 	ParentID      IndexID           `json:"parent_id"`
 	LastUpdated   time.Time         `json:"last_updated"`
+	Popularity    int               `json:"popularity"`
 }
 
 func (i IndexItem) Equals(other IndexItem) bool {
 	if i.ID != other.ID || i.Type != other.Type || i.Addr != other.Addr || i.Version != other.Version ||
-		i.Title != other.Title || i.Description != other.Description || i.ParentID != other.ParentID {
+		i.Title != other.Title || i.Description != other.Description || i.ParentID != other.ParentID || i.Popularity != other.Popularity {
 		return false
 	}
 	if len(i.LinkVariables) != len(other.LinkVariables) {
@@ -59,6 +60,9 @@ func (i IndexItem) Validate() error {
 	}
 	if i.Version == "" {
 		return fmt.Errorf("the version field cannot be empty")
+	}
+	if i.Popularity < 0 {
+		return fmt.Errorf("the popularity cannot be negative")
 	}
 	return nil
 }

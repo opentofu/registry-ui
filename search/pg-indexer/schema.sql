@@ -10,8 +10,12 @@ CREATE TABLE IF NOT EXISTS entities
     version        TEXT      NOT NULL,
     title          TEXT      NOT NULL,
     description    TEXT,
-    link_variables JSONB
+    link_variables JSONB,
+    document       TSVECTOR
 );
+
+CREATE INDEX IF NOT EXISTS idx_entities_title_lower
+    ON entities (lower(title));
 
 CREATE TABLE IF NOT EXISTS import_jobs
 (
@@ -21,3 +25,5 @@ CREATE TABLE IF NOT EXISTS import_jobs
     completed_at TIMESTAMP,
     successful   BOOLEAN
 );
+
+ALTER TABLE entities ADD COLUMN popularity INT DEFAULT 0;
