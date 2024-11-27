@@ -22,6 +22,7 @@ const searchQuery = `
 	SELECT *,
 		/* TODO: remove hard-coded hashicorp/opentofu preferential treatment */
 		CASE WHEN link_variables->>'namespace' = 'hashicorp' THEN 1 WHEN link_variables->>'namespace' = 'opentofu' THEN 0 ELSE 0.5 END AS popularity_fudge,
+		CASE WHEN type = 'provider' THEN 1 ELSE 0 END AS provider_rank_fudge,
 		similarity(tm.addr, $1) AS title_sim,
 		similarity(tm.description, $1) AS description_sim,
 		similarity(link_variables->>'name', $1) AS name_sim
@@ -32,6 +33,7 @@ const searchQuery = `
 	FROM ranked_entities
 	WHERE type LIKE 'provider%'
 	ORDER BY
+		provider_rank_fudge DESC,
 		popularity_fudge DESC,
 		title_sim DESC,
 		name_sim DESC,
