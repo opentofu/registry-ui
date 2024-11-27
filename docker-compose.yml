@@ -6,7 +6,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: secret
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
     volumes:
       - type: bind
         source: ./search/pg-indexer/schema.sql
@@ -19,12 +19,12 @@ services:
         target: /work
         type: bind
     ports:
-      - "127.0.0.1:8080:8080"
+      - "3000:3000"
   dataapi:
     build:
       context: search/worker
     ports:
-      - "127.0.0.1:8787:8787"
+      - "8787:8787"
     volumes:
       - source: ./search/worker
         target: /work
