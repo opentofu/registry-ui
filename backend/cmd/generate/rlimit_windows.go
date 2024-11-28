@@ -2,6 +2,11 @@
 
 package main
 
-func setRLimit(ctx context.Context, log logger.Logger) error {
+import (
+	"context"
+	"github.com/opentofu/libregistry/logger"
+)
+
+func setRLimit(_ context.Context, _ logger.Logger) error {
 	return nil
 }
