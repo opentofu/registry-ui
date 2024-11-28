@@ -41,6 +41,10 @@ jobs:
         with:
           path: ./backend/internal/moduleindex/moduleschema/testtofu
           key: tofu-binary
+      - name: Build tofu
+        working-directory: backend
+        run:
+          go generate ./...
       - name: Run generation
         working-directory: backend
         env:
@@ -51,7 +55,7 @@ jobs:
           NAMESPACE: ${{inputs.namespace}}
           NAME: ${{inputs.name}}
           TARGET_SYSTEM: ${{inputs.target_system}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FORCE_REGENERATE: ${{inputs.force_regenerate}}
         run: |
-          go generate ./...
           go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}"
