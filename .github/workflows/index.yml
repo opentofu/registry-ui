@@ -2,7 +2,7 @@ name: Index (cron)
 permissions: {}
 on:
   schedule:
-    - cron: "0 * * * *" # Run every hour
+    - cron: "*/15 * * * *" # Run every 15 minutes
 concurrency:
   group: index
   cancel-in-progress: false
@@ -36,7 +36,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
           S3_BUCKET: ${{secrets.S3_BUCKET}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          NAMESPACES: hashicorp opentofu env0 spacelift-io scalr harness-io integrations
         run:
           go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json
       - name: Update search index
