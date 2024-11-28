@@ -1,13 +1,18 @@
 import clsx from "clsx";
-import { ReactNode } from "react";
+import { AriaAttributes, ReactNode } from "react";
 
-interface TreeViewProps {
+interface TreeViewProps extends Pick<AriaAttributes, "aria-labelledby"> {
   children: ReactNode;
   className?: string;
+  id?: string;
 }
 
-export function TreeView({ children, className }: TreeViewProps) {
-  return <ul className={clsx("flex flex-col", className)}>{children}</ul>;
+export function TreeView({ children, className, id, ...rest }: TreeViewProps) {
+  return (
+    <ul className={clsx("flex flex-col", className)} id={id} {...rest}>
+      {children}
+    </ul>
+  );
 }
 
 interface TreeViewItemProps {
