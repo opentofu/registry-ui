@@ -18,19 +18,17 @@ import (
 )
 
 func main() {
-	var connString string
-	flag.StringVar(&connString, "connection-string", "", "Postgres connection string")
-
+	connString := os.Getenv("PG_CONNECTION_STRING")
 	var batchSize int
 	flag.IntVar(&batchSize, "batch-size", 1000, "Batch size for inserts")
 	flag.Parse()
 
 	if connString == "" {
-		log.Fatal("connection string is required")
+		log.Fatal("Please set the PG_CONNECTION_STRING environment variable.")
 	}
 
 	if batchSize <= 0 {
-		log.Fatal("batch size must be greater than 0")
+		log.Fatal("The batch size must be greater than 0.")
 	}
 
 	body, err := downloadSearchMetaIndex()
