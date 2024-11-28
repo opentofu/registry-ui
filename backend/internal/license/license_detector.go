@@ -153,7 +153,7 @@ type Config struct {
 
 func (c *Config) ApplyDefaults() error {
 	if c.ConfidenceThreshold == 0.0 {
-		c.ConfidenceThreshold = 0.9
+		c.ConfidenceThreshold = 0.85
 	}
 	if c.ConfidenceOverrideThreshold == 0 {
 		c.ConfidenceOverrideThreshold = 0.98
