@@ -6,7 +6,7 @@ import (
 )
 
 type IndexItem struct {
-	// The ID is used to ensure that we are only storing one item with a specific ID accross all versions.
+	// The ID is used to ensure that we are only storing one item with a specific ID across all versions.
 	// This should not be consumed by the search index.
 	ID            IndexID           `json:"id"`
 	Type          IndexType         `json:"type"`
@@ -18,6 +18,7 @@ type IndexItem struct {
 	ParentID      IndexID           `json:"parent_id"`
 	LastUpdated   time.Time         `json:"last_updated"`
 	Popularity    int               `json:"popularity"`
+	Warnings      int               `json:"warnings"`
 }
 
 func (i IndexItem) Equals(other IndexItem) bool {

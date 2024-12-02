@@ -276,6 +276,8 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 		d.log.Info(ctx, "Provider %s changed blocked status, reindexing all versions...", addr)
 	}
 
+	providerData.Warnings = meta.Warnings
+
 	for _, version := range meta.Versions {
 		if err := version.Version.Validate(); err != nil {
 			d.log.Warn(ctx, "Invalid version number for provider %s: %s, skipping... (%v)", addr, version.Version, err)

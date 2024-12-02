@@ -27,3 +27,4 @@ CREATE TABLE IF NOT EXISTS import_jobs
 );
 
 ALTER TABLE entities ADD COLUMN popularity INT DEFAULT 0;
+ALTER TABLE entities ADD COLUMN warnings INT DEFAULT 0;

@@ -57,7 +57,8 @@ func (m moduleSearch) indexModuleVersion(ctx context.Context, addr ModuleAddr, m
 				"version":       string(response.ID),
 				"submodule":     name,
 			},
-			ParentID: versionItem.ID,
+			ParentID:   versionItem.ID,
+			Popularity: module.Popularity,
 		}
 		if err := m.searchAPI.AddItem(ctx, submoduleItem); err != nil {
 			return fmt.Errorf("failed to add submodule %s item (%w)", name, err)

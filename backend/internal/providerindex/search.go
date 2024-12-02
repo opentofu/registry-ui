@@ -19,6 +19,11 @@ type providerSearch struct {
 
 func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr provider.Addr, providerDetails *providertypes.Provider, providerVersionDetails providertypes.ProviderVersion) error {
 	version := providerVersionDetails.ProviderVersionDescriptor.ID
+	popularity := providerDetails.Popularity
+	if providerAddr.ToRepositoryAddr() == providerDetails.ForkOf.ToRepositoryAddr() {
+		// If the non-canonical repo address matches where we forked from, we take the popularity of the upstream.
+		popularity = providerDetails.UpstreamPopularity
+	}
 	providerItem := searchtypes.IndexItem{
 		ID:          searchtypes.IndexID("providers/" + providerAddr.String()),
 		Type:        searchtypes.IndexTypeProvider,
@@ -32,7 +37,8 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 			"version":   string(version),
 		},
 		ParentID:   "",
-		Popularity: providerDetails.Popularity,
+		Popularity: popularity,
+		Warnings:   len(providerDetails.Warnings),
 	}
 
 	if err := p.searchAPI.AddItem(ctx, providerItem); err != nil {
