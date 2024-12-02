@@ -14,6 +14,12 @@ type Provider struct {
 	//
 	// required: true
 	Addr ProviderAddr `json:"addr"`
+	// Link contains the link to the repository this provider was built from. Note that this may not match the
+	// Addr field since the repository may be different. Note that this field may not be available for all
+	// providers.
+	//
+	// required:false
+	Link string `json:"link"`
 	// CanonicalAddr stores the canonical address of the provider. If this is set, it signals that there
 	// is an alias in place. The canonical address describes the repository to ultimately fetch the data from.
 	//

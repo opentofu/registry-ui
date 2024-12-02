@@ -189,6 +189,7 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 			if providerEntry == nil {
 				providerEntry = &providertypes.Provider{
 					Addr:          providertypes.Addr(addr),
+					Link:          "",
 					Description:   "",
 					Versions:      nil,
 					IsBlocked:     blocked,
@@ -250,6 +251,15 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	meta, err := d.metadataAPI.GetProvider(ctx, canonicalAddr, false)
 	if err != nil {
 		return err
+	}
+
+	if meta.CustomRepository != "" {
+		providerData.Link = meta.CustomRepository
+	} else {
+		link, err := d.vcsClient.GetRepositoryBrowseURL(ctx, canonicalAddr.ToRepositoryAddr())
+		if err != nil {
+			providerData.Link = link
+		}
 	}
 
 	// Reverse the version order to ensure that the search index is updated with newer versions overriding older

@@ -502,6 +502,12 @@ definitions:
                 type: string
             is_blocked:
                 type: boolean
+            link:
+                description: |-
+                    Link contains the link to the repository this provider was built from. Note that this may not match the
+                    Addr field since the repository may be different. Note that this field may not be available for all
+                    providers.
+                type: string
             popularity:
                 description: Popularity indicates how popular the underlying repository is in the VCS system.
                 format: int64
