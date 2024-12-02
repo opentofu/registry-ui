@@ -81,7 +81,9 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 					"version":   string(version),
 					"id":        string(docItem.Name),
 				},
-				ParentID: providerItem.ID,
+				ParentID:   providerItem.ID,
+				Popularity: popularity,
+				Warnings:   len(providerDetails.Warnings),
 			}); err != nil {
 				return fmt.Errorf("failed to add resource %s to search index (%w)", docItem.Name, err)
 			}
