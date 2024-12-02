@@ -66,5 +66,8 @@ func (i IndexItem) Validate() error {
 	if i.Popularity < 0 {
 		return fmt.Errorf("the popularity cannot be negative")
 	}
+	if i.Warnings < 0 {
+		return fmt.Errorf("the warnings cannot be negative")
+	}
 	return nil
 }
