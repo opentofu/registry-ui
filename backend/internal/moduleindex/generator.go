@@ -61,7 +61,8 @@ type Generator interface {
 }
 
 type GenerateConfig struct {
-	Force ForceRegenerate
+	Force               ForceRegenerate
+	ForceRepoDataUpdate bool
 }
 
 type noForce struct {
@@ -83,6 +84,13 @@ type Opts func(ctx context.Context, generateConfig *GenerateConfig) error
 func WithForce(force ForceRegenerate) Opts {
 	return func(_ context.Context, generateConfig *GenerateConfig) error {
 		generateConfig.Force = force
+		return nil
+	}
+}
+
+func WithForceRepoDataUpdate(force bool) Opts {
+	return func(_ context.Context, generateConfig *GenerateConfig) error {
+		generateConfig.ForceRepoDataUpdate = force
 		return nil
 	}
 }
@@ -259,6 +267,11 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			//      currently this is an acceptable tradeoff as it should not normally happen.
 
 			repoInfoFetched := false
+
+			if cfg.ForceRepoDataUpdate {
+				g.fetchRepoInfo(ctx, entry)
+				repoInfoFetched = true
+			}
 
 			for _, ver := range metadataVersions {
 				if err := ver.Validate(); err != nil {

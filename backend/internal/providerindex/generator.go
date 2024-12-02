@@ -40,7 +40,8 @@ type DocumentationGenerator interface {
 }
 
 type GenerateConfig struct {
-	Force ForceRegenerate
+	Force               ForceRegenerate
+	ForceRepoDataUpdate bool
 }
 
 type noForce struct {
@@ -62,6 +63,13 @@ type Opts func(ctx context.Context, generateConfig *GenerateConfig) error
 func WithForce(force ForceRegenerate) Opts {
 	return func(_ context.Context, generateConfig *GenerateConfig) error {
 		generateConfig.Force = force
+		return nil
+	}
+}
+
+func WithForceRepoDataUpdate(force bool) Opts {
+	return func(_ context.Context, generateConfig *GenerateConfig) error {
+		generateConfig.ForceRepoDataUpdate = force
 		return nil
 	}
 }
@@ -277,6 +285,11 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	}
 
 	providerData.Warnings = meta.Warnings
+
+	if cfg.ForceRepoDataUpdate {
+		d.extractRepoInfo(ctx, addr, providerData)
+		repoInfoFetched = true
+	}
 
 	for _, version := range meta.Versions {
 		if err := version.Version.Validate(); err != nil {

@@ -30,6 +30,7 @@ func main() {
 	targetSystem := ""
 	logLevel := "info"
 	forceRegenerate := ""
+	forceRepoDataUpdate := false
 	registryDir := defaults.RegistryDir
 	workDir := defaults.WorkDir
 	destinationDir := defaults.DestinationDir
@@ -71,6 +72,7 @@ func main() {
 	flag.StringVar(&s3Params.Region, "s3-region", s3Params.Region, "Region to use for S3 uploads.")
 	flag.IntVar(&commitParallelism, "commit-parallelism", commitParallelism, "Parallel uploads to use on commit.")
 	flag.StringVar(&tofuBinaryPath, "tofu-binary-path", tofuBinaryPath, "Temporary: Tofu binary path to use for module schema extraction.")
+	flag.BoolVar(&forceRepoDataUpdate, "force-repodata-update", forceRepoDataUpdate, "Force updating the repository metadata regardless of new versions added.")
 	flag.StringVar(&forceRegenerate, "force-regenerate", forceRegenerate, "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername")
 	flag.StringVar(&blockListFile, "blocklist", blockListFile, "File containing the blocklist to use.")
 	flag.Parse()
@@ -114,7 +116,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	backendInstance, err := backendFactory.Create(ctx, registryDir, workDir, destinationDir, blockList, s3Params, commitParallelism, tofuBinaryPath, approvedLicenses)
+	backendInstance, err := backendFactory.Create(
+		ctx,
+		registryDir,
+		workDir,
+		destinationDir,
+		blockList,
+		s3Params,
+		commitParallelism,
+		tofuBinaryPath,
+		approvedLicenses,
+	)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
 		os.Exit(1)
@@ -137,6 +149,7 @@ func main() {
 			backend.WithTargetSystem(targetSystem),
 			backend.WithSkipUpdateModules(skipUpdateModules),
 			backend.WithSkipUpdateProviders(skipUpdateProviders),
+			backend.WithForceRepoDataUpdate(forceRepoDataUpdate),
 		)...,
 	); err != nil {
 		mainLogger.Error(ctx, err.Error())
