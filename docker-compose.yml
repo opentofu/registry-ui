@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - type: bind
+        source: ./search/pg-indexer/schema.sql
+        target: /docker-entrypoint-initdb.d/schema.sql
+  frontend:
+    build:
+      context: frontend
+    volumes:
+      - source: ./frontend
+        target: /work
+        type: bind
+    ports:
+      - "3000:3000"
+  dataapi:
+    build:
+      context: search/worker
+    ports:
+      - "8787:8787"
+    volumes:
+      - source: ./search/worker
+        target: /work
+        type: bind
+    environment:
+      - DATABASE_URL=postgresql://posgres:secret@posgres/postgres

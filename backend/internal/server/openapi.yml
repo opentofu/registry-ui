@@ -1,8 +1,8 @@
 definitions:
     Addr:
         description: |-
-            Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-            github.com/NAMESPACE/terraform-provider-NAME .
+            Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+            github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
         type: object
     BaseDetails:
         properties:
@@ -74,12 +74,18 @@ definitions:
                 type: object
             parent_id:
                 $ref: '#/definitions/IndexID'
+            popularity:
+                format: int64
+                type: integer
             title:
                 type: string
             type:
                 $ref: '#/definitions/IndexType'
             version:
                 type: string
+            warnings:
+                format: int64
+                type: integer
         type: object
     IndexType:
         type: string
@@ -531,6 +537,13 @@ definitions:
                 description: Versions holds the list of versions this provider supports.
                 items:
                     $ref: '#/definitions/ProviderVersionDescriptor'
+                type: array
+            warnings:
+                description: |-
+                    Warnings contains a list of warning strings issued to the OpenTofu client when fetching the provider info. This
+                    typically indicates a deprecation or move of the provider to another location.
+                items:
+                    type: string
                 type: array
         required:
             - addr

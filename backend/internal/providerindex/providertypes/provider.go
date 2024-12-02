@@ -14,6 +14,11 @@ type Provider struct {
 	//
 	// required: true
 	Addr ProviderAddr `json:"addr"`
+	// Warnings contains a list of warning strings issued to the OpenTofu client when fetching the provider info. This
+	// typically indicates a deprecation or move of the provider to another location.
+	//
+	// required: false
+	Warnings []string `json:"warnings,omitempty"`
 	// Link contains the link to the repository this provider was built from. Note that this may not match the
 	// Addr field since the repository may be different. Note that this field may not be available for all
 	// providers.

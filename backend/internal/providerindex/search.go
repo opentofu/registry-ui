@@ -17,8 +17,13 @@ type providerSearch struct {
 	searchAPI search.API
 }
 
-func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr provider.Addr, providerDetails providertypes.ProviderVersion) error {
-	version := providerDetails.ProviderVersionDescriptor.ID
+func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr provider.Addr, providerDetails *providertypes.Provider, providerVersionDetails providertypes.ProviderVersion) error {
+	version := providerVersionDetails.ProviderVersionDescriptor.ID
+	popularity := providerDetails.Popularity
+	if providerAddr.ToRepositoryAddr() == providerDetails.ForkOf.ToRepositoryAddr() {
+		// If the non-canonical repo address matches where we forked from, we take the popularity of the upstream.
+		popularity = providerDetails.UpstreamPopularity
+	}
 	providerItem := searchtypes.IndexItem{
 		ID:          searchtypes.IndexID("providers/" + providerAddr.String()),
 		Type:        searchtypes.IndexTypeProvider,
@@ -31,7 +36,9 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 			"name":      providerAddr.Name,
 			"version":   string(version),
 		},
-		ParentID: "",
+		ParentID:   "",
+		Popularity: popularity,
+		Warnings:   len(providerDetails.Warnings),
 	}
 
 	if err := p.searchAPI.AddItem(ctx, providerItem); err != nil {
@@ -46,17 +53,17 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 		{
 			"resource",
 			searchtypes.IndexTypeProviderResource,
-			providerDetails.Docs.Resources,
+			providerVersionDetails.Docs.Resources,
 		},
 		{
 			"datasource",
 			searchtypes.IndexTypeProviderDatasource,
-			providerDetails.Docs.DataSources,
+			providerVersionDetails.Docs.DataSources,
 		},
 		{
 			"function",
 			searchtypes.IndexTypeProviderFunction,
-			providerDetails.Docs.Functions,
+			providerVersionDetails.Docs.Functions,
 		},
 	} {
 		for _, docItem := range item.items {
@@ -74,7 +81,9 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 					"version":   string(version),
 					"id":        string(docItem.Name),
 				},
-				ParentID: providerItem.ID,
+				ParentID:   providerItem.ID,
+				Popularity: popularity,
+				Warnings:   len(providerDetails.Warnings),
 			}); err != nil {
 				return fmt.Errorf("failed to add resource %s to search index (%w)", docItem.Name, err)
 			}

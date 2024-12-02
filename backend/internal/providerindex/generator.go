@@ -276,6 +276,8 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 		d.log.Info(ctx, "Provider %s changed blocked status, reindexing all versions...", addr)
 	}
 
+	providerData.Warnings = meta.Warnings
+
 	for _, version := range meta.Versions {
 		if err := version.Version.Validate(); err != nil {
 			d.log.Warn(ctx, "Invalid version number for provider %s: %s, skipping... (%v)", addr, version.Version, err)
@@ -291,7 +293,7 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 			repoInfoFetched = true
 		}
 
-		providerVersion, err := d.scrapeVersion(ctx, addr, canonicalAddr, version, blocked, blockedReason)
+		providerVersion, err := d.scrapeVersion(ctx, addr, canonicalAddr, providerData, version, blocked, blockedReason)
 		if err != nil {
 			var repoNotFound *vcs.RepositoryNotFoundError
 			if errors.As(err, &repoNotFound) {
@@ -390,7 +392,7 @@ func (d *documentationGenerator) extractRepoInfo(ctx context.Context, addr provi
 	providerData.UpstreamForkCount = upstreamRepoInfo.ForkCount
 }
 
-func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {
+func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, providerDetails *providertypes.Provider, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {
 	// We get the VCS version before normalizing as the tag name may be different.
 	vcsVersion := version.Version.ToVCSVersion()
 	version.Version = version.Version.Normalize()
@@ -446,7 +448,7 @@ func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr provide
 		return versionData, fmt.Errorf("failed to store documentation for %s version %s (%w)", addr, version.Version, err)
 	}
 
-	if err := d.search.indexProviderVersion(ctx, addr.Addr, versionData); err != nil {
+	if err := d.search.indexProviderVersion(ctx, addr.Addr, providerDetails, versionData); err != nil {
 		return versionData, err
 	}
 

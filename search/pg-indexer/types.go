@@ -27,6 +27,8 @@ type SearchIndexItem struct {
 		} `json:"link"`
 		ParentID    string    `json:"parent_id"`
 		LastUpdated time.Time `json:"last_updated"`
+		Popularity  int       `json:"popularity"`
+		Warnings    int       `json:"warnings"`
 	} `json:"addition"`
 
 	Deletion struct {

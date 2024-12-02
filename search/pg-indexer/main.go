@@ -93,7 +93,7 @@ func main() {
 	handled := 0
 	batchItems, err := readItems(scanner, batchSize)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		log.Fatal(err)
 	}
 
@@ -105,7 +105,7 @@ func main() {
 			if item.Type == "add" {
 				toInsert = append(toInsert, item)
 				handled++
-			} else if item.Type == "deletion" {
+			} else if item.Type == "delete" {
 				toDelete = append(toDelete, item)
 				handled++
 			} else {
@@ -114,25 +114,27 @@ func main() {
 		}
 
 		if err := insertItems(tx, toInsert); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			log.Fatal(err)
 		}
 
 		if err := deleteItems(tx, toDelete); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			log.Fatal(err)
 		}
 
 		batchItems, err = readItems(scanner, batchSize)
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			log.Fatal(err)
 		}
 
 		log.Printf("Imported %d items\n", handled)
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("Failed to commit transaction: %v", err)
+	}
 	log.Printf("Complete: Handled %d items\n", handled)
 
 	err = completeJob(db, jobID)
@@ -280,11 +282,12 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 
 		// Build the placeholder for each row, this is to be used to construct the sql query and not for the actual values
 		// it's okay to use sprintf here as no values are actually being injected, we're just building the query
-		placeholderIndex := i * 8 // 8 fields per row
-		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
+		placeholderIndex := i * 10 // 10 fields per row
+		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
 			placeholderIndex+1, placeholderIndex+2, placeholderIndex+3,
 			placeholderIndex+4, placeholderIndex+5, placeholderIndex+6,
-			placeholderIndex+7, placeholderIndex+8))
+			placeholderIndex+7, placeholderIndex+8, placeholderIndex+9,
+			placeholderIndex+10))
 
 		args = append(args,
 			item.Addition.ID,
@@ -295,11 +298,13 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 			item.Addition.Description,
 			linkVarsJSON,
 			item.Addition.LastUpdated,
+			item.Addition.Popularity,
+			item.Addition.Warnings,
 		)
 	}
 
 	query := fmt.Sprintf(`
-		INSERT INTO entities (id, type, addr, version, title, description, link_variables, last_updated)
+		INSERT INTO entities (id, type, addr, version, title, description, link_variables, last_updated, popularity, warnings)
 		VALUES %s
 		ON CONFLICT (id) DO UPDATE
 		SET type = EXCLUDED.type,
@@ -308,7 +313,9 @@ func insertItems(tx *sql.Tx, items []SearchIndexItem) error {
 				title = EXCLUDED.title,
 				description = EXCLUDED.description,
 				link_variables = EXCLUDED.link_variables,
-				last_updated = EXCLUDED.last_updated
+				last_updated = EXCLUDED.last_updated,
+				popularity = EXCLUDED.popularity,
+				warnings = EXCLUDED.warnings
 	`, strings.Join(values, ","))
 
 	// Execute the query with all the arguments
