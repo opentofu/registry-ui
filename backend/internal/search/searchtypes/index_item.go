@@ -23,7 +23,8 @@ type IndexItem struct {
 
 func (i IndexItem) Equals(other IndexItem) bool {
 	if i.ID != other.ID || i.Type != other.Type || i.Addr != other.Addr || i.Version != other.Version ||
-		i.Title != other.Title || i.Description != other.Description || i.ParentID != other.ParentID || i.Popularity != other.Popularity {
+		i.Title != other.Title || i.Description != other.Description || i.ParentID != other.ParentID ||
+		i.Popularity != other.Popularity || i.Warnings != other.Warnings {
 		return false
 	}
 	if len(i.LinkVariables) != len(other.LinkVariables) {
