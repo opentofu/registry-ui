@@ -62,7 +62,7 @@ jobs:
           TARGET_SYSTEM: ${{inputs.target_system}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FORCE_REGENERATE: ${{inputs.force_regenerate}}
-          FORCE_REPO_DATA_UPDATE_ARG: ${{inputs.force_repo_data_update && '--force-repo-data-update' || ''}}
+          FORCE_REPO_DATA_UPDATE_ARG: ${{inputs.force_repo_data_update && '--force-repodata-update' || ''}}
         run: |
           go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}" "${FORCE_REPO_DATA_UPDATE_ARG}"
       - name: Update search index
