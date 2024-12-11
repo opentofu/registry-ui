@@ -239,6 +239,8 @@ github.com/opentofu/libregistry v0.0.0-20241009085434-a0be829febc1 h1:1wc2S/a7Gv
 github.com/opentofu/libregistry v0.0.0-20241009085434-a0be829febc1/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
 github.com/opentofu/libregistry v0.0.0-20241108170752-97e91508f874 h1:XX6x9kag5GHbkSy88fGZYOSOsgkYvZsNFHaA9s6ZV4k=
 github.com/opentofu/libregistry v0.0.0-20241108170752-97e91508f874/go.mod h1:irS/XyfQZdwi3Ggm105FfDyj3d9deFAi5GraORIeMsI=
+github.com/opentofu/libregistry v0.0.0-20241211143257-e782fd1d000f h1:4N2tOxS9M+G3FdZi8YxsC/VkQ83Dzvvby0ua45TPHKg=
+github.com/opentofu/libregistry v0.0.0-20241211143257-e782fd1d000f/go.mod h1:zrJt8cAODpw27yZ3s9tDC/CalOEpfphA2r1D1F/8fHQ=
 github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a h1:NyM/PPbc+kxxv2d4OKfE32C5fLtVTLceyg4YKKCYO9Y=
 github.com/opentofu/registry-address v0.0.0-20230922120653-901b9ae4061a/go.mod h1:HzQhpVo/NJnGmN+7FPECCVCA5ijU7AUcvf39enBKYOc=
 github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09 h1:bA3Dy3Be9o896wdcQhK0Ky2Eco0ZwCWZgt73dSaYuDI=
@@ -360,6 +362,7 @@ golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.8.0 h1:3NFvSEYkUoMifnESzZl15y791HH1qU2xm6eCJU5ZPXQ=
 golang.org/x/sync v0.8.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+golang.org/x/sync v0.10.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
