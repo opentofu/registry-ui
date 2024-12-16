@@ -9,7 +9,7 @@ Modules provide reusable pieces of code for your OpenTofu project. The OpenTofu 
 Module addresses have three parts: namespaces, names, and target systems. You can include a module in your project by specifying its address and its version:
 
 ```hcl2
-source "my_name_for_the_module" {
+module "my_name_for_the_module" {
   source  = "NAMESPACE/NAME/TARGETSYSTEM"
   version = "v1.2.3"
   
