@@ -51,7 +51,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.actions.enableWorkflow({
-              owner: github.repository_owner,
-              repo: github.event.repository.name,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               workflow_id: github.workflow_ref,
             })
