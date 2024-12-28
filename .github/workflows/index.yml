@@ -6,6 +6,8 @@ on:
 concurrency:
   group: index
   cancel-in-progress: false
+permissions:
+  actions: write
 jobs:
   generate:
     name: Run generation
@@ -43,3 +45,13 @@ jobs:
         env:
           PG_CONNECTION_STRING: ${{secrets.PG_CONNECTION_STRING}}
         run: go run ./
+      - name: Keep Cron Alive
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.actions.enableWorkflow({
+              owner: github.repository_owner,
+              repo: github.event.repository.name,
+              workflow_id: github.workflow_ref,
+            })
