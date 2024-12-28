@@ -1,13 +1,12 @@
 name: Index (cron)
-permissions: {}
+permissions:
+  actions: write
 on:
   schedule:
     - cron: "*/15 * * * *" # Run every 15 minutes
 concurrency:
   group: index
   cancel-in-progress: false
-permissions:
-  actions: write
 jobs:
   generate:
     name: Run generation
