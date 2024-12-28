@@ -56,5 +56,5 @@ jobs:
             github.rest.actions.enableWorkflow({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: ${WORKFLOW_REF},
+              workflow_id: WORKFLOW_REF,
             })
