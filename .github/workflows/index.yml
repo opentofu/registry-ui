@@ -53,8 +53,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { WORKFLOW_REF } = process.env
+            const workflowId = WORKFLOW_REF.split("@")[0].split('/').pop()
             github.rest.actions.enableWorkflow({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: WORKFLOW_REF,
+              workflow_id: workflowId,
             })
