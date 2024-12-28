@@ -45,6 +45,9 @@ jobs:
       #   env:
       #     PG_CONNECTION_STRING: ${{secrets.PG_CONNECTION_STRING}}
       #   run: go run ./
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
       - name: Keep Cron Alive # related to https://github.com/opentofu/registry-ui/issues/259
         uses: actions/github-script@v7
         env:
