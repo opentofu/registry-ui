@@ -2,8 +2,10 @@ name: Index (cron)
 permissions:
   actions: write
 on:
+  workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *" # Run every 15 minutes
+    # - cron: "*/15 * * * *" # Run every 15 minutes
+    - cron: "*/1 * * * *" # Run every 1 minutes
 concurrency:
   group: index
   cancel-in-progress: false
