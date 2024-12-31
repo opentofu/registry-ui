@@ -11,6 +11,7 @@
     "test": "vitest",
     "preview": "vite preview",
     "prettier": "prettier --write .",
+    "prettier:check:ci": "prettier --check .",
     "generate-api-types": "openapi-typescript ../backend/internal/server/openapi.yml -o ./src/api.d.ts",
     "generate-assets": "pwa-assets-generator"
   },

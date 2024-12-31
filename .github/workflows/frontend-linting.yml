@@ -22,3 +22,6 @@ jobs:
       - name: Run linting
         run:
           npm run lint
+      - name: Run Prettier Check
+        run:
+          npm run prettier:check:ci
