@@ -13,4 +13,5 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
       - name: Run linting
-        uses: pnpm run lint
+        run:
+          pnpm run lint
