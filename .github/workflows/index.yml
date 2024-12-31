@@ -1,5 +1,6 @@
 name: Index (cron)
-permissions: {}
+permissions:
+  actions: write
 on:
   schedule:
     - cron: "*/15 * * * *" # Run every 15 minutes
@@ -43,3 +44,13 @@ jobs:
         env:
           PG_CONNECTION_STRING: ${{secrets.PG_CONNECTION_STRING}}
         run: go run ./
+      - name: Keep Cron Alive # related to https://github.com/opentofu/registry-ui/issues/259
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.actions.enableWorkflow({
+              owner: github.repository_owner,
+              repo: github.event.repository.name,
+              workflow_id: github.workflow_ref,
+            })

@@ -1,0 +1,16 @@
+on:
+  push:
+    paths:
+      - '*.tsx?'
+
+jobs:
+  frontend:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Run linting
+        uses: pnpm run lint
