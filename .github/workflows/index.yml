@@ -1,6 +1,5 @@
 name: Index (cron)
-permissions:
-  actions: write
+permissions: {}
 on:
   schedule:
     - cron: "*/15 * * * *" # Run every 15 minutes
