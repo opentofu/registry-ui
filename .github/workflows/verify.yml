@@ -53,7 +53,7 @@ jobs:
         run: |
           go test ./...
   frontend:
-    name: Lint and Test
+    name: Frontend Lint and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
