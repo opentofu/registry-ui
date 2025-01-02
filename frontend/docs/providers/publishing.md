@@ -1,6 +1,6 @@
 # Publishing a provider version
 
-Once you have finished [creating your provider](/docs/providers/creating) and [wrote your documentation](/docs/providers/docs), you can proceed to publish your provider. First, create a GitHub repository named `terraform-provider-YOURNAME` and publish your source code in this repository. You can then proceed to [create a GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository). 
+Once you have finished [creating your provider](/docs/providers/creating) and [wrote your documentation](/docs/providers/docs), you can proceed to publish your provider. First, create a GitHub repository named `terraform-provider-YOURNAME` and publish your source code in this repository. You can then proceed to [create a GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 
 ~> Note, that your release name **must** start with a `v` and must follow [semantic versioning](https://semver.org/).
 

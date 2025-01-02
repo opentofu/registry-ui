@@ -59,11 +59,11 @@
 }
 
 .dark:root {
-  --syntax-string: #F0CD14;
-  --syntax-keyword: #8EBEFF;
+  --syntax-string: #f0cd14;
+  --syntax-keyword: #8ebeff;
   --syntax-comment: #929cb0;
-  --syntax-boolean: #24D335;
-  --syntax-property: #BE8BFF;
-  --syntax-punctuation: #F4ECFF;
-  --syntax-variable: #F9F9F9;
+  --syntax-boolean: #24d335;
+  --syntax-property: #be8bff;
+  --syntax-punctuation: #f4ecff;
+  --syntax-variable: #f9f9f9;
 }
