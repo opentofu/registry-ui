@@ -1,12 +1,13 @@
+name: Frontend
 on:
   pull_request:
   push:
     paths:
-      - '*.tsx?'
+      - frontend/**
 
 jobs:
   frontend:
-    name: Linting
+    name: Lint and Test
     runs-on: ubuntu-latest
     defaults:
       run:
