@@ -20,9 +20,12 @@ jobs:
       - name: Install dependencies
         run:
           npm ci
-      - name: Run linting
+      - name: index.css
         run:
-          npm run lint
+          cat src/index.css
+      - name: Run ESLint
+        run:
+          npm run eslint
       - name: Run Prettier Check
         run:
           npm run prettier:check

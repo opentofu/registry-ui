@@ -2,6 +2,11 @@ name: Verify
 permissions: {}
 on:
   pull_request:
+  push:
+    paths:
+      - backend/**
+      - search/**
+
 jobs:
   generate:
     name: Go generate
