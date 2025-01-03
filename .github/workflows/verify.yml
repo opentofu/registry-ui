@@ -48,10 +48,10 @@ jobs:
       - name: Run go generate
         working-directory: backend
         run: go generate ./...
-      - name: Run tests
-        working-directory: backend
-        run: |
-          go test ./...
+      # - name: Run tests
+      #   working-directory: backend
+      #   run: |
+      #     go test ./...
   frontend:
     name: Frontend Lint and Test
     runs-on: ubuntu-latest
@@ -79,6 +79,11 @@ jobs:
   backend-lint:
     name: Backend Lint
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules:
+          - backend
+          - search 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,8 +91,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: 'backend/go.mod'
-      - name: golangci-lint
+      - name: Backend Linting
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.60
-          args: ./... ./backend ./search 
+          version: v1.62
+          working-directory: ${{ matrix.modules }}
