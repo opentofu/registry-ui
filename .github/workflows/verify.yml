@@ -2,7 +2,8 @@ name: Verify
 permissions: {}
 on:
   pull_request:
-  branches:
+  push:
+    branches:
     - feat/backend-lint
 
 jobs:
