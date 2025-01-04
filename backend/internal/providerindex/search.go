@@ -11,8 +11,6 @@ import (
 	"github.com/opentofu/registry-ui/internal/search/searchtypes"
 )
 
-const indexPrefix = "providers"
-
 type providerSearch struct {
 	searchAPI search.API
 }
@@ -92,7 +90,7 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 	return nil
 }
 
-func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context, addr provider.Addr, version provider.VersionNumber) error {
+func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context, addr provider.Addr, version provider.VersionNumber) error { //nolint:unused
 	for _, t := range []searchtypes.IndexType{
 		searchtypes.IndexTypeProvider,
 		searchtypes.IndexTypeProviderResource,
@@ -106,5 +104,5 @@ func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context
 }
 
 func (p providerSearch) removeModuleFromSearchIndex(ctx context.Context, addr module.Addr) error { //nolint:unused
-	return p.searchAPI.RemoveItem(ctx, searchtypes.IndexID(indexPrefix+"/"+addr.String()))
+	return p.searchAPI.RemoveItem(ctx, searchtypes.IndexID("providers/"+addr.String()))
 }
