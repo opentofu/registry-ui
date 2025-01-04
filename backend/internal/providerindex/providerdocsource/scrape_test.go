@@ -148,7 +148,7 @@ Manages projects.
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			doc := &docItem{}
-			s.ExtractFrontmatterPermissively(context.Background(), []byte(tt.input), doc)
+			s.ExtractFrontmatterPermissively(context.Background(), []byte(tt.input), doc) //nolint:all
 
 			if doc.Name != tt.expected.Name {
 				t.Errorf("expected %q, got %q", tt.expected.Name, doc.Name)

@@ -128,6 +128,9 @@ func (d *documentationGenerator) Generate(ctx context.Context, opts ...Opts) err
 func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
 	d.log.Info(ctx, "Listing all providers in namespace %s...", namespace)
 	providerList, err := d.metadataAPI.ListProvidersByNamespace(ctx, namespace, true)
+	if err != nil {
+		return err
+	}
 
 	d.log.Info(ctx, "Loaded %d providers", len(providerList))
 

@@ -105,6 +105,6 @@ func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context
 	return nil
 }
 
-func (p providerSearch) removeModuleFromSearchIndex(ctx context.Context, addr module.Addr) error {
+func (p providerSearch) removeModuleFromSearchIndex(ctx context.Context, addr module.Addr) error { //nolint:unused
 	return p.searchAPI.RemoveItem(ctx, searchtypes.IndexID(indexPrefix+"/"+addr.String()))
 }

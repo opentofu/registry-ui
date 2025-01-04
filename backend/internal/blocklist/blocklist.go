@@ -65,6 +65,7 @@ func (b *blockListType[T]) UnmarshalJSON(data []byte) error {
 func (b *blockList) LoadFile(file string) error {
 	blockListContents, err := os.ReadFile(file)
 	if err != nil {
+		return err
 	}
 
 	if err := json.Unmarshal(blockListContents, &b); err != nil {
