@@ -2,9 +2,6 @@ name: Verify
 permissions: {}
 on:
   pull_request:
-  push:
-    branches:
-    - feat/backend-lint
 
 jobs:
   generate:
@@ -48,10 +45,10 @@ jobs:
       - name: Run go generate
         working-directory: backend
         run: go generate ./...
-      # - name: Run tests
-      #   working-directory: backend
-      #   run: |
-      #     go test ./...
+      - name: Run tests
+        working-directory: backend
+        run: |
+          go test ./...
   frontend:
     name: Frontend Lint and Test
     runs-on: ubuntu-latest
