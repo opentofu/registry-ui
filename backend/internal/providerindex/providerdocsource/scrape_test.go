@@ -148,7 +148,9 @@ Manages projects.
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			doc := &docItem{}
-			s.ExtractFrontmatterPermissively(context.Background(), []byte(tt.input), doc) //nolint:all
+			if err := s.ExtractFrontmatterPermissively(context.Background(), []byte(tt.input), doc); err != nil {
+				t.Errorf("Failed to extract frontmatter: (%v)", err)
+			}
 
 			if doc.Name != tt.expected.Name {
 				t.Errorf("expected %q, got %q", tt.expected.Name, doc.Name)
