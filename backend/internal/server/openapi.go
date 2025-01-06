@@ -2,7 +2,7 @@
 //
 // The API to fetch documentation index and documentation files from the OpenTofu registry.
 //
-//	Version: 1.0.0-beta
+//	Version: 1.0.0
 //	License: MPL-2.0
 //	Host: api.opentofu.org
 //	Schemes: https
