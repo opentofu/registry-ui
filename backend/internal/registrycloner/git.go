@@ -30,7 +30,7 @@ func (c cloner) cloneGitRepo(ctx context.Context) error {
 }
 
 // FetchTags fetches the tags for the repository in the specified directory.
-func (c cloner) fetchTags(ctx context.Context) error {
+func (c cloner) fetchTags(ctx context.Context) error { //nolint:unused
 	return c.runGitCommand(ctx, []string{"git", "fetch", "--tags", "--force"}, c.cfg.Directory)
 }
 

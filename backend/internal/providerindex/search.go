@@ -25,7 +25,7 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 		popularity = providerDetails.UpstreamPopularity
 	}
 	providerItem := searchtypes.IndexItem{
-		ID:          searchtypes.IndexID("providers/" + providerAddr.String()),
+		ID:          searchtypes.IndexID(indexPrefix + "/" + providerAddr.String()),
 		Type:        searchtypes.IndexTypeProvider,
 		Addr:        providerAddr.String(),
 		Version:     string(version),
@@ -69,7 +69,7 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 		for _, docItem := range item.items {
 			title := docItem.Title
 			if err := p.searchAPI.AddItem(ctx, searchtypes.IndexItem{
-				ID:          searchtypes.IndexID("providers/" + providerAddr.String() + "/" + item.typeName + "s/" + string(docItem.Name)),
+				ID:          searchtypes.IndexID(indexPrefix + "/" + providerAddr.String() + "/" + item.typeName + "s/" + string(docItem.Name)),
 				Type:        item.indexType,
 				Addr:        providerAddr.String(),
 				Version:     string(version),
@@ -92,7 +92,7 @@ func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr p
 	return nil
 }
 
-func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context, addr provider.Addr, version provider.VersionNumber) error {
+func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context, addr provider.Addr, version provider.VersionNumber) error { //nolint:unused
 	for _, t := range []searchtypes.IndexType{
 		searchtypes.IndexTypeProvider,
 		searchtypes.IndexTypeProviderResource,
@@ -105,6 +105,6 @@ func (p providerSearch) removeProviderVersionFromSearchIndex(ctx context.Context
 	return nil
 }
 
-func (p providerSearch) removeModuleFromSearchIndex(ctx context.Context, addr module.Addr) error {
+func (p providerSearch) removeModuleFromSearchIndex(ctx context.Context, addr module.Addr) error { //nolint:unused
 	return p.searchAPI.RemoveItem(ctx, searchtypes.IndexID(indexPrefix+"/"+addr.String()))
 }

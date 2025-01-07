@@ -177,7 +177,7 @@ func (f ForceRegenerateEntry) MustRegenerateProvider(_ context.Context, addr pro
 	})
 }
 
-func (g GenerateConfig) validate() error {
+func (g GenerateConfig) validate() error { //nolint:unused
 	if g.Name != "" && g.Namespace == "" {
 		return fmt.Errorf("cannot use name filtering without namespace filtering")
 	}
