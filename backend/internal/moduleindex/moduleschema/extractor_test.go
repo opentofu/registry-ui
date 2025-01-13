@@ -2,6 +2,7 @@ package moduleschema_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"runtime"
 	"testing"
@@ -94,5 +95,15 @@ func TestModuleCall(t *testing.T) {
 	}
 	if metadata.RootModule.ModuleCalls["foo"].Source != "./module" {
 		t.Fatalf("Incorrect module source: %s", metadata.RootModule.ModuleCalls["foo"].Source)
+	}
+
+	_, ok = metadata.ProviderConfig["opentofu"]
+	if !ok {
+		t.Fatalf("Provider call not found.")
+	}
+
+	fmt.Println(metadata.ProviderConfig["opentofu"])
+	if metadata.ProviderConfig["opentofu"].Name != "opentofu" {
+		t.Fatalf("Incorrect provider name: %s != %s", metadata.ProviderConfig["opentofu"].Name, "opentofu")
 	}
 }

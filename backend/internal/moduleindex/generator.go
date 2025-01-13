@@ -736,6 +736,7 @@ func (g generator) extractModuleSchema(ctx context.Context, directory string, d 
 	g.extractModuleVariables(rootModuleSchema, &d.BaseDetails)
 	g.extractModuleOutputs(rootModuleSchema, &d.BaseDetails)
 	g.extractModuleDependencies(rootModuleSchema, d)
+	g.extractProviderDependencies(moduleSchema, d)
 	g.extractModuleResources(rootModuleSchema, d)
 	return nil
 }
@@ -812,6 +813,21 @@ func (g generator) extractModuleDependencies(moduleSchema moduleschema.ModuleSch
 		i++
 	}
 	d.Dependencies = result
+}
+
+func (g generator) extractProviderDependencies(schema moduleschema.Schema, d *Details) {
+	result := make([]ProviderDependency, len(schema.ProviderConfig))
+	i := 0
+	for providerCallName, providerCall := range schema.ProviderConfig {
+		result[i] = ProviderDependency{
+			Name:              providerCallName,
+			FullName:          providerCall.FullName,
+			VersionConstraint: providerCall.VersionConstraint,
+		}
+		i++
+	}
+
+	d.Providers = result
 }
 
 func (g generator) extractModuleResources(moduleSchema moduleschema.ModuleSchema, d *Details) {
