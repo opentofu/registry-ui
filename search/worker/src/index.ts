@@ -54,7 +54,6 @@ async function serveR2Object(request: Request, env: Env, objectKey: string) {
 	}
 
 	const object = await env.BUCKET.get(objectKey);
-	console.log("object", object)
 	if (!object) {
 		return new Response('Not Found', { status: 404 });
 	}
