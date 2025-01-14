@@ -95,4 +95,12 @@ func TestModuleCall(t *testing.T) {
 	if metadata.RootModule.ModuleCalls["foo"].Source != "./module" {
 		t.Fatalf("Incorrect module source: %s", metadata.RootModule.ModuleCalls["foo"].Source)
 	}
+
+	_, ok = metadata.ProviderConfig["opentofu"]
+	if !ok {
+		t.Fatalf("Provider call not found.")
+	}
+	if metadata.ProviderConfig["opentofu"].VersionConstraint != "1.6.0" {
+		t.Fatalf("Incorrect provider name: %s != %s", metadata.ProviderConfig["opentofu"].VersionConstraint, "1.6.0")
+	}
 }

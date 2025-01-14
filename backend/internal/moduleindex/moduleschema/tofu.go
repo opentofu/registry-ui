@@ -128,6 +128,7 @@ func (e *externalTofuExtractor) Extract(ctx context.Context, moduleDirectory str
 			}
 		}
 	}
+
 	var result Schema
 	outputBytes := output.Bytes()
 	if err := json.Unmarshal(outputBytes, &result); err != nil {
