@@ -4,20 +4,21 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
-import { useQuery } from "@tanstack/react-query";
+import { SearchResult, SearchResultType } from "./types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import { Icon } from "../Icon";
+import { Paragraph } from "../Paragraph";
+import { SearchModuleResult } from "./ModuleResult";
+import { SearchOtherResult } from "./OtherResult";
+import { SearchProviderResult } from "./ProviderResult";
+import clsx from "clsx";
+import { definitions } from "@/api";
 import { getSearchQuery } from "../../q";
 import { search } from "../../icons/search";
-import { Icon } from "../Icon";
-import { SearchResult, SearchResultType } from "./types";
-import { SearchModuleResult } from "./ModuleResult";
-import { SearchProviderResult } from "./ProviderResult";
-import { SearchOtherResult } from "./OtherResult";
-import { definitions } from "@/api";
-import clsx from "clsx";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { Paragraph } from "../Paragraph";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 function getSearchResultType(value: string) {
   switch (value) {
@@ -187,6 +188,12 @@ export function Search({
   const canShowNoResultsInfo = filtered.length === 0 && !canShowLoadingInfo;
   const canShowResults = !canShowLoadingInfo && !canShowNoResultsInfo;
 
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, cannotPressEnter: boolean) => {
+    if (event.code === "Enter" && cannotPressEnter) {
+      event.preventDefault();
+    }
+  };
+
   return (
     <Combobox
       onChange={(v: SearchResult) => {
@@ -213,6 +220,7 @@ export function Search({
           ref={inputRef}
           value={query}
           onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => onKeyDown(event, canShowLoadingInfo)}
           placeholder={placeholder}
           className={clsx(
             "relative block w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800",
