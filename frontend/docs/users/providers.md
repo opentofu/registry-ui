@@ -57,6 +57,12 @@ If you find a bug in a provider, please report the issue directly to the provide
 
 -> Provider namespaces and names in the OpenTofu registry translate directly to GitHub URLs in the form of `github.com/NAMESPACE/terraform-provider-NAME`.
 
+## Using HashiCorp-maintained providers (AWS, AzureRM, etc)
+
+The OpenTofu project maintains a mirror of all HashiCorp-created providers under the MPL-2.0 license, such as [AWS](https://github.com/opentofu/terraform-provider-aws), [AzureRM](https://github.com/opentofu/terraform-provider-azurerm), etc. The OpenTofu project builds provider binaries from the source code and publishes them in the OpenTofu Registry under the `hashicorp/` namespace (e.g. `hashicorp/aws`), but doesn't otherwise apply fixes or changes to them.
+
+You can use these providers the same way you are used to from Terraform. If you found a bug in a HashiCorp-maintained provider, please make sure to report it in the original repository under https://github.com/hashicorp as the OpenTofu project cannot fix the issue.
+
 ## Asking provider authors to submit their GPG keys
 
 If you are a user of a specific provider, and you would like to ask a provider author to submit their GPG key, you can use the following template to open an issue with the provider:
