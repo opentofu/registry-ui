@@ -2,7 +2,6 @@ package moduleschema_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"runtime"
 	"testing"
@@ -101,9 +100,7 @@ func TestModuleCall(t *testing.T) {
 	if !ok {
 		t.Fatalf("Provider call not found.")
 	}
-
-	fmt.Println(metadata.ProviderConfig["opentofu"])
-	if metadata.ProviderConfig["opentofu"].Name != "opentofu" {
-		t.Fatalf("Incorrect provider name: %s != %s", metadata.ProviderConfig["opentofu"].Name, "opentofu")
+	if metadata.ProviderConfig["opentofu"].VersionConstraint != "1.6.0" {
+		t.Fatalf("Incorrect provider name: %s != %s", metadata.ProviderConfig["opentofu"].VersionConstraint, "1.6.0")
 	}
 }
