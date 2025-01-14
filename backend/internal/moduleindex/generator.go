@@ -823,6 +823,7 @@ func (g generator) extractProviderDependencies(schema moduleschema.Schema, d *De
 			Name:              providerCallName,
 			FullName:          providerCall.FullName,
 			VersionConstraint: providerCall.VersionConstraint,
+			Alias:             "",
 		}
 		i++
 	}

@@ -75,6 +75,8 @@ type ModuleDependency struct {
 // swagger:model
 type ProviderDependency struct {
 	// required:true
+	Alias string `json:"alias"`
+	// required:true
 	Name string `json:"name"`
 	// required:true
 	FullName string `json:"full_name"`
