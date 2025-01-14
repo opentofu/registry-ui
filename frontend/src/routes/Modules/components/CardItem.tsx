@@ -1,13 +1,14 @@
-import { CardItem } from "@/components/CardItem";
-import { Paragraph } from "@/components/Paragraph";
 import {
   CardItemFooter,
   CardItemFooterDetail,
   CardItemFooterDetailSkeleton,
 } from "@/components/CardItem/Footer";
+
+import { CardItem } from "@/components/CardItem";
 import { CardItemTitle } from "@/components/CardItem/Title";
+import { Paragraph } from "@/components/Paragraph";
 import { definitions } from "@/api";
-import { formatDate } from "@/utils/formatDate";
+import { formatDateTag } from "@/utils/formatDate";
 
 interface ModulesCardItemProps {
   addr: definitions["ModuleAddr"];
@@ -37,7 +38,7 @@ export function ModulesCardItem({
           {latestVersion.id}
         </CardItemFooterDetail>
         <CardItemFooterDetail label="Published">
-          {formatDate(latestVersion.published)}
+          {formatDateTag(latestVersion.published)}
         </CardItemFooterDetail>
       </CardItemFooter>
     </CardItem>

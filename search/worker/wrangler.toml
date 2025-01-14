@@ -6,5 +6,5 @@ compatibility_flags = ["nodejs_compat"]
 
 [[r2_buckets]]
 binding = 'BUCKET'
-bucket_name = 'registry-ui-api'
-preview_bucket_name = 'registry-ui-api'
+bucket_name = 'diogenes-test-opentofu'
+preview_bucket_name = 'diogenes-test-opentofu'

@@ -1,12 +1,13 @@
+import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
+import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
+
 import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
-import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
-import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { ReactNode } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { formatDateTag } from "@/utils/formatDate";
 import { getProviderDataQuery } from "../query";
-import { formatDate } from "@/utils/formatDate";
 import { useProviderParams } from "../hooks/useProviderParams";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 interface WrapperProps {
   children: ReactNode;
@@ -40,7 +41,7 @@ export function ProviderHeader() {
           {data.versions[0].id}
         </InfoSectionItem>
         <InfoSectionItem label="Published">
-          {formatDate(data.versions[0].published)}
+          {formatDateTag(data.versions[0].published)}
         </InfoSectionItem>
       </InfoSection>
     </Wrapper>
