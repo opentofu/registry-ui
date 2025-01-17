@@ -1,6 +1,7 @@
 import { TreeView, TreeViewItem } from "../TreeView";
 import { useMemo, useState } from "react";
 
+import { DateTime } from "../DateTime";
 import { Icon } from "../Icon";
 import { NavLink } from "react-router-dom";
 import { SidebarBlock } from "../SidebarBlock";
@@ -8,7 +9,6 @@ import { chevron } from "../../icons/chevron";
 import clsx from "clsx";
 import { definitions } from "@/api";
 import { expand } from "../../icons/expand";
-import { formatDateTag } from "../../utils/formatDate";
 import { groupVersions } from "./utils";
 
 interface SimpleTreeNode {
@@ -87,7 +87,7 @@ function VersionTreeViewItemHandle({
     >
       {handle}
       <span className="text-gray-700 dark:text-gray-300">
-        {formatDateTag(published)}
+        <DateTime value={published} />
       </span>
     </span>
   );

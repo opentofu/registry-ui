@@ -6,9 +6,9 @@ import {
 
 import { CardItem } from "@/components/CardItem";
 import { CardItemTitle } from "@/components/CardItem/Title";
+import { DateTime } from "@/components/DateTime";
 import { Paragraph } from "@/components/Paragraph";
 import { definitions } from "@/api";
-import { formatDateTag } from "@/utils/formatDate";
 
 interface ModulesCardItemProps {
   addr: definitions["ModuleAddr"];
@@ -38,7 +38,7 @@ export function ModulesCardItem({
           {latestVersion.id}
         </CardItemFooterDetail>
         <CardItemFooterDetail label="Published">
-          {formatDateTag(latestVersion.published)}
+          <DateTime value={latestVersion.published} />
         </CardItemFooterDetail>
       </CardItemFooter>
     </CardItem>

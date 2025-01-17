@@ -2,11 +2,11 @@ import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
 import { getModuleDataQuery, getModuleVersionDataQuery } from "../query";
 
+import { DateTime } from "@/components/DateTime";
 import { ModuleSchemaError } from "./SchemaError";
 import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
 import { ReactNode } from "react";
-import { formatDateTag } from "@/utils/formatDate";
 import { useModuleParams } from "../hooks/useModuleParams";
 import { useSuspenseQueries } from "@tanstack/react-query";
 
@@ -48,7 +48,7 @@ export function ModuleHeader() {
           {data.versions[0].id}
         </InfoSectionItem>
         <InfoSectionItem label="Published">
-          {formatDateTag(data.versions[0].published)}
+          <DateTime value={data.versions[0].published} />
         </InfoSectionItem>
       </InfoSection>
     </Wrapper>

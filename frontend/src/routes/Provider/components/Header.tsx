@@ -1,10 +1,10 @@
 import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
 
+import { DateTime } from "@/components/DateTime";
 import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
 import { ReactNode } from "react";
-import { formatDateTag } from "@/utils/formatDate";
 import { getProviderDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -41,7 +41,7 @@ export function ProviderHeader() {
           {data.versions[0].id}
         </InfoSectionItem>
         <InfoSectionItem label="Published">
-          {formatDateTag(data.versions[0].published)}
+          <DateTime value={data.versions[0].published} />
         </InfoSectionItem>
       </InfoSection>
     </Wrapper>
