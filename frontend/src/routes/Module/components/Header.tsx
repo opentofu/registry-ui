@@ -1,13 +1,14 @@
+import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
+import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
+import { getModuleDataQuery, getModuleVersionDataQuery } from "../query";
+
+import { DateTime } from "@/components/DateTime";
+import { ModuleSchemaError } from "./SchemaError";
 import { PageTitle } from "@/components/PageTitle";
 import { Paragraph } from "@/components/Paragraph";
-import { InfoSection, InfoSectionItem } from "@/components/InfoSection";
-import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { ReactNode } from "react";
-import { useSuspenseQueries } from "@tanstack/react-query";
-import { getModuleDataQuery, getModuleVersionDataQuery } from "../query";
-import { formatDate } from "@/utils/formatDate";
 import { useModuleParams } from "../hooks/useModuleParams";
-import { ModuleSchemaError } from "./SchemaError";
+import { useSuspenseQueries } from "@tanstack/react-query";
 
 interface WrapperProps {
   children: ReactNode;
@@ -47,7 +48,7 @@ export function ModuleHeader() {
           {data.versions[0].id}
         </InfoSectionItem>
         <InfoSectionItem label="Published">
-          {formatDate(data.versions[0].published)}
+          <DateTime value={data.versions[0].published} />
         </InfoSectionItem>
       </InfoSection>
     </Wrapper>
