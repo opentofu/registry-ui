@@ -8,16 +8,18 @@ type Schema struct {
 
 // swagger:model ModuleProviderConfigSchema
 type ProviderConfigSchema struct {
-	Name     string `json:"name"`
-	FullName string `json:"full_name"`
+	Name              string `json:"name"`
+	FullName          string `json:"full_name"`
+	VersionConstraint string `json:"version_constraint"`
 }
 
 // swagger:model ModuleSchema
 type ModuleSchema struct {
-	Resources   []Resource            `json:"resources,omitempty"`
-	ModuleCalls map[string]ModuleCall `json:"module_calls,omitempty"`
-	Variables   map[string]Variable   `json:"variables,omitempty"`
-	Outputs     map[string]Output     `json:"outputs,omitempty"`
+	Resources      []Resource                      `json:"resources,omitempty"`
+	ModuleCalls    map[string]ModuleCall           `json:"module_calls,omitempty"`
+	ProviderConfig map[string]ProviderConfigSchema `json:"provider_config,omitempty"`
+	Variables      map[string]Variable             `json:"variables,omitempty"`
+	Outputs        map[string]Output               `json:"outputs,omitempty"`
 }
 
 // swagger:model ModuleResource
