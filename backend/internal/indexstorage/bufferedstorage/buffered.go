@@ -1,6 +1,7 @@
 package bufferedstorage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/fs"
@@ -129,6 +130,17 @@ func (b *buffered) WriteFile(ctx context.Context, filePath indexstorage.Path, co
 	}
 
 	localPath := path.Join(b.localDir, string(filePath))
+
+	status := b.index.FileStatus(ctx, filePath)
+	switch status {
+	case fileStatusPresent:
+		localContents, err := os.ReadFile(localPath)
+		if err == nil && bytes.Equal(localContents, contents) {
+			// Do not re-upload a file that has not changed.
+			return nil
+		}
+	}
+
 	if err := os.MkdirAll(path.Dir(localPath), 0755); err != nil {
 		return fmt.Errorf("failed to create directory for %s (%w)", localPath, err)
 	}
