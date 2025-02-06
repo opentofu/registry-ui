@@ -11,8 +11,11 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
+	"io"
+	"net/http"
 
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 )
@@ -44,5 +47,22 @@ func (w writer) Write(ctx context.Context) error {
 	if err := w.storage.WriteFile(ctx, "index.html", indexHTML); err != nil {
 		return err
 	}
+
+	// Pull Redoc script from Redocly CDN
+	redocFileName := "redoc.standalone.js"
+	redocCDNURL := "https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"
+
+	resp, err := http.Get(redocCDNURL)
+	defer resp.Body.Close()
+
+	buf := bytes.NewBuffer(nil)
+
+	if _, err = io.Copy(buf, resp.Body); err != nil {
+		return err
+	}
+	if err = w.storage.WriteFile(ctx, indexstorage.Path(redocFileName), buf.Bytes()); err != nil {
+		return err
+	}
+
 	return nil
 }
