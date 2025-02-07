@@ -11,12 +11,8 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
-	"io"
-	"net/http"
-
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 )
 
@@ -25,6 +21,9 @@ var openapiYaml []byte
 
 //go:embed index.html
 var indexHTML []byte
+
+//go:embed redoc.standalone.js
+var reDocScriptFile []byte
 
 type OpenAPIWriter interface {
 	Write(ctx context.Context) error
@@ -48,19 +47,7 @@ func (w writer) Write(ctx context.Context) error {
 		return err
 	}
 
-	// Pull Redoc script from Redocly CDN
-	redocFileName := "redoc.standalone.js"
-	redocCDNURL := "https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"
-
-	resp, err := http.Get(redocCDNURL)
-	defer resp.Body.Close()
-
-	buf := bytes.NewBuffer(nil)
-
-	if _, err = io.Copy(buf, resp.Body); err != nil {
-		return err
-	}
-	if err = w.storage.WriteFile(ctx, indexstorage.Path(redocFileName), buf.Bytes()); err != nil {
+	if err := w.storage.WriteFile(ctx, "redoc.standalone.js", reDocScriptFile); err != nil {
 		return err
 	}
 
