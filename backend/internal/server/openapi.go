@@ -13,7 +13,6 @@ package server
 import (
 	"context"
 	_ "embed"
-
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 )
 
@@ -22,6 +21,9 @@ var openapiYaml []byte
 
 //go:embed index.html
 var indexHTML []byte
+
+//go:embed redoc.standalone.js
+var reDocScriptFile []byte
 
 type OpenAPIWriter interface {
 	Write(ctx context.Context) error
@@ -44,5 +46,10 @@ func (w writer) Write(ctx context.Context) error {
 	if err := w.storage.WriteFile(ctx, "index.html", indexHTML); err != nil {
 		return err
 	}
+
+	if err := w.storage.WriteFile(ctx, "redoc.standalone.js", reDocScriptFile); err != nil {
+		return err
+	}
+
 	return nil
 }
