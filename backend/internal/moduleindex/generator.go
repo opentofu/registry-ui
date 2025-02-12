@@ -228,11 +228,6 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			blocked, blockedReason := g.blocklist.IsModuleBlocked(moduleAddr.Addr)
 
 			moduleIndexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, "index.json")
-
-			// Make sure we pull the moduleIndexPath before we re-upload it so we don't cause a write if nothing
-			// changed. This is important because writes cost money on R2, whereas reads don't.
-			_, _ = g.storage.ReadFile(ctx, indexstorage.Path(moduleIndexPath))
-
 			entry := modules.GetModule(moduleAddr.Addr)
 			needsAdd := false
 			if entry == nil {
