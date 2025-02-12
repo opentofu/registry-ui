@@ -75,21 +75,19 @@ func (p *Provider) Equals(other *Provider) bool {
 	if p == nil || other == nil {
 		return false
 	}
-	reverseAliasesEqual := true
 	if len(p.ReverseAliases) != len(other.ReverseAliases) {
-		reverseAliasesEqual = false
+		return false
 	} else {
 		for i := range len(p.ReverseAliases) {
 			if !p.ReverseAliases[i].Equals(other.ReverseAliases[i].Addr) {
-				reverseAliasesEqual = false
-				break
+				return false
 			}
 		}
 	}
 	return p.Addr.Equals(other.Addr.Addr) && slices.Equal(p.Warnings, other.Warnings) && p.Link == other.Link &&
 		(p.CanonicalAddr == other.CanonicalAddr || p.CanonicalAddr.Equals(other.CanonicalAddr.Addr)) &&
-		reverseAliasesEqual && p.Description == other.Description && p.Popularity == other.Popularity &&
-		p.ForkCount == other.ForkCount && p.ForkOfLink == other.ForkOfLink && p.ForkOf == other.ForkOf &&
+		p.Description == other.Description && p.Popularity == other.Popularity && p.ForkCount == other.ForkCount &&
+		p.ForkOfLink == other.ForkOfLink && p.ForkOf == other.ForkOf &&
 		p.UpstreamPopularity == other.UpstreamPopularity && p.UpstreamForkCount == other.UpstreamForkCount &&
 		slices.Equal(p.Versions, other.Versions) && p.BlockedReason == other.BlockedReason
 }
