@@ -196,6 +196,7 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 			blocked, blockedReason := d.blocklist.IsProviderBlocked(addr)
 
 			providerEntry := existingProviders.GetProvider(addr)
+			var originalProviderEntry *providertypes.Provider
 			needsAdd := false
 			if providerEntry == nil {
 				providerEntry = &providertypes.Provider{
@@ -207,6 +208,8 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 					BlockedReason: blockedReason,
 				}
 				needsAdd = true
+			} else {
+				originalProviderEntry = providerEntry.DeepCopy()
 			}
 
 			// scrape the docs into their own directory
@@ -223,8 +226,10 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 				return err
 			}
 
-			if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
-				return fmt.Errorf("failed to store provider %s (%w)", addr, err)
+			if originalProviderEntry == nil || !originalProviderEntry.Equals(providerEntry) {
+				if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
+					return fmt.Errorf("failed to store provider %s (%w)", addr, err)
+				}
 			}
 
 			if needsAdd {

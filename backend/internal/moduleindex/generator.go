@@ -229,6 +229,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 
 			moduleIndexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, "index.json")
 			entry := modules.GetModule(moduleAddr.Addr)
+			var originalEntry *Module
 			needsAdd := false
 			if entry == nil {
 				entry = &Module{
@@ -239,6 +240,8 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					BlockedReason: blockedReason,
 				}
 				needsAdd = true
+			} else {
+				originalEntry = entry.DeepCopy()
 			}
 
 			if entry.IsBlocked != blocked {
@@ -361,12 +364,14 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					modulesToAdd = append(modulesToAdd, entry)
 					lock.Unlock()
 				}
-				versionListing, err := json.Marshal(entry)
-				if err != nil {
-					return fmt.Errorf("failed to marshal module index for %s (%w)", entry.Addr, err)
-				}
-				if err := g.storage.WriteFile(ctx, indexstorage.Path(moduleIndexPath), versionListing); err != nil {
-					return fmt.Errorf("failed to write the module index for %s (%w)", entry.Addr, err)
+				if originalEntry == nil || !originalEntry.Equals(entry) {
+					versionListing, err := json.Marshal(entry)
+					if err != nil {
+						return fmt.Errorf("failed to marshal module index for %s (%w)", entry.Addr, err)
+					}
+					if err := g.storage.WriteFile(ctx, indexstorage.Path(moduleIndexPath), versionListing); err != nil {
+						return fmt.Errorf("failed to write the module index for %s (%w)", entry.Addr, err)
+					}
 				}
 			}
 
