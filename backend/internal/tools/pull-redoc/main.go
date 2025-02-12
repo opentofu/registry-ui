@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
@@ -11,8 +13,12 @@ import (
 
 func main() {
 	version := ""
+	checksum := ""
 	flag.StringVar(&version, "version", "latest", "The version of ReDoc to download.")
+	flag.StringVar(&checksum, "checksum", "", "The checksum of the ReDoc script file corresponding to the version  to be downloaded.")
 	flag.Parse()
+
+	fmt.Printf("checksum: %+v\n", checksum)
 
 	// Pull Redoc script from Redocly CDN
 	redocCDNURL := fmt.Sprintf("https://cdn.redoc.ly/redoc/%s/bundles/redoc.standalone.js", version)
@@ -34,8 +40,24 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Copy downloaded contents to a local file
 	if _, err = io.Copy(redocFile, resp.Body); err != nil {
 		log.Fatal(err)
+	}
+
+	// Reset file pointer to the beginning before reading it into the hash
+	if _, err = redocFile.Seek(0, 0); err != nil {
+		log.Fatal(err)
+	}
+	hash := sha256.New()
+	_, err = io.Copy(hash, redocFile)
+	if err != nil {
+		log.Fatalf("err hashing script file: %+v\n", err)
+	}
+
+	// compare hashed value with supplied checksum
+	if checksum != hex.EncodeToString(hash.Sum(nil)) {
+		log.Fatalf("could not verify checksum for the file : %+v\n", redocFileName)
 	}
 
 	err = os.Rename("server/redoc.tmp", fmt.Sprintf("server/%s", redocFileName))
@@ -44,7 +66,7 @@ func main() {
 	}
 
 	// Pull ReDoc LICENSE file
-	licenseFileURL := "https://raw.githubusercontent.com/Redocly/redoc/refs/heads/main/LICENSE"
+	licenseFileURL := fmt.Sprintf("https://cdn.redoc.ly/redoc/%s/bundles/redoc.standalone.js.LICENSE.txt", version)
 
 	licenseFile, err := os.Create("server/license.tmp")
 	if err != nil {
@@ -56,6 +78,7 @@ func main() {
 	}
 
 	defer resp1.Body.Close()
+
 	if resp1.StatusCode < 200 || resp1.StatusCode > 299 {
 		err = fmt.Errorf("err downloading ReDoc license file: %+v\n", resp1)
 		log.Fatal(err)
