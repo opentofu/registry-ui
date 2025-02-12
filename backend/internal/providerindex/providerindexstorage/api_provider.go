@@ -44,6 +44,11 @@ func (s storage) GetProvider(ctx context.Context, providerAddr provider.Addr) (p
 
 func (s storage) StoreProvider(ctx context.Context, provider providertypes.Provider) error {
 	// TODO validate provider addr
+
+	// Make sure we pull the provider index file before we write it. This allows lower-level caching to take effect
+	// and prevents unnecessary re-uploads if the file didn't change. This is important because R2 writes cost money,
+	// reads don't.
+	_, _ = s.indexStorageAPI.ReadFile(ctx, s.getProviderFile(provider.Addr.Addr))
 	marshalled, err := json.Marshal(provider)
 	if err != nil {
 		return &ProviderStoreFailedError{BaseError: BaseError{Cause: err}, ProviderAddr: provider.Addr.Addr}
