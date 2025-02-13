@@ -228,7 +228,13 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			blocked, blockedReason := g.blocklist.IsModuleBlocked(moduleAddr.Addr)
 
 			moduleIndexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, "index.json")
+			// We are fetching the module entry from the megaindex and storing it
+			// further down below as a separate index file so the frontend has an easier time
+			// fetching it.
 			entry := modules.GetModule(moduleAddr.Addr)
+			// originalEntry serves the purpose of being an original copy to compare to
+			// so we don't write the index if it hasn't actually been modified to save costs.
+			var originalEntry *Module
 			needsAdd := false
 			if entry == nil {
 				entry = &Module{
@@ -239,6 +245,8 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					BlockedReason: blockedReason,
 				}
 				needsAdd = true
+			} else {
+				originalEntry = entry.DeepCopy()
 			}
 
 			if entry.IsBlocked != blocked {
@@ -361,12 +369,18 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					modulesToAdd = append(modulesToAdd, entry)
 					lock.Unlock()
 				}
-				versionListing, err := json.Marshal(entry)
-				if err != nil {
-					return fmt.Errorf("failed to marshal module index for %s (%w)", entry.Addr, err)
-				}
-				if err := g.storage.WriteFile(ctx, indexstorage.Path(moduleIndexPath), versionListing); err != nil {
-					return fmt.Errorf("failed to write the module index for %s (%w)", entry.Addr, err)
+				// Here we compare the module entry to its original copy to make sure
+				// we are only writing this index if needed. This is needed because writes
+				// on R2 cost money, whereas reads don't and updating all the provider and
+				// module indexes on every run costs ~300$ per month.
+				if originalEntry == nil || !originalEntry.Equals(entry) {
+					versionListing, err := json.Marshal(entry)
+					if err != nil {
+						return fmt.Errorf("failed to marshal module index for %s (%w)", entry.Addr, err)
+					}
+					if err := g.storage.WriteFile(ctx, indexstorage.Path(moduleIndexPath), versionListing); err != nil {
+						return fmt.Errorf("failed to write the module index for %s (%w)", entry.Addr, err)
+					}
 				}
 			}
 

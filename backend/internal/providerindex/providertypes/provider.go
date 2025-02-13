@@ -10,6 +10,8 @@ import (
 //
 // swagger:model Provider
 type Provider struct {
+	// If you add something here, don't forget to update the Equals() and DeepCopy() functions below.
+
 	// Addr holds the address of a provider. It can be split by / to obtain a namespace and name.
 	//
 	// required: true
@@ -61,6 +63,73 @@ type Provider struct {
 	IsBlocked bool `json:"is_blocked"`
 	// required: false
 	BlockedReason string `json:"blocked_reason,omitempty"`
+
+	// If you add something here, don't forget to update the Equals() and DeepCopy() functions below.
+}
+
+// Equals returns true if and only of all parameters of the two providers are equal (with a deep comparison).
+func (p *Provider) Equals(other *Provider) bool {
+	if p == other {
+		return true
+	}
+	if p == nil || other == nil {
+		return false
+	}
+	if len(p.ReverseAliases) != len(other.ReverseAliases) {
+		return false
+	} else {
+		for i := range len(p.ReverseAliases) {
+			if !p.ReverseAliases[i].Equals(other.ReverseAliases[i].Addr) {
+				return false
+			}
+		}
+	}
+	return p.Addr.Equals(other.Addr.Addr) && slices.Equal(p.Warnings, other.Warnings) && p.Link == other.Link &&
+		(p.CanonicalAddr == other.CanonicalAddr || p.CanonicalAddr.Equals(other.CanonicalAddr.Addr)) &&
+		p.Description == other.Description && p.Popularity == other.Popularity && p.ForkCount == other.ForkCount &&
+		p.ForkOfLink == other.ForkOfLink && p.ForkOf == other.ForkOf &&
+		p.UpstreamPopularity == other.UpstreamPopularity && p.UpstreamForkCount == other.UpstreamForkCount &&
+		slices.Equal(p.Versions, other.Versions) && p.BlockedReason == other.BlockedReason
+}
+
+// DeepCopy creates a deep copy of the Provider.
+func (p *Provider) DeepCopy() *Provider {
+	warnings := make([]string, len(p.Warnings))
+	copy(warnings, p.Warnings)
+
+	var canonicalAddr *ProviderAddr
+	if p.CanonicalAddr != nil {
+		canonicalAddr = &ProviderAddr{
+			Addr:      p.CanonicalAddr.Addr,
+			Display:   p.CanonicalAddr.Display,
+			Namespace: p.CanonicalAddr.Namespace,
+			Name:      p.CanonicalAddr.Name,
+		}
+	}
+
+	reverseAliases := make([]ProviderAddr, len(p.ReverseAliases))
+	copy(reverseAliases, p.ReverseAliases)
+
+	versions := make([]ProviderVersionDescriptor, len(p.Versions))
+	copy(versions, p.Versions)
+
+	return &Provider{
+		Addr:               p.Addr,
+		Warnings:           warnings,
+		Link:               p.Link,
+		CanonicalAddr:      canonicalAddr,
+		ReverseAliases:     reverseAliases,
+		Description:        p.Description,
+		Popularity:         p.Popularity,
+		ForkCount:          p.ForkCount,
+		ForkOfLink:         p.ForkOfLink,
+		ForkOf:             p.ForkOf,
+		UpstreamPopularity: p.UpstreamPopularity,
+		UpstreamForkCount:  p.UpstreamForkCount,
+		Versions:           versions,
+		IsBlocked:          p.IsBlocked,
+		BlockedReason:      p.BlockedReason,
+	}
 }
 
 func (p *Provider) Compare(other Provider) int {
