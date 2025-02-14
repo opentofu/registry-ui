@@ -106,8 +106,8 @@ export default {
 					// Since R2 objects are normalized to lower case before being saved, path should be lower case
 					// when uppercase is used at some points of the path, like in the version.
 					// Related to: https://github.com/opentofu/registry/issues/1528
-					const normalizedObjectKey = objectKey.toLowerCase();
-					response = await serveR2Object(request, env, normalizedObjectKey);
+					const objectKeyLowercase = objectKey.toLowerCase();
+					response = await serveR2Object(request, env, objectKeyLowercase);
 					break;
 				}
 				const objectKey = url.pathname.slice(1);
