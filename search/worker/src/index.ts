@@ -103,7 +103,11 @@ export default {
 			default:
 				if (url.pathname.startsWith('/registry/docs/')) {
 					const objectKey = url.pathname.replace('/registry/docs/', '');
-					response = await serveR2Object(request, env, objectKey);
+					// Since R2 objects are normalized to lower case before being saved, path should be lower case
+					// when uppercase is used at some points of the path, like in the version.
+					// Related to: https://github.com/opentofu/registry/issues/1528
+					const normalizedObjectKey = objectKey.toLowerCase();
+					response = await serveR2Object(request, env, normalizedObjectKey);
 					break;
 				}
 				const objectKey = url.pathname.slice(1);
