@@ -2,9 +2,13 @@
 name = "registry-ui-search"
 main = "src/index.ts"
 compatibility_date = "2024-08-21"
-compatibility_flags = ["nodejs_compat"]
+node_compat = true
 
 [[r2_buckets]]
 binding = 'BUCKET'
 bucket_name = 'registry-ui-api'
 preview_bucket_name = 'registry-ui-api'
+
+[env.dev]
+vars = { DATABASE_URL = "postgresql://postgres:secret@postgres/postgres", ENVIRONMENT = "dev" }
+r2_buckets = [{ binding = "BUCKET", bucket_name = "diogenes-test-opentofu" }]
