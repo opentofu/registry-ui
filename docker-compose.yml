@@ -7,11 +7,6 @@ services:
       POSTGRES_PASSWORD: secret
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 10s
-      timeout: 5s
-      retries: 5
     volumes:
       - type: bind
         source: ./search/pg-indexer/schema.sql
@@ -34,6 +29,3 @@ services:
       - source: ./search/worker
         target: /work
         type: bind
-volumes:
-  minio_data:
-    driver: local
