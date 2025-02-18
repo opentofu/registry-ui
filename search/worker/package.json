@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev --ip=0.0.0.0 --env dev",
+    "dev": "wrangler dev",
     "start": "wrangler dev",
     "test": "vitest",
+    "feed-data": "node scripts/feed-data-r2.js",
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {

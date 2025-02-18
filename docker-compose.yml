@@ -34,3 +34,6 @@ services:
       - source: ./search/worker
         target: /work
         type: bind
+volumes:
+  minio_data:
+    driver: local
