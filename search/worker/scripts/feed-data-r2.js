@@ -21,7 +21,7 @@ fs.readdir(directoryPath, { recursive: true }, (err, files) => {
     console.log(cmd)
     exec(cmd, function (err, stdout, stderr) {
       console.log(stdout);
-      console.log(stderr);
+      console.error(stderr);
     });
 
   });
