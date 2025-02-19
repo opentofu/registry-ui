@@ -2,6 +2,8 @@ import { Client } from '@neondatabase/serverless';
 import { DBClient } from "./types";
 import postgres from "postgres";
 
+// PGClient is used to connect to the local postgres instance. In production, we use a neon serverless database.
+// This adapter is created in order to interact and maintain the same API neon serverless uses.
 export class PGClient {
 	db: postgres.Sql
 	constructor(connection: string) {
@@ -15,6 +17,7 @@ export class PGClient {
 
 	query(query: string, queryParams: string[]): any {
 		// Adapting to neonserverless/db return of rows
+		// unsafe usage should be good since we are using this adapter only locally
 		return { rows: this.db.unsafe(query, queryParams)}
 	}
 }
