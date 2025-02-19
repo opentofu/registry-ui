@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.4",
-    "pg": "^8.13.3"
+    "postgres": "^3.4.5"
   }
 }

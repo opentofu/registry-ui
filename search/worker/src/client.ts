@@ -1,6 +1,23 @@
 import { Client } from '@neondatabase/serverless';
 import { DBClient } from "./types";
-import { Client as PGClient } from "pg";
+import postgres from "postgres";
+
+export class PGClient {
+	db: postgres.Sql
+	constructor(connection: string) {
+		this.db = postgres(connection)
+	}
+
+	connect() {}
+	end() : Promise<any> {
+		return Promise.resolve();
+	}
+
+	query(query: string, queryParams: string[]): any {
+		// Adapting to neonserverless/db return of rows
+		return { rows: this.db.unsafe(query, queryParams)}
+	}
+}
 
 function getClientInstance(environment: string, databaseUrl: string): DBClient {
 	if (environment == "dev") {

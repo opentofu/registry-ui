@@ -1,5 +1,5 @@
 import { Client } from '@neondatabase/serverless';
-import { Client as PGClient } from "pg";
+import { PGClient } from "./client";
 
 export interface Entity {
 	id: string;
