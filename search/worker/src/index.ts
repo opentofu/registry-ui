@@ -1,20 +1,9 @@
 import { Client, neon, neonConfig } from '@neondatabase/serverless';
+
 import { DBClient } from "./types";
+import { getClient } from './client';
 import { query } from './query';
-import { getClientType } from './client';
 import { validateSearchRequest } from './validation';
-
-async function getClient(environment: string, databaseUrl: string): Promise<DBClient> {
-	if (databaseUrl === undefined) {
-		throw new Error('DATABASE_URL is required');
-	}
-
-	const now = performance.now();
-	const client = getClientType(environment, databaseUrl);
-	await client.connect();
-	console.log('Connected to database in', performance.now() - now, 'ms');
-	return client;
-}
 
 async function fetchData(client: DBClient, queryParam: string, ctx: ExecutionContext): Promise<Response> {
 	try {
