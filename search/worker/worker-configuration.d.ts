@@ -4,4 +4,5 @@
 interface Env {
 	DATABASE_URL: string;
 	BUCKET: R2Bucket;
+	ENVIRONMENT: string;
 }

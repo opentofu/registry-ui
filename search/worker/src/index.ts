@@ -1,20 +1,11 @@
-import { Client } from '@neondatabase/serverless';
+import { Client, neon, neonConfig } from '@neondatabase/serverless';
+
+import { DBClient } from "./types";
+import { getClient } from './client';
 import { query } from './query';
 import { validateSearchRequest } from './validation';
 
-async function getClient(databaseUrl: string): Promise<Client> {
-	if (databaseUrl === undefined) {
-		throw new Error('DATABASE_URL is required');
-	}
-
-	const now = performance.now();
-	const client = new Client(databaseUrl);
-	await client.connect();
-	console.log('Connected to database in', performance.now() - now, 'ms');
-	return client;
-}
-
-async function fetchData(client: Client, queryParam: string, ctx: ExecutionContext): Promise<Response> {
+async function fetchData(client: DBClient, queryParam: string, ctx: ExecutionContext): Promise<Response> {
 	try {
 		const start = performance.now();
 		const results = await query(client, queryParam);
@@ -38,7 +29,7 @@ async function handleSearchRequest(request: Request, env: Env, ctx: ExecutionCon
 		return new Response(validation.error.message, { status: validation.error.status });
 	}
 
-	const client = await getClient(env.DATABASE_URL);
+	const client = await getClient(env.ENVIRONMENT, env.DATABASE_URL);
 	console.log('Querying for:', validation.queryParam);
 	const response = await fetchData(client, validation.queryParam, ctx);
 	return response;
