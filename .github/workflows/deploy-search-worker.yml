@@ -23,6 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Deploy Wrangler
-        uses: actions/cache@v4
         run: |
           npm run deploy -- --dry-run
