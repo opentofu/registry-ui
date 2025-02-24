@@ -25,4 +25,4 @@ jobs:
         run: npm ci
       - name: Deploy Wrangler
         run: |
-          npm run deploy -- --dry-run
+          npm run deploy
