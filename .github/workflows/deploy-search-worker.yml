@@ -1,0 +1,28 @@
+name: Deploy Search Worker
+on:
+  push:
+    paths:
+      - 'search/worker/**'
+
+jobs:
+  deploy:
+    name: Run deploy
+    runs-on: ubuntu-latest
+    defaults:
+      working-directory: search/worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # if we need to change node version, we need to change the Dockerfile on this folder as well
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm ci
+      - name: Deploy Wrangler
+        uses: actions/cache@v4
+        run: |
+          npm run deploy -- --dry-run
