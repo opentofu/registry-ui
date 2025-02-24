@@ -7,6 +7,7 @@
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "test": "vitest",
+    "feed-data": "node scripts/feed-data-r2.js",
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
@@ -17,6 +18,7 @@
     "wrangler": "^3.60.3"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.4"
+    "@neondatabase/serverless": "^0.9.4",
+    "postgres": "^3.4.5"
   }
 }
