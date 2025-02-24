@@ -47,7 +47,7 @@ export function ModuleExampleSideMenu() {
                 relative="path"
                 className={({ isActive }) =>
                   clsx(
-                    "px-2 py-1 text-inherit data-[focus]:bg-black/10 dark:data-[focus]:bg-white/10",
+                    "px-2 py-1 text-inherit data-focus:bg-black/10 dark:data-focus:bg-white/10",
                     isActive && "bg-black/15 dark:bg-white/15",
                   )
                 }
