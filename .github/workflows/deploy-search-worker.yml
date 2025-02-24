@@ -25,7 +25,7 @@ jobs:
         run: npm ci
       - name: Deploy Wrangler
         env:
-          CLOUDFLARE_ACCOUNT_ID: 919942d1077740aa3cff8c6cf511147a
+          CLOUDFLARE_ACCOUNT_ID: 84161f72ecc1f0274ab2fa7241f64249
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           npm run deploy
