@@ -1,6 +1,6 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "registry-ui-search-dev"
-# name = "registry-ui-search"
+# name = "registry-ui-search"  # TODO: remove dev
 main = "src/index.ts"
 compatibility_date = "2024-08-21"
 compatibility_flags = ["nodejs_compat"]
@@ -11,6 +11,10 @@ bucket_name = "registry-ui-dev"
 preview_bucket_name = "registry-ui-dev"
 # bucket_name = "registry-ui-api"
 # preview_bucket_name = "registry-ui-api"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
 
 [dev]
 ip = "0.0.0.0"
