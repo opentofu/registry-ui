@@ -1,13 +1,13 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "registry-ui-search-staging"
+name = "registry-ui-search-dev"
 main = "src/index.ts"
 compatibility_date = "2024-08-21"
 compatibility_flags = ["nodejs_compat"]
 
 [[r2_buckets]]
 binding = "BUCKET"
-bucket_name = "registry-ui-api-staging"
-preview_bucket_name = "registry-ui-api-staging"
+bucket_name = "registry-ui-dev"
+preview_bucket_name = "registry-ui-dev"
 
 [dev]
 ip = "0.0.0.0"
