@@ -1,6 +1,6 @@
 name: Deploy Search Worker
-# on:
-#   push:
+on:
+  push
 #     paths:
 #       - 'search/worker/**'
 
