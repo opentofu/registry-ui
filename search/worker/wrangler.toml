@@ -4,8 +4,6 @@ main = "src/index.ts"
 compatibility_date = "2024-08-21"
 compatibility_flags = ["nodejs_compat"]
 
-account_id = "919942d1077740aa3cff8c6cf511147a"
-
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "registry-ui-api-staging"
