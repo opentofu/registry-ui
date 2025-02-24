@@ -1,6 +1,8 @@
 # generate-registry runs `go generate` to build the registry files and saves them to /tmp/registry
+# since it's a high number of files, we are limiting to opentofu namespace.
+# If more providers are needed, tweak the arguments on this command
 generate-registry:
-	@cd "$(CURDIR)/backend" && go generate ./... && go run ./cmd/generate/ --licenses-file ../licenses.json --destination-dir /tmp/registry
+	@cd "$(CURDIR)/backend" && go generate ./... && go run ./cmd/generate/ --licenses-file ../licenses.json --destination-dir /tmp/registry --namespace opentofu --name ad
 
 # load-registry feed the data from /tmp/registry into the local R2 bucket (search/worker/.wrangler/state/r2) folder
 load-registry:
