@@ -1,15 +1,16 @@
 name: Deploy Search Worker
-on:
-  push:
-    paths:
-      - 'search/worker/**'
+# on:
+#   push:
+#     paths:
+#       - 'search/worker/**'
 
 jobs:
   deploy:
     name: Run deploy
     runs-on: ubuntu-latest
     defaults:
-      working-directory: search/worker
+      run:
+        working-directory: search/worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
