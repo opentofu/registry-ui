@@ -120,7 +120,7 @@ export function ProviderDocsMenu() {
   const [searchFilter, setSearchFilter] = useState("");
   const filterInput = (
     <input
-      type="filter"
+      type="text"
       placeholder="Filter..."
       className="mb-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
       value={searchFilter}
