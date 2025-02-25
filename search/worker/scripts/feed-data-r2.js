@@ -17,12 +17,23 @@ fs.readdir(directoryPath, { recursive: true }, (err, files) => {
     const realFilePath = path.join(directoryPath, fileName);
     const r2Name = realFilePath.replace(directoryPath, "");
 
-    const cmd = `npx wrangler r2 object put registry-ui-api${r2Name} --file ${realFilePath} --local`
-    console.log(cmd)
-    exec(cmd, function (err, stdout, stderr) {
-      console.log(stdout);
-      console.error(stderr);
-    });
+    fs.lstat(realFilePath, (err, stats) => {
 
+      if(err)
+          return console.log(err); //Handle error
+      if(stats.isDirectory()) {
+        return console.log(`directories are not supported by wrangler api: ${realFilePath}`)
+      }
+
+      runCmd(r2Name, realFilePath)
+    });
   });
 });
+
+const runCmd = (bucketFileName, path) => {
+  const cmd = `npx wrangler r2 object put registry-ui-api${bucketFileName} --file ${path} --local`
+  exec(cmd, function (err, stdout, stderr) {
+    console.log(stdout);
+    console.error(stderr);
+  });
+}
