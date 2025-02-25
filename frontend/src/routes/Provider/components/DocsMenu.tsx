@@ -122,7 +122,7 @@ export function ProviderDocsMenu() {
     <input
       type="text"
       placeholder="Filter..."
-      className="mb-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+      className="mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
       value={searchFilter}
       onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
     />
