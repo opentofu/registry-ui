@@ -3,7 +3,7 @@ import { TreeView, TreeViewItem } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useState, useTransition } from "react";
+import { useDeferredValue, useState, useTransition } from "react";
 import { To, useHref, useLinkClickHandler } from "react-router-dom";
 
 import {
@@ -13,6 +13,7 @@ import {
 } from "../docsSidebar";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderVersionDataQuery } from "../query";
+import { Suspense } from "react";
 
 type TabLinkProps = {
   to: To;
@@ -118,14 +119,18 @@ export function ProviderDocsMenu() {
     getProviderVersionDataQuery(namespace, provider, version),
   );
   const [searchFilter, setSearchFilter] = useState("");
+  const deferredSearchFilter = useDeferredValue(searchFilter);
+
   const filterInput = (
-    <input
-      type="text"
-      placeholder="Filter..."
-      className="mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
-      value={searchFilter}
-      onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
-    />
+    <Suspense>
+      <input
+        type="text"
+        placeholder="Filter..."
+        className="mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
+        value={deferredSearchFilter}
+        onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
+      />
+    </Suspense>
   );
   const items = transformStructure(data.docs, type, doc);
   const filteredItems = items.filter((item) =>
