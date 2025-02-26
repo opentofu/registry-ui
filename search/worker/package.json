@@ -7,6 +7,7 @@
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "test": "vitest",
+    "feed-data": "node scripts/feed-data-r2.js",
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
@@ -14,9 +15,10 @@
     "@cloudflare/workers-types": "^4.20240821.1",
     "typescript": "^5.5.2",
     "vitest": "1.5.0",
-    "wrangler": "^3.60.3"
+    "wrangler": "^3.109.3"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.4"
+    "@neondatabase/serverless": "^0.9.4",
+    "postgres": "^3.4.5"
   }
 }

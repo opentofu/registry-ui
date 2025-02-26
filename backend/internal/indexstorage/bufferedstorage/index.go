@@ -202,7 +202,7 @@ func (l *localIndex) Close() error {
 }
 
 func (l *localIndex) trySave(ctx context.Context) error {
-	if time.Now().Sub(l.lastCommitted) < 30*time.Second {
+	if time.Since(l.lastCommitted) < 30*time.Second {
 		return nil
 	}
 

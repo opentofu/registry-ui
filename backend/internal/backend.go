@@ -81,6 +81,7 @@ type GenerateConfig struct {
 	Namespace           string
 	Name                string
 	TargetSystem        string
+	ForceRepoDataUpdate bool
 	ForceRegenerate     ForceRegenerateType
 }
 
@@ -176,7 +177,7 @@ func (f ForceRegenerateEntry) MustRegenerateProvider(_ context.Context, addr pro
 	})
 }
 
-func (g GenerateConfig) validate() error {
+func (g GenerateConfig) validate() error { //nolint:unused
 	if g.Name != "" && g.Namespace == "" {
 		return fmt.Errorf("cannot use name filtering without namespace filtering")
 	}
@@ -192,6 +193,13 @@ func (g GenerateConfig) validate() error {
 func WithSkipUpdateProviders(skip bool) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		c.SkipUpdateProviders = skip
+		return nil
+	}
+}
+
+func WithForceRepoDataUpdate(force bool) GenerateOpt {
+	return func(c *GenerateConfig) error {
+		c.ForceRepoDataUpdate = force
 		return nil
 	}
 }
@@ -328,38 +336,38 @@ func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		} else if cfg.Name != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespaceAndName(ctx, cfg.Namespace, cfg.Name, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.moduleIndexGenerator.GenerateNamespaceAndName(ctx, cfg.Namespace, cfg.Name, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		} else if cfg.Namespace != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		} else if cfg.NamespacePrefix != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.moduleIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		} else {
-			if err := b.moduleIndexGenerator.Generate(ctx, moduleindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.moduleIndexGenerator.Generate(ctx, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		}
 	}
 	if !cfg.SkipUpdateProviders && cfg.TargetSystem == "" {
 		if cfg.Name != "" {
-			if err := b.providerIndexGenerator.GenerateSingleProvider(ctx, provider.Addr{Namespace: cfg.Namespace, Name: cfg.Name}, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.providerIndexGenerator.GenerateSingleProvider(ctx, provider.Addr{Namespace: cfg.Namespace, Name: cfg.Name}, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		} else if cfg.Namespace != "" {
-			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		} else if cfg.NamespacePrefix != "" {
-			if err := b.providerIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.providerIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		} else {
-			if err := b.providerIndexGenerator.Generate(ctx, providerindex.WithForce(cfg.ForceRegenerate)); err != nil {
+			if err := b.providerIndexGenerator.Generate(ctx, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to index providers (%w)", err)
 			}
 		}

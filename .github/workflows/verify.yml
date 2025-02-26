@@ -2,6 +2,7 @@ name: Verify
 permissions: {}
 on:
   pull_request:
+
 jobs:
   generate:
     name: Go generate
@@ -48,3 +49,47 @@ jobs:
         working-directory: backend
         run: |
           go test ./...
+  frontend:
+    name: Frontend Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+      - name: Install dependencies
+        working-directory: frontend
+        run:
+          npm ci
+      - name: Run ESLint
+        working-directory: frontend
+        run:
+          npm run eslint
+      - name: Run Prettier Check
+        working-directory: frontend
+        run:
+          npm run prettier:check
+      - name: Run Tests
+        working-directory: frontend
+        run:
+          npm run test
+  backend-lint:
+    name: Backend Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules:
+          - backend
+          - search/pg-indexer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'backend/go.mod'
+      - name: Backend Linting
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.62
+          working-directory: ${{ matrix.modules }}

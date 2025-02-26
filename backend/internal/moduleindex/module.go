@@ -10,6 +10,8 @@ import (
 
 // swagger:model Module
 type Module struct {
+	// If you add a field here, update Equals() and DeepCopy() below.
+
 	// required: true
 	Addr ModuleAddr `json:"addr"`
 	// required: true
@@ -36,6 +38,43 @@ type Module struct {
 	UpstreamPopularity int `json:"upstream_popularity"`
 	// UpstreamForkCount contains the number of forks of the upstream repository.
 	UpstreamForkCount int `json:"upstream_fork_count"`
+
+	// If you add a field here, update Equals() and DeepCopy() below.
+}
+
+// Equals compares every parameter of the two modules and returns true if both are equal on a deep comparison.
+func (m *Module) Equals(other *Module) bool {
+	if m == other {
+		return true
+	}
+	if m == nil || other == nil {
+		return false
+	}
+	return m.Addr.Equals(other.Addr.Addr) && m.Description == other.Description &&
+		slices.Equal(m.Versions, other.Versions) && m.IsBlocked == other.IsBlocked &&
+		m.BlockedReason == other.BlockedReason && m.Popularity == other.Popularity && m.ForkCount == other.ForkCount &&
+		m.ForkOfLink == other.ForkOfLink && m.ForkOf.Equals(other.ForkOf.Addr) &&
+		m.UpstreamPopularity == other.UpstreamPopularity && m.UpstreamForkCount == other.UpstreamForkCount
+}
+
+// DeepCopy creates a deep copy of the module, ensuring that all new data structures are independent.
+func (m *Module) DeepCopy() *Module {
+	versions := make([]ModuleVersionDescriptor, len(m.Versions))
+	copy(versions, m.Versions)
+
+	return &Module{
+		Addr:               m.Addr,
+		Description:        m.Description,
+		Versions:           versions,
+		IsBlocked:          m.IsBlocked,
+		BlockedReason:      m.BlockedReason,
+		Popularity:         m.Popularity,
+		ForkCount:          m.ForkCount,
+		ForkOfLink:         m.ForkOfLink,
+		ForkOf:             m.ForkOf,
+		UpstreamPopularity: m.UpstreamPopularity,
+		UpstreamForkCount:  m.UpstreamForkCount,
+	}
 }
 
 func (m *Module) Validate() error {

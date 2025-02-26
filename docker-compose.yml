@@ -29,5 +29,3 @@ services:
       - source: ./search/worker
         target: /work
         type: bind
-    environment:
-      - DATABASE_URL=postgresql://posgres:secret@posgres/postgres

@@ -1,7 +1,6 @@
-import { Client } from '@neondatabase/serverless';
-import { Entity } from './types';
+import { DBClient, Entity } from './types';
 
-export const query = async (client: Client, queryParam: string): Promise<Entity[]> => {
+export const query = async (client: DBClient, queryParam: string): Promise<Entity[]> => {
 	const { rows } = await client.query(searchQuery, [queryParam]);
 	return rows;
 };

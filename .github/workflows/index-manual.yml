@@ -22,6 +22,11 @@ on:
         required: false
         default: ""
         description: "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername"
+      force_repo_data_update:
+        type: boolean
+        required: false
+        default: false
+        description: Force updating GitHub repository data even if no new version was found. (Use with care!)
 concurrency:
   group: index
   cancel-in-progress: false
@@ -57,8 +62,9 @@ jobs:
           TARGET_SYSTEM: ${{inputs.target_system}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FORCE_REGENERATE: ${{inputs.force_regenerate}}
+          FORCE_REPO_DATA_UPDATE_ARG: ${{inputs.force_repo_data_update && '--force-repodata-update' || ''}}
         run: |
-          go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}"
+          go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}" "${FORCE_REPO_DATA_UPDATE_ARG}"
       - name: Update search index
         working-directory: search/pg-indexer
         env:

@@ -40,7 +40,8 @@ type DocumentationGenerator interface {
 }
 
 type GenerateConfig struct {
-	Force ForceRegenerate
+	Force               ForceRegenerate
+	ForceRepoDataUpdate bool
 }
 
 type noForce struct {
@@ -62,6 +63,13 @@ type Opts func(ctx context.Context, generateConfig *GenerateConfig) error
 func WithForce(force ForceRegenerate) Opts {
 	return func(_ context.Context, generateConfig *GenerateConfig) error {
 		generateConfig.Force = force
+		return nil
+	}
+}
+
+func WithForceRepoDataUpdate(force bool) Opts {
+	return func(_ context.Context, generateConfig *GenerateConfig) error {
+		generateConfig.ForceRepoDataUpdate = force
 		return nil
 	}
 }
@@ -120,6 +128,9 @@ func (d *documentationGenerator) Generate(ctx context.Context, opts ...Opts) err
 func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
 	d.log.Info(ctx, "Listing all providers in namespace %s...", namespace)
 	providerList, err := d.metadataAPI.ListProvidersByNamespace(ctx, namespace, true)
+	if err != nil {
+		return err
+	}
 
 	d.log.Info(ctx, "Loaded %d providers", len(providerList))
 
@@ -184,7 +195,13 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 		eg.Go(func() error {
 			blocked, blockedReason := d.blocklist.IsProviderBlocked(addr)
 
+			// We are fetching the provider entry from the megaindex and storing it
+			// further down below as a separate index file so the frontend has an easier time
+			// fetching it.
 			providerEntry := existingProviders.GetProvider(addr)
+			// originalProviderEntry serves the purpose of being an original copy to compare to
+			// so we don't write the index if it hasn't actually been modified to save costs.
+			var originalProviderEntry *providertypes.Provider
 			needsAdd := false
 			if providerEntry == nil {
 				providerEntry = &providertypes.Provider{
@@ -196,6 +213,8 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 					BlockedReason: blockedReason,
 				}
 				needsAdd = true
+			} else {
+				originalProviderEntry = providerEntry.DeepCopy()
 			}
 
 			// scrape the docs into their own directory
@@ -212,8 +231,14 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 				return err
 			}
 
-			if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
-				return fmt.Errorf("failed to store provider %s (%w)", addr, err)
+			// Here we compare the provider entry to its original copy to make sure
+			// we are only writing this index if needed. This is needed because writes
+			// on R2 cost money, whereas reads don't and updating all the provider and
+			// module indexes on every run costs ~300$ per month.
+			if originalProviderEntry == nil || !originalProviderEntry.Equals(providerEntry) {
+				if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
+					return fmt.Errorf("failed to store provider %s (%w)", addr, err)
+				}
 			}
 
 			if needsAdd {
@@ -277,6 +302,11 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	}
 
 	providerData.Warnings = meta.Warnings
+
+	if cfg.ForceRepoDataUpdate {
+		d.extractRepoInfo(ctx, addr, providerData)
+		repoInfoFetched = true
+	}
 
 	for _, version := range meta.Versions {
 		if err := version.Version.Validate(); err != nil {

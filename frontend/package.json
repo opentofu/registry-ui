@@ -7,10 +7,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "npm run eslint && npm run prettier:check",
+    "eslint": "eslint .",
     "test": "vitest",
     "preview": "vite preview",
     "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
     "generate-api-types": "openapi-typescript ../backend/internal/server/openapi.yml -o ./src/api.d.ts",
     "generate-assets": "pwa-assets-generator"
   },

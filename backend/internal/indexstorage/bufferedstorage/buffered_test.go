@@ -1,6 +1,7 @@
 package bufferedstorage_test
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path"
@@ -127,6 +128,41 @@ func TestSubdir(t *testing.T) {
 
 	assertFileDoesNotExist(t, ctx, buffer, "test/test/test.txt")
 	assertFileExists(t, ctx, buffer, "test/test.txt")
+}
+
+func TestSameContent(t *testing.T) {
+	const testContent = "Hello world!"
+	backingDir := t.TempDir()
+	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
+
+	ctx := tofutestutils.Context(t)
+
+	tofutestutils.Must(backingStorage.WriteFile(ctx, "test.txt", []byte(testContent)))
+
+	localDir := t.TempDir()
+	buffer := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), localDir, backingStorage, 25))
+	if _, err := os.Stat(path.Join(localDir, "test.txt")); err == nil {
+		t.Fatalf("Test file was present before fetched.")
+	}
+	readData, err := buffer.ReadFile(ctx, "test.txt")
+	if err != nil {
+		t.Fatalf("Could not read test file: %v", err)
+	}
+	if !bytes.Equal(readData, []byte(testContent)) {
+		t.Fatalf("The test file has incorrect contents: %s", readData)
+	}
+
+	if _, err = os.Stat(path.Join(localDir, "test.txt")); err != nil {
+		t.Fatalf("Test file was not present before after fetching: %v", err)
+	}
+	tofutestutils.Must(buffer.WriteFile(ctx, "test.txt", []byte(testContent)))
+	if buffer.UncommittedFiles() != 0 {
+		t.Fatalf("Uncommitted files despite same content.")
+	}
+	tofutestutils.Must(buffer.WriteFile(ctx, "test.txt", []byte(testContent+"!")))
+	if buffer.UncommittedFiles() != 1 {
+		t.Fatalf("No or multiple uncommitted files despite different content!")
+	}
 }
 
 func assertFileDoesNotExist(t *testing.T, ctx context.Context, storage indexstorage.API, file indexstorage.Path) {

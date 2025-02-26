@@ -326,6 +326,8 @@ definitions:
                 type: string
             name:
                 type: string
+            version_constraint:
+                type: string
         type: object
     ModuleResource:
         properties:
@@ -352,6 +354,10 @@ definitions:
             outputs:
                 additionalProperties:
                     $ref: '#/definitions/ModuleOutput'
+                type: object
+            provider_config:
+                additionalProperties:
+                    $ref: '#/definitions/ModuleProviderConfigSchema'
                 type: object
             resources:
                 items:
