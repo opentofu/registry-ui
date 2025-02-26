@@ -9,5 +9,9 @@ binding = "BUCKET"
 bucket_name = "registry-ui-api"
 preview_bucket_name = "registry-ui-api"
 
+[observability]
+enabled = true
+head_sampling_rate = 0.1
+
 [dev]
 ip = "0.0.0.0"
