@@ -11,7 +11,7 @@ preview_bucket_name = "registry-ui-api"
 
 [observability]
 enabled = true
-head_sampling_rate = 0.1
+head_sampling_rate = 0.1  # 10% of requests are logged
 
 [dev]
 ip = "0.0.0.0"
