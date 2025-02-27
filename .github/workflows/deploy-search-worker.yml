@@ -1,0 +1,31 @@
+name: Deploy Search Worker
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'search/worker/**'
+
+jobs:
+  deploy:
+    name: Run deploy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: search/worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # if we need to change node version, we need to change the Dockerfile on this folder as well
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm ci
+      - name: Deploy Wrangler
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          npm run deploy
