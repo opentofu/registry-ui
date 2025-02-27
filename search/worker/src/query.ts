@@ -13,14 +13,14 @@ const searchQuery = `
 											  ON e.addr ILIKE '%' || st.term || '%'
 												  OR e.description ILIKE '%' || st.term || '%'
 						  GROUP BY id, last_updated, type, addr, version, title, description, link_variables, document, popularity, warnings),
+	     max_popularity AS (SELECT max(popularity) AS max_popularity FROM term_matches tm),
 		 ranked_entities AS (SELECT *,
 								 /* The provider rank fudge ranks providers higher than their resources */
 									CASE WHEN type = 'provider' THEN 1 ELSE 0 END          AS provider_rank_fudge,
 								 /* When warnings are present, rank the provider lower because it's likely deprecated. */
 									CASE WHEN warnings > 0 THEN -1 ELSE 0 END              AS warnings_rank_fudge,
 								 /* Give a slight boost to providers with a higher star rating. */
-								 /* Coalesce is used when popularity is zero, to avoid division by zero errors */
-									tm.popularity / coalesce(NULLIF((SELECT max(popularity) FROM term_matches), 0), 1) AS popularity_rank,
+									tm.popularity / (SELECT CASE WHEN max_popularity > 0 THEN max_popularity ELSE 1 END FROM max_popularity) AS popularity_rank,
 								 /* Text similarity rankings, each taking a value from 0 to 1. */
 									similarity(tm.addr, $1)                                AS title_sim,
 									similarity(tm.description, $1)                         AS description_sim,
