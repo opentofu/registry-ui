@@ -11,6 +11,7 @@ jobs:
   deploy:
     name: Run deploy
     runs-on: ubuntu-latest
+    environment: cloudflare-worker
     defaults:
       run:
         working-directory: search/worker
