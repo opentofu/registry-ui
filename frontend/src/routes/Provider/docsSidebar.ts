@@ -20,6 +20,27 @@ const categoryLabelMap: Map<Category, string> = new Map([
   ["guides", "Guides"],
 ]);
 
+// filterSidebarItem takes a NestedItem and a searchFilter string and returns true if the item
+// should be displayed based on the search filter. It will return true if the item's name includes
+// all of the search words, or if any of the item's children satisfy the same. The search filter
+// is normalized into "words" by translating underscores and hyphens into spaces, and then splitting.
+// The result is a boolean indicating whether the item should be displayed in the sidebar.
+export function filterSidebarItem(
+  item: NestedItem,
+  searchFilter: string,
+): boolean {
+  const searchWords = searchFilter
+    .toLocaleLowerCase()
+    .replace(/_|-/g, " ")
+    .split(" ")
+    .filter((item) => !!item);
+  const itemName = item.name?.toLocaleLowerCase();
+  return !!(
+    searchWords.every((word) => itemName.includes(word)) ||
+    item.items?.some((subitem) => filterSidebarItem(subitem, searchFilter))
+  );
+}
+
 // transformStructure takes the data from the ProviderDocs and transforms it into a NestedItem array
 // representing the structure of the sidebar
 // The currentType and currentDoc are used to determine which item should be marked as active
