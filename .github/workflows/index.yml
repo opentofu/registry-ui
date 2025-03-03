@@ -18,8 +18,7 @@ jobs:
           ref: main
       - name: Setup go
         uses: actions/setup-go@v5
-        with:
-          go-version-file: 'backend/go.mod'
+        working-directory: backend
       - name: Cache tofu binary
         uses: actions/cache@v4
         with:
