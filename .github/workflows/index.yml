@@ -11,6 +11,9 @@ jobs:
   generate:
     name: Run generation
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,18 +21,15 @@ jobs:
           ref: main
       - name: Setup go
         uses: actions/setup-go@v5
-        working-directory: backend
       - name: Cache tofu binary
         uses: actions/cache@v4
         with:
-          path: ./backend/internal/moduleindex/moduleschema/testtofu
+          path: ./internal/moduleindex/moduleschema/testtofu
           key: tofu-binary
       - name: Build tofu
-        working-directory: backend
         run:
           go generate ./...
       - name: Update documentation
-        working-directory: backend
         env:
           AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
           AWS_ENDPOINT_URL_S3: ${{secrets.AWS_ENDPOINT_URL_S3}}

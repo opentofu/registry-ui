@@ -7,19 +7,20 @@ jobs:
   generate:
     name: Go generate
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup go
         uses: actions/setup-go@v5
-        working-directory: backend
       - name: Cache tofu binary
         uses: actions/cache@v4
         with:
-          path: ./backend/internal/moduleindex/moduleschema/testtofu
+          path: ./internal/moduleindex/moduleschema/testtofu
           key: tofu-binary
       - name: Run go generate
-        working-directory: backend
         run: go generate ./...
       - name: Check if there are any changes
         run: |
@@ -29,23 +30,22 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup go
         uses: actions/setup-go@v5
-        with:
-          go-version-file: 'backend/go.mod'
       - name: Cache tofu binary
         uses: actions/cache@v4
         with:
-          path: ./backend/internal/moduleindex/moduleschema/testtofu
+          path: ./internal/moduleindex/moduleschema/testtofu
           key: tofu-binary
       - name: Run go generate
-        working-directory: backend
         run: go generate ./...
       - name: Run tests
-        working-directory: backend
         run: |
           go test ./...
   frontend:
@@ -75,6 +75,9 @@ jobs:
   backend-lint:
     name: Backend Lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     strategy:
       matrix:
         modules:
@@ -85,8 +88,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup go
         uses: actions/setup-go@v5
-        with:
-          go-version-file: 'backend/go.mod'
       - name: Backend Linting
         uses: golangci/golangci-lint-action@v6
         with:
