@@ -21,7 +21,7 @@ jobs:
       - name: Cache tofu binary
         uses: actions/cache@v4
         with:
-          path: ./internal/moduleindex/moduleschema/testtofu
+          path: ./backend/internal/moduleindex/moduleschema/testtofu
           key: tofu-binary
       - name: Run go generate
         run: go generate ./...
@@ -47,7 +47,7 @@ jobs:
       - name: Cache tofu binary
         uses: actions/cache@v4
         with:
-          path: ./internal/moduleindex/moduleschema/testtofu
+          path: ./backend/internal/moduleindex/moduleschema/testtofu
           key: tofu-binary
       - name: Run go generate
         run: go generate ./...
