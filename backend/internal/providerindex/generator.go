@@ -185,76 +185,92 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 		}
 	}
 
-	var eg errgroup.Group
-	eg.SetLimit(25)
-
 	lock := &sync.Mutex{}
 	var providersToAdd []*providertypes.Provider
 	var providersToRemove []provider.Addr
-	for _, addr := range providers {
-		eg.Go(func() error {
-			blocked, blockedReason := d.blocklist.IsProviderBlocked(addr)
 
-			// We are fetching the provider entry from the megaindex and storing it
-			// further down below as a separate index file so the frontend has an easier time
-			// fetching it.
-			providerEntry := existingProviders.GetProvider(addr)
-			// originalProviderEntry serves the purpose of being an original copy to compare to
-			// so we don't write the index if it hasn't actually been modified to save costs.
-			var originalProviderEntry *providertypes.Provider
-			needsAdd := false
-			if providerEntry == nil {
-				providerEntry = &providertypes.Provider{
-					Addr:          providertypes.Addr(addr),
-					Link:          "",
-					Description:   "",
-					Versions:      nil,
-					IsBlocked:     blocked,
-					BlockedReason: blockedReason,
-				}
-				needsAdd = true
-			} else {
-				originalProviderEntry = providerEntry.DeepCopy()
+	processProviders := func(filterHC bool) error {
+		var eg errgroup.Group
+		eg.SetLimit(25)
+		for _, addr := range providers {
+			isHC := addr.Namespace == "hashicorp"
+			if (filterHC && !isHC) || (!filterHC && isHC) {
+				continue
 			}
 
-			// scrape the docs into their own directory
-			if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry, cfg, blocked, blockedReason); err != nil {
-				var notFound *metadata.ProviderNotFoundError
-				if errors.As(err, &notFound) {
-					d.log.Info(ctx, "Provider %s not found, removing from UI... (%v)", addr, err)
+			eg.Go(func() error {
+				blocked, blockedReason := d.blocklist.IsProviderBlocked(addr)
+
+				// We are fetching the provider entry from the megaindex and storing it
+				// further down below as a separate index file so the frontend has an easier time
+				// fetching it.
+				providerEntry := existingProviders.GetProvider(addr)
+				// originalProviderEntry serves the purpose of being an original copy to compare to
+				// so we don't write the index if it hasn't actually been modified to save costs.
+				var originalProviderEntry *providertypes.Provider
+				needsAdd := false
+				if providerEntry == nil {
+					providerEntry = &providertypes.Provider{
+						Addr:          providertypes.Addr(addr),
+						Link:          "",
+						Description:   "",
+						Versions:      nil,
+						IsBlocked:     blocked,
+						BlockedReason: blockedReason,
+					}
+					needsAdd = true
+				} else {
+					originalProviderEntry = providerEntry.DeepCopy()
+				}
+
+				// scrape the docs into their own directory
+				if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry, cfg, blocked, blockedReason); err != nil {
+					var notFound *metadata.ProviderNotFoundError
+					if errors.As(err, &notFound) {
+						d.log.Info(ctx, "Provider %s not found, removing from UI... (%v)", addr, err)
+						lock.Lock()
+						providersToRemove = append(providersToRemove, addr)
+						lock.Unlock()
+						return nil
+					}
+					d.log.Error(ctx, "Failed to scrape provider %s/%s: %v", addr.Namespace, addr.Name, err)
+					return err
+				}
+
+				// Here we compare the provider entry to its original copy to make sure
+				// we are only writing this index if needed. This is needed because writes
+				// on R2 cost money, whereas reads don't and updating all the provider and
+				// module indexes on every run costs ~300$ per month.
+				if originalProviderEntry == nil || !originalProviderEntry.Equals(providerEntry) {
+					if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
+						return fmt.Errorf("failed to store provider %s (%w)", addr, err)
+					}
+				}
+
+				if needsAdd {
 					lock.Lock()
-					providersToRemove = append(providersToRemove, addr)
+					providersToAdd = append(providersToAdd, providerEntry)
 					lock.Unlock()
-					return nil
 				}
-				d.log.Error(ctx, "Failed to scrape provider %s/%s: %v", addr.Namespace, addr.Name, err)
-				return err
-			}
 
-			// Here we compare the provider entry to its original copy to make sure
-			// we are only writing this index if needed. This is needed because writes
-			// on R2 cost money, whereas reads don't and updating all the provider and
-			// module indexes on every run costs ~300$ per month.
-			if originalProviderEntry == nil || !originalProviderEntry.Equals(providerEntry) {
-				if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
-					return fmt.Errorf("failed to store provider %s (%w)", addr, err)
-				}
-			}
+				return nil
 
-			if needsAdd {
-				lock.Lock()
-				providersToAdd = append(providersToAdd, providerEntry)
-				lock.Unlock()
-			}
+			})
+		}
 
-			return nil
-
-		})
+		if err := eg.Wait(); err != nil {
+			return err
+		}
+		return nil
 	}
 
-	if err := eg.Wait(); err != nil {
+	if err := processProviders(false); err != nil {
 		return err
 	}
+	if err := processProviders(true); err != nil {
+		return err
+	}
+
 	existingProviders.AddProviders(providersToAdd...)
 	// TODO remove providers that are no longer needed.
 

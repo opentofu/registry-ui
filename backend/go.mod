@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.30.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3
 	github.com/go-enry/go-license-detector/v4 v4.3.1
-	github.com/opentofu/libregistry v0.0.0-20241211143257-e782fd1d000f
+	github.com/opentofu/libregistry v0.0.0-20250303133315-b7639d715847
 	github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09
 	github.com/opentofu/tofutestutils v0.0.0-20240821111804-5fcfb797e0a7
 	golang.org/x/sync v0.10.0
