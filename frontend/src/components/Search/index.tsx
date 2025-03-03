@@ -188,7 +188,10 @@ export function Search({
   const canShowNoResultsInfo = filtered.length === 0 && !canShowLoadingInfo;
   const canShowResults = !canShowLoadingInfo && !canShowNoResultsInfo;
 
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, cannotPressEnter: boolean) => {
+  const onKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    cannotPressEnter: boolean,
+  ) => {
     if (event.code === "Enter" && cannotPressEnter) {
       event.preventDefault();
     }

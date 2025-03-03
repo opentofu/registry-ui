@@ -51,25 +51,24 @@ jobs:
   frontend:
     name: Frontend Lint and Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
       - name: Install dependencies
-        working-directory: frontend
         run:
           npm ci
       - name: Run ESLint
-        working-directory: frontend
         run:
           npm run eslint
       - name: Run Prettier Check
-        working-directory: frontend
         run:
           npm run prettier:check
       - name: Run Tests
-        working-directory: frontend
         run:
           npm run test
   backend-lint:
