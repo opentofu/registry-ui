@@ -6,7 +6,5 @@ interface DateTimeProps {
 
 export function DateTime({ value }: DateTimeProps) {
   const dateTimeObj = dateFormat.format(new Date(value));
-  return (
-    <time dateTime={value}>{dateTimeObj}</time>
-  );
+  return <time dateTime={value}>{dateTimeObj}</time>;
 }
