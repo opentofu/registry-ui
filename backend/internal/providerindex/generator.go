@@ -237,6 +237,16 @@ func (d *documentationGenerator) scrape(ctx context.Context, providers []provide
 					return err
 				}
 
+				// Some providers may have versions detected by the registry, but somehow not in libregistry+scrape
+				// Filter them out here for now
+				if len(providerEntry.Versions) == 0 {
+					d.log.Info(ctx, "Provider %s does not have any versions, removing from UI... (%v)", addr, err)
+					lock.Lock()
+					providersToRemove = append(providersToRemove, addr)
+					lock.Unlock()
+					return nil
+				}
+
 				// Here we compare the provider entry to its original copy to make sure
 				// we are only writing this index if needed. This is needed because writes
 				// on R2 cost money, whereas reads don't and updating all the provider and
