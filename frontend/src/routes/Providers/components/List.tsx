@@ -27,16 +27,16 @@ export function ProvidersList() {
       components={{
         List: ProvidersListWrapper,
       }}
-      itemContent={(_, provider) => (
+      itemContent={(_, provider) =>
         provider.versions && (
           <ProvidersCardItem
-          key={provider.addr.namespace + provider.addr.name}
-          addr={provider.addr}
-          description={provider.description}
-          latestVersion={provider.versions[0]}
+            key={provider.addr.namespace + provider.addr.name}
+            addr={provider.addr}
+            description={provider.description}
+            latestVersion={provider.versions[0]}
           />
         )
-      )}
+      }
     />
   );
 }
