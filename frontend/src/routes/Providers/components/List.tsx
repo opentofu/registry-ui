@@ -28,12 +28,14 @@ export function ProvidersList() {
         List: ProvidersListWrapper,
       }}
       itemContent={(_, provider) => (
-        <ProvidersCardItem
+        provider.versions && (
+          <ProvidersCardItem
           key={provider.addr.namespace + provider.addr.name}
           addr={provider.addr}
           description={provider.description}
           latestVersion={provider.versions[0]}
-        />
+          />
+        )
       )}
     />
   );
