@@ -1252,20 +1252,6 @@ paths:
                     description: Invalid search query.
             tags:
                 - Search
-    /registry/docs/search.ndjson:
-        get:
-            operationId: GetSearchIndex
-            produces:
-                - application/x-ndjson
-            responses:
-                "200":
-                    description: A newline-delimited search index suitable for insertion into a database. The records are not guaranteed to be in order. Each item is a GeneratedIndexItem.
-                    schema:
-                        items:
-                            $ref: '#/definitions/GeneratedIndexItem'
-                        type: array
-            tags:
-                - Search
 schemes:
     - https
 swagger: "2.0"
