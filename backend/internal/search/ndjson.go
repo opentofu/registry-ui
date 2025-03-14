@@ -6,10 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
-
-	"github.com/opentofu/libregistry/logger"
 
 	"github.com/opentofu/registry-ui/internal/search/searchstorage"
 	"github.com/opentofu/registry-ui/internal/search/searchtypes"
@@ -26,10 +25,6 @@ func New(
 		}
 	}
 
-	if err := c.applyDefaults(); err != nil {
-		return nil, err
-	}
-
 	return &api{
 		cfg:     c,
 		storage: storage,
@@ -38,19 +33,12 @@ func New(
 }
 
 type Config struct {
-	Logger logger.Logger
-}
-
-func (c *Config) applyDefaults() error {
-	if c.Logger == nil {
-		c.Logger = logger.NewNoopLogger()
-	}
-	return nil
+	Logger *slog.Logger
 }
 
 type Opt func(c *Config) error
 
-func WithLogger(log logger.Logger) Opt {
+func WithLogger(log *slog.Logger) Opt {
 	return func(c *Config) error {
 		c.Logger = log
 		return nil

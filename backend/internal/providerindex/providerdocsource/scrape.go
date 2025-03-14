@@ -8,19 +8,20 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
 
-	"github.com/opentofu/libregistry/logger"
-	"github.com/opentofu/libregistry/vcs"
 	"gopkg.in/yaml.v3"
 
 	"github.com/opentofu/registry-ui/internal/license"
-	"github.com/opentofu/registry-ui/internal/license/vcslinkfetcher"
+	"github.com/opentofu/registry-ui/internal/providerindex/providerindexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
+	"github.com/opentofu/registry-ui/internal/registry/provider"
 )
 
 // maxFileSize limits the amount of data read from the docs to 1MB to prevent memory-based DoS.
@@ -28,83 +29,70 @@ const maxFileSize = 1024 * 1024
 
 var tplTooLarge = template.Must(template.New("").Parse(string(errorTooLarge)))
 
-func New(licenseDetector license.Detector, logger logger.Logger) (API, error) {
-	return &source{licenseDetector: licenseDetector, logger: logger.WithName("Provider doc source")}, nil
-}
+func Process(ctx context.Context, raw provider.Provider, workingCopy string, version providertypes.ProviderVersionDescriptor, licenseDetector license.Detector, logger *slog.Logger, storage providerindexstorage.API) (providertypes.ProviderVersion, error) {
+	licenses, err := licenseDetector(workingCopy, raw.RepositoryURL()+"/blob/"+version.ID)
+	if err != nil {
+		return providertypes.ProviderVersion{}, fmt.Errorf("failed to detect licenses")
+	}
 
-type source struct {
-	licenseDetector license.Detector
-	logger          logger.Logger
-}
+	doc := providertypes.ProviderVersion{
+		ProviderVersionDescriptor: version,
+		CDKTFDocs:                 make(map[providertypes.CDKTFLanguage]providertypes.ProviderDocs),
+		Licenses:                  licenses,
+		IncompatibleLicense:       !licenses.IsRedistributable(),
+		Link:                      raw.RepositoryURL() + "/tree/" + version.ID,
+	}
 
-func (s source) Describe(ctx context.Context, workingCopy vcs.WorkingCopy, blocked bool, blockedReason string) (ProviderDocumentation, error) {
-	licenses, err := s.licenseDetector.Detect(
-		ctx,
-		workingCopy,
-		license.WithLinkFetcher(vcslinkfetcher.Fetcher(
+	if !licenses.IsRedistributable() {
+		// Store error in the index
+		err := storage.StoreProviderDocItem(
 			ctx,
-			workingCopy.Repository(),
-			workingCopy.Version(),
-			workingCopy.Client(),
-		)),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to detect licenses")
+			providertypes.Addr(raw),
+			version.ID,
+			providertypes.DocItemKindRoot,
+			"index",
+			errorIncompatibleLicense,
+		)
+		return doc, err
 	}
 
-	link, err := workingCopy.Client().GetVersionBrowseURL(ctx, workingCopy.Repository(), workingCopy.Version())
-	if err != nil {
-		s.logger.Warn(ctx, "Cannot determine repository link for provider %s version %s (%v)", workingCopy.Repository(), workingCopy.Version(), err)
-	}
-
-	doc := &documentation{
-		docs:     newProviderDoc(),
-		link:     link,
-		cdktf:    map[string]Documentation{},
-		licenses: licenses,
-	}
-	switch {
-	case blocked:
-		wr := &bytes.Buffer{}
-		if err := errorMessageBlockedTemplate.Execute(wr, blockedReason); err != nil {
-			return doc, fmt.Errorf("failed to execute blocked template (%w)", err)
-		}
-		doc.docs.root = docItem{
-			Name:        "index",
-			Title:       "",
-			Subcategory: "",
-			Description: "",
-			EditLink:    "",
-			isError:     true,
-			contents:    wr.Bytes(),
-		}
-		return doc, nil
-	case !doc.licenses.IsRedistributable():
-		doc.docs.root = docItem{
-			Name:        "index",
-			Title:       "",
-			Subcategory: "",
-			Description: "",
-			EditLink:    "",
-			isError:     true,
-			contents:    errorIncompatibleLicense,
-		}
-		return doc, nil
+	s := source{
+		ctx:         ctx,
+		raw:         raw,
+		version:     version.ID,
+		logger:      logger,
+		workingCopy: workingCopy,
+		storage:     storage,
 	}
 	for _, dir := range []string{
 		path.Join("website", "docs"),
 		"docs",
 	} {
-		// Note: we prefer website/docs over docs and not include docs because some providers
-		// (such as AWS) use the docs directory for internal documentation.
-		foundDocs, err := s.scrapeDir(ctx, dir, workingCopy, doc)
+		if _, err := os.Stat(path.Join(s.workingCopy, dir)); err != nil {
+			if os.IsNotExist(err) {
+				// Note: we prefer website/docs over docs and not include docs because some providers
+				// (such as AWS) use the docs directory for internal documentation.
+				continue
+			}
+			return doc, err
+		}
+
+		doc.Docs, err = s.scrapeDocumentation(dir, "")
 		if err != nil {
-			return nil, err
+			return doc, fmt.Errorf("failed to scrape documentation directory (%w)", err)
 		}
-		if foundDocs {
-			break
+
+		doc.CDKTFDocs, err = s.scrapeCdktf(dir)
+		if err != nil {
+			return doc, fmt.Errorf("failed to scrape documentation directory (%w)", err)
 		}
+		break
 	}
+
+	if err := storage.StoreProviderVersion(ctx, providertypes.Addr(raw), doc); err != nil {
+		return doc, err
+	}
+
 	return doc, nil
 }
 
@@ -114,28 +102,25 @@ func normalizeName(name string) string {
 	return normalizeRe.ReplaceAllString(name, "")
 }
 
-func (s source) scrapeDir(ctx context.Context, dir string, workingCopy vcs.WorkingCopy, doc *documentation) (bool, error) {
-	if doc.docs == nil {
-		doc.docs = newProviderDoc()
-	}
-	_, err := workingCopy.ReadDir(dir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return false, err
-	}
+type source struct {
+	ctx         context.Context
+	raw         provider.Provider
+	version     string
+	logger      *slog.Logger
+	workingCopy string
+	storage     providerindexstorage.API
+}
 
-	if err := s.scrapeDocumentation(ctx, workingCopy, dir, doc.docs); err != nil {
-		return true, fmt.Errorf("failed to scrape documentation directory (%w)", err)
-	}
+func (s source) scrapeCdktf(dir string) (map[providertypes.CDKTFLanguage]providertypes.ProviderDocs, error) {
+	cdktf := make(map[providertypes.CDKTFLanguage]providertypes.ProviderDocs)
+
 	cdktfDir := path.Join(dir, "cdktf")
-	cdktfItems, err := workingCopy.ReadDir(cdktfDir)
+	cdktfItems, err := os.ReadDir(path.Join(s.workingCopy, cdktfDir))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return true, nil
+			return cdktf, nil
 		}
-		return true, fmt.Errorf("failed to list CDKTF documentation directory (%w)", err)
+		return cdktf, fmt.Errorf("failed to list CDKTF documentation directory (%w)", err)
 	}
 	for _, item := range cdktfItems {
 		if !item.IsDir() {
@@ -143,19 +128,19 @@ func (s source) scrapeDir(ctx context.Context, dir string, workingCopy vcs.Worki
 		}
 		lang := providertypes.CDKTFLanguage(item.Name())
 		if err := lang.Validate(); err != nil {
-			s.logger.Debug(ctx, "%s is not a valid CDKTF language, skipping... (%v)", item.Name(), err)
+			s.logger.DebugContext(s.ctx, "%s is not a valid CDKTF language, skipping... (%v)", item.Name(), err)
 			continue
 		}
-		cdktfDoc := newProviderDoc()
-		doc.cdktf[string(lang)] = cdktfDoc
-		if err := s.scrapeDocumentation(ctx, workingCopy, path.Join(cdktfDir, string(lang)), cdktfDoc); err != nil {
-			return true, fmt.Errorf("failed to scrape CDKTF documentation for %s (%w)", item.Name(), err)
+		cdktfDoc, err := s.scrapeDocumentation(path.Join(cdktfDir, string(lang)), lang)
+		if err != nil {
+			return cdktf, fmt.Errorf("failed to scrape CDKTF documentation for %s (%w)", item.Name(), err)
 		}
+		cdktf[lang] = cdktfDoc
 	}
-	return true, nil
+	return cdktf, nil
 }
 
-func (s source) scrapeDocumentation(ctx context.Context, workingCopy vcs.WorkingCopy, dir string, doc *providerDoc) error {
+func (s source) scrapeDocumentation(dir string, language providertypes.CDKTFLanguage) (providertypes.ProviderDocs, error) {
 	/*
 		Right now in the existing registry implementations, provider documentation can come in a couple different formats:
 
@@ -189,53 +174,66 @@ func (s source) scrapeDocumentation(ctx context.Context, workingCopy vcs.Working
 		Once the docs have been downloaded, we need to rejig them into the new format, the directory should already be normalized (ie, files are not inside ./website/docs/guides, but rather ./guides)
 	*/
 
-	if err := s.extractRootDoc(ctx, workingCopy, dir, doc); err != nil {
-		return err
+	docs := providertypes.ProviderDocs{
+		// Initialize for non-null api output
+		Resources:   make([]providertypes.ProviderDocItem, 0),
+		DataSources: make([]providertypes.ProviderDocItem, 0),
+		Functions:   make([]providertypes.ProviderDocItem, 0),
+		Guides:      make([]providertypes.ProviderDocItem, 0),
+	}
+	var err error
+
+	docs.Root, err = s.extractRootDoc(dir, language)
+	if err != nil {
+		return docs, err
 	}
 
-	for _, scrapeType := range []struct {
+	for _, scrape := range []struct {
 		dir         string
-		destination *map[string]DocumentationItem
+		destination *[]providertypes.ProviderDocItem
+		kind        providertypes.DocItemKind
 	}{
-		{"r", &doc.resources},
-		{"resources", &doc.resources},
-		{"d", &doc.datasources},
-		{"data-sources", &doc.datasources},
-		{"f", &doc.functions},
-		{"functions", &doc.functions},
-		{"guides", &doc.guides},
+		{"r", &docs.Resources, providertypes.DocItemKindResource},
+		{"resources", &docs.Resources, providertypes.DocItemKindResource},
+		{"d", &docs.DataSources, providertypes.DocItemKindDataSource},
+		{"data-sources", &docs.DataSources, providertypes.DocItemKindDataSource},
+		{"f", &docs.Functions, providertypes.DocItemKindFunction},
+		{"functions", &docs.Functions, providertypes.DocItemKindFunction},
+		{"guides", &docs.Guides, providertypes.DocItemKindGuide},
 	} {
-		sourceDir := path.Join(dir, scrapeType.dir)
-		if err := s.scrapeType(ctx, workingCopy, sourceDir, scrapeType.destination); err != nil {
-			return fmt.Errorf("failed to scrape %s", sourceDir)
+		sourceDir := path.Join(dir, scrape.dir)
+		found, err := s.scrapeType(sourceDir, language, scrape.kind)
+		if err != nil {
+			return docs, fmt.Errorf("failed to scrape %s, %w", sourceDir, err)
 		}
+		(*scrape.destination) = append(*scrape.destination, found...)
 	}
-	return nil
+	return docs, nil
 }
 
-func (s source) extractRootDoc(ctx context.Context, workingCopy vcs.WorkingCopy, dir string, doc *providerDoc) error {
-	items, err := workingCopy.ReadDir(dir)
+func (s source) extractRootDoc(dir string, language providertypes.CDKTFLanguage) (*providertypes.ProviderDocItem, error) {
+	items, err := os.ReadDir(filepath.Join(s.workingCopy, dir))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("failed to read directory %s (%w)", dir, err)
+		return nil, fmt.Errorf("failed to read directory %s (%w)", dir, err)
 	}
 	for _, item := range items {
 		if item.IsDir() {
 			continue
 		}
 		if strings.HasPrefix(item.Name(), "index.") {
-			root, err := s.readDocFile(ctx, dir, item, workingCopy)
+			root, err := s.readDocFile(dir, item, language, providertypes.DocItemKindRoot)
 			if err != nil {
-				return fmt.Errorf("failed to parse %s (%w)", item.Name(), err)
+				return nil, fmt.Errorf("failed to parse %s (%w)", item.Name(), err)
 			}
 			if root != nil {
-				doc.root = root
+				return root, nil
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 var suffixes = []string{
@@ -247,37 +245,38 @@ var suffixes = []string{
 	".markdown",
 }
 
-func (s source) scrapeType(ctx context.Context, workingCopy vcs.WorkingCopy, dir string, destination *map[string]DocumentationItem) error {
-	items, err := workingCopy.ReadDir(dir)
+func (s source) scrapeType(dir string, language providertypes.CDKTFLanguage, kind providertypes.DocItemKind) ([]providertypes.ProviderDocItem, error) {
+	items, err := os.ReadDir(filepath.Join(s.workingCopy, dir))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("failed to read directory %s (%w)", dir, err)
+		return nil, fmt.Errorf("failed to read directory %s (%w)", dir, err)
 	}
+	var destination []providertypes.ProviderDocItem
 	for _, item := range items {
 		if item.IsDir() {
 			continue
 		}
 
-		doc, err := s.readDocFile(ctx, dir, item, workingCopy)
+		doc, err := s.readDocFile(dir, item, language, kind)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if doc != nil {
-			(*destination)[doc.Name] = doc
+			destination = append(destination, *doc)
 		}
 
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
+		case <-s.ctx.Done():
+			return nil, s.ctx.Err()
 		default:
 		}
 	}
-	return nil
+	return destination, nil
 }
 
-func (s source) readDocFile(ctx context.Context, dir string, item fs.DirEntry, workingCopy vcs.WorkingCopy) (*docItem, error) {
+func (s source) readDocFile(dir string, item fs.DirEntry, language providertypes.CDKTFLanguage, itemKind providertypes.DocItemKind) (*providertypes.ProviderDocItem, error) {
 	fn := path.Join(dir, item.Name())
 	name := normalizeName(path.Base(fn))
 	suffixFound := false
@@ -292,7 +291,7 @@ func (s source) readDocFile(ctx context.Context, dir string, item fs.DirEntry, w
 		return nil, nil
 	}
 	if err := providertypes.DocItemName(name).Validate(); err != nil {
-		s.logger.Warn(ctx, "Invalid document item name %s, skipping... (%v)", name, err)
+		s.logger.WarnContext(s.ctx, "Invalid document item name %s, skipping... (%v)", name, err)
 		return nil, nil
 	}
 
@@ -302,37 +301,63 @@ func (s source) readDocFile(ctx context.Context, dir string, item fs.DirEntry, w
 	}
 	var contents []byte
 	if stat.Size() > maxFileSize {
-		contents, err = s.getFileTooLargeError(ctx, workingCopy, fn)
+		contents, err = s.getFileTooLargeError(fn)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		contents, err = s.readFile(ctx, workingCopy, fn)
+		contents, err = s.readFile(fn)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	doc := &docItem{
-		Name:        name,
-		Title:       "",
-		Subcategory: "",
-		Description: "",
-		EditLink:    "",
-		contents:    contents,
-	}
-	if err := s.ExtractFrontmatterPermissively(ctx, contents, doc); err != nil {
-		s.logger.Info(ctx, "Failed to extract frontmatter from %s (%v)", fn, err)
-	}
-	doc.EditLink, err = workingCopy.Client().GetFileViewURL(ctx, workingCopy.Repository(), workingCopy.Version(), fn)
+	doc, err := s.ExtractFrontmatterPermissively(contents)
 	if err != nil {
-		s.logger.Warn(ctx, "Cannot determine edit link for %s (%v)", fn, err)
+		s.logger.InfoContext(s.ctx, "Failed to extract frontmatter from %s (%v)", fn, err)
 	}
+
+	doc.Name = providertypes.DocItemName(name)
+	doc.EditLink = fmt.Sprintf("%s/blob/%s/%s", s.raw.RepositoryURL(), s.version, fn)
+
+	if doc.Title == "" {
+		doc.Title = string(doc.Name)
+	}
+
+	if language == "" {
+		if err := s.storage.StoreProviderDocItem(
+			s.ctx,
+			providertypes.Addr(s.raw),
+			s.version,
+			itemKind,
+			providertypes.DocItemName(name),
+			contents,
+		); err != nil {
+			return nil, fmt.Errorf("failed to store documentation item %s (%w)", name, err)
+		}
+
+	} else {
+		if err := s.storage.StoreProviderCDKTFDocItem(
+			s.ctx,
+			providertypes.Addr(s.raw),
+			s.version,
+			language,
+			itemKind,
+			providertypes.DocItemName(name),
+			contents,
+		); err != nil {
+			return nil, fmt.Errorf("failed to store CDKTF documentation item %s for language %s (%w)", name, language, err)
+		}
+	}
+
+	// TODO cam72cam writefile!
+	//
+
 	return doc, nil
 }
 
-func (s source) readFile(_ context.Context, workingCopy vcs.WorkingCopy, fn string) ([]byte, error) {
-	fh, err := workingCopy.Open(fn)
+func (s source) readFile(fn string) ([]byte, error) {
+	fh, err := os.Open(filepath.Join(s.workingCopy, fn))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s (%w)", fn, err)
 	}
@@ -347,20 +372,16 @@ func (s source) readFile(_ context.Context, workingCopy vcs.WorkingCopy, fn stri
 	return contents, nil
 }
 
-func (s source) getFileTooLargeError(ctx context.Context, workingCopy vcs.WorkingCopy, fn string) ([]byte, error) {
+func (s source) getFileTooLargeError(fn string) ([]byte, error) {
 	wr := &bytes.Buffer{}
-	vcsClient := workingCopy.Client()
-	viewURL, err := vcsClient.GetFileViewURL(ctx, workingCopy.Repository(), workingCopy.Version(), fn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get view URL for %s (%w)", fn, err)
-	}
+	viewURL := fmt.Sprintf("%s/blob/%s/%s/%s", s.raw.RepositoryURL(), s.version, fn)
 	if err := tplTooLarge.Execute(wr, viewURL); err != nil {
 		return nil, fmt.Errorf("failed to render template (%w)", err)
 	}
 	return wr.Bytes(), nil
 }
 
-func (s source) extractFrontmatter(_ context.Context, contents []byte, doc *docItem) error {
+func (s source) extractFrontmatter(contents []byte) (*providertypes.ProviderDocItem, error) {
 	scanner := bufio.NewScanner(bytes.NewReader(contents))
 	var frontMatterLines []string
 	capturing := false
@@ -382,20 +403,29 @@ func (s source) extractFrontmatter(_ context.Context, contents []byte, doc *docI
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("failed to read front matter (%w)", err)
+		return nil, fmt.Errorf("failed to read front matter (%w)", err)
 	}
 
 	frontMatterString := strings.Join(frontMatterLines, "\n")
-	if err := yaml.Unmarshal([]byte(frontMatterString), &doc); err != nil {
-		return fmt.Errorf("failed to unmarshal front matter (%w)", err)
+	var yamlTarget struct {
+		Title       string `yaml:"page_title"`  // The page title taken from the frontmatter
+		Subcategory string `yaml:"subcategory"` // The subcategory of the resource, data source, or function, taken from the frontmatter
+		Description string `yaml:"description"` // The description of the resource.
 	}
-	return nil
+	if err := yaml.Unmarshal([]byte(frontMatterString), &yamlTarget); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal front matter (%w)", err)
+	}
+	return &providertypes.ProviderDocItem{
+		Title:       yamlTarget.Title,
+		Subcategory: yamlTarget.Subcategory,
+		Description: yamlTarget.Description,
+	}, nil
 }
 
-func (s source) ExtractFrontmatterPermissively(ctx context.Context, contents []byte, doc *docItem) error {
+func (s source) ExtractFrontmatterPermissively(contents []byte) (*providertypes.ProviderDocItem, error) {
 	// Attempt to extract it as YAML first
-	if err := s.extractFrontmatter(ctx, contents, doc); err == nil {
-		return nil
+	if doc, err := s.extractFrontmatter(contents); err == nil {
+		return doc, nil
 	}
 
 	// otherwise, go again and this time be as loose as we can, parsing it manually :(
@@ -448,8 +478,10 @@ func (s source) ExtractFrontmatterPermissively(ctx context.Context, contents []b
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("failed to read front matter (%w)", err)
+		return nil, fmt.Errorf("failed to read front matter (%w)", err)
 	}
+
+	var doc providertypes.ProviderDocItem
 
 	// Assign the accumulated values to the docItem fields
 	for key, buffer := range multilineBuffers {
@@ -464,5 +496,5 @@ func (s source) ExtractFrontmatterPermissively(ctx context.Context, contents []b
 		}
 	}
 
-	return nil
+	return &doc, nil
 }

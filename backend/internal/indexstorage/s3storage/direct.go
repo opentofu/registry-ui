@@ -51,7 +51,7 @@ func (d directAPI) ReadFile(ctx context.Context, objectPath indexstorage.Path) (
 	if err := finalPath.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid path %s (%w)", finalPath, err)
 	}
-	d.cfg.logger.Trace(ctx, "Downloading %s ...", finalPath)
+	d.cfg.logger.DebugContext(ctx, "Downloading %s ...", finalPath)
 	object, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(d.cfg.Bucket),
 		Key:    aws.String(string(finalPath)),
@@ -61,10 +61,10 @@ func (d directAPI) ReadFile(ctx context.Context, objectPath indexstorage.Path) (
 		var notFoundError *types.NotFound
 		if errors.As(err, &noSuchKey) || errors.As(err, &notFoundError) {
 			// TODO the higher level implementations rely on os.IsNotExist(), which is not satisfied by wrapped errors.
-			d.cfg.logger.Trace(ctx, "Object %s does not exist (%v). This is normal, don't worry.", finalPath, err)
+			d.cfg.logger.DebugContext(ctx, "Object %s does not exist (%v). This is normal, don't worry.", finalPath, err)
 			return nil, fs.ErrNotExist
 		}
-		d.cfg.logger.Warn(ctx, "Downloading %s failed (%v).", finalPath, err)
+		d.cfg.logger.WarnContext(ctx, "Downloading %s failed (%v).", finalPath, err)
 		return nil, fmt.Errorf("failed to request %s (%w)", finalPath, err)
 	}
 	body := object.Body
@@ -73,10 +73,10 @@ func (d directAPI) ReadFile(ctx context.Context, objectPath indexstorage.Path) (
 	}()
 	data, err := io.ReadAll(body)
 	if err != nil {
-		d.cfg.logger.Warn(ctx, "Downloading %s failed (%v).", finalPath, err)
+		d.cfg.logger.WarnContext(ctx, "Downloading %s failed (%v).", finalPath, err)
 		return nil, fmt.Errorf("failed to read %s (%w)", finalPath, err)
 	}
-	d.cfg.logger.Trace(ctx, "Downloaded %s.", finalPath)
+	d.cfg.logger.DebugContext(ctx, "Downloaded %s.", finalPath)
 	return data, nil
 }
 
@@ -85,7 +85,7 @@ func (d directAPI) WriteFile(ctx context.Context, objectPath indexstorage.Path, 
 	if err := finalPath.Validate(); err != nil {
 		return fmt.Errorf("invalid path %s (%w)", finalPath, err)
 	}
-	d.cfg.logger.Trace(ctx, "Uploading %s ...", finalPath)
+	d.cfg.logger.DebugContext(ctx, "Uploading %s ...", finalPath)
 	contentType := "application/octet-stream"
 	if strings.HasSuffix(string(objectPath), ".html") {
 		contentType = "text/html"
@@ -101,10 +101,10 @@ func (d directAPI) WriteFile(ctx context.Context, objectPath indexstorage.Path, 
 		Body:        bytes.NewReader(contents),
 		ContentType: aws.String(contentType),
 	}); err != nil {
-		d.cfg.logger.Warn(ctx, "Uploading %s failed (%v).", finalPath, err)
+		d.cfg.logger.WarnContext(ctx, "Uploading %s failed (%v).", finalPath, err)
 		return fmt.Errorf("failed to put %s (%w)", objectPath, err)
 	}
-	d.cfg.logger.Trace(ctx, "Uploaded %s.", finalPath)
+	d.cfg.logger.DebugContext(ctx, "Uploaded %s.", finalPath)
 	return nil
 }
 
@@ -114,22 +114,22 @@ func (d directAPI) RemoveAll(ctx context.Context, objectPath indexstorage.Path) 
 		return fmt.Errorf("invalid path %s (%w)", finalPath, err)
 	}
 
-	d.cfg.logger.Trace(ctx, "Deleting %s/* ...", string(finalPath))
+	d.cfg.logger.DebugContext(ctx, "Deleting %s/* ...", string(finalPath))
 	var continuationToken *string
 	i := 1
 	for {
-		d.cfg.logger.Trace(ctx, "Fetching object list for %s [%d] ...", string(finalPath), i)
+		d.cfg.logger.DebugContext(ctx, "Fetching object list for %s [%d] ...", string(finalPath), i)
 		listResponse, err := d.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 			Bucket:            aws.String(d.cfg.Bucket),
 			ContinuationToken: continuationToken,
 			Prefix:            aws.String(string(finalPath) + "/"),
 		})
 		if err != nil {
-			d.cfg.logger.Warn(ctx, "Fetching object list for %s [%d] failed (%v).", string(finalPath), i, err)
+			d.cfg.logger.WarnContext(ctx, "Fetching object list for %s [%d] failed (%v).", string(finalPath), i, err)
 			return fmt.Errorf("failed to list objects with prefix %s (%w)", objectPath, err)
 		}
 		if len(listResponse.Contents) == 0 {
-			d.cfg.logger.Trace(ctx, "No objects to delete under %s.", string(finalPath))
+			d.cfg.logger.DebugContext(ctx, "No objects to delete under %s.", string(finalPath))
 			return nil
 		}
 		objects := make([]types.ObjectIdentifier, len(listResponse.Contents))
@@ -138,7 +138,7 @@ func (d directAPI) RemoveAll(ctx context.Context, objectPath indexstorage.Path) 
 				Key: object.Key,
 			}
 		}
-		d.cfg.logger.Trace(ctx, "Deleting %d object(s) matching %s/* [%d] ...", finalPath, i)
+		d.cfg.logger.DebugContext(ctx, "Deleting %d object(s) matching %s/* [%d] ...", finalPath, i)
 		if _, err := d.client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 			Bucket: aws.String(d.cfg.Bucket),
 			Delete: &types.Delete{
@@ -150,7 +150,7 @@ func (d directAPI) RemoveAll(ctx context.Context, objectPath indexstorage.Path) 
 			MFA:                       nil,
 			RequestPayer:              "",
 		}); err != nil {
-			d.cfg.logger.Trace(ctx, "Deleting %d object(s) matching %s/* [%d] failed (%v)", finalPath, i, err)
+			d.cfg.logger.DebugContext(ctx, "Deleting %d object(s) matching %s/* [%d] failed (%v)", finalPath, i, err)
 			return fmt.Errorf("failed to delete objects (%w)", err)
 		}
 
@@ -160,7 +160,7 @@ func (d directAPI) RemoveAll(ctx context.Context, objectPath indexstorage.Path) 
 		continuationToken = listResponse.NextContinuationToken
 		i++
 	}
-	d.cfg.logger.Trace(ctx, "Completed deleting %s/*.", finalPath)
+	d.cfg.logger.DebugContext(ctx, "Completed deleting %s/*.", finalPath)
 	return nil
 }
 

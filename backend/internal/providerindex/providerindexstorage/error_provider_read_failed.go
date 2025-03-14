@@ -1,12 +1,10 @@
 package providerindexstorage
 
-import (
-	"github.com/opentofu/libregistry/types/provider"
-)
+import "github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 
 type ProviderReadFailedError struct {
 	BaseError
-	ProviderAddr provider.Addr
+	ProviderAddr providertypes.ProviderAddr
 }
 
 func (p *ProviderReadFailedError) Error() string {

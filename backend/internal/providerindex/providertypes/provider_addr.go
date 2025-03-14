@@ -1,17 +1,14 @@
 package providertypes
 
 import (
-	"encoding/json"
-
-	"github.com/opentofu/libregistry/types/provider"
+	"github.com/opentofu/registry-ui/internal/registry/provider"
 )
 
-func Addr(addr provider.Addr) ProviderAddr {
+func Addr(addr provider.Provider) ProviderAddr {
 	return ProviderAddr{
-		Addr:      addr,
-		Display:   addr.String(),
+		Display:   addr.Namespace + "/" + addr.ProviderName,
 		Namespace: addr.Namespace,
-		Name:      addr.Name,
+		Name:      addr.ProviderName,
 	}
 }
 
@@ -19,9 +16,7 @@ func Addr(addr provider.Addr) ProviderAddr {
 //
 // swagger:model
 type ProviderAddr struct {
-	provider.Addr
-
-	// Display contains the user-readable display variant of this addr. This may be capitalized.
+	// Display contains the user-readable display variant of this addr. This may be capitalized. CAM72CAM FALSE!
 	// required: true
 	Display string `json:"display"`
 	// Namespace contains the lower-case namespace part of the addr.
@@ -32,31 +27,10 @@ type ProviderAddr struct {
 	Name string `json:"name"`
 }
 
-type marshalledProviderAddr struct {
-	Display   string `json:"display"`
-	Namespace string `json:"namespace"`
-	Name      string `json:"name"`
+func (p ProviderAddr) Equals(other ProviderAddr) bool {
+	return other.Namespace == p.Namespace && other.Name == p.Name
 }
 
-func (p *ProviderAddr) UnmarshalJSON(data []byte) error {
-	marshalled := marshalledProviderAddr{}
-	if err := json.Unmarshal(data, &marshalled); err != nil {
-		return err
-	}
-
-	*p = ProviderAddr{
-		Addr:      provider.Addr{Namespace: marshalled.Namespace, Name: marshalled.Name},
-		Display:   marshalled.Display,
-		Namespace: marshalled.Namespace,
-		Name:      marshalled.Name,
-	}
-	return nil
-}
-
-func (p *ProviderAddr) MarshalJSON() ([]byte, error) {
-	return json.Marshal(marshalledProviderAddr{
-		Display:   p.Display,
-		Namespace: p.Namespace,
-		Name:      p.Name,
-	})
+func (p ProviderAddr) String() string {
+	return p.Display
 }

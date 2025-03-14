@@ -4,11 +4,11 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/opentofu/libregistry/logger"
 )
 
 type Config struct {
@@ -19,7 +19,7 @@ type Config struct {
 	AccessKey string
 	SecretKey string
 	TLSConfig *tls.Config
-	logger    logger.Logger
+	logger    *slog.Logger
 }
 
 func (c *Config) Validate(ctx context.Context) error {
@@ -33,33 +33,30 @@ func (c *Config) Validate(ctx context.Context) error {
 		return fmt.Errorf("the bucket is required")
 	}
 
-	c.logger.Debug(ctx, "Checking S3 connection...")
+	c.logger.DebugContext(ctx, "Checking S3 connection...")
 	_, err := c.awsClient().ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket:  awsv2.String(c.Bucket),
 		MaxKeys: awsv2.Int32(1),
 	})
 	if err != nil {
-		c.logger.Error(ctx, "S3 connection failed (%v)", err)
+		c.logger.ErrorContext(ctx, "S3 connection failed (%v)", err)
 		return fmt.Errorf("incorrect S3 parameters (%w)", err)
 	}
-	c.logger.Debug(ctx, "S3 connection successful.")
+	c.logger.DebugContext(ctx, "S3 connection successful.")
 
 	return nil
 }
 
 func (c *Config) applyDefaults(ctx context.Context) error {
-	if c.logger == nil {
-		c.logger = logger.NewNoopLogger()
-	}
-	c.logger = c.logger.WithName("S3")
+	c.logger = c.logger.With(slog.String("name", "S3"))
 	if c.Region == "" {
-		c.logger.Debug(ctx, "No bucket location specified, attempting to automatically determine location...")
+		c.logger.DebugContext(ctx, "No bucket location specified, attempting to automatically determine location...")
 		cli := c.awsClient()
 		locationResponse, err := cli.GetBucketLocation(ctx, &s3.GetBucketLocationInput{
 			Bucket: awsv2.String(c.Bucket),
 		})
 		if err != nil {
-			c.logger.Error(ctx, "GetBucketLocation query failed (%v)", err)
+			c.logger.ErrorContext(ctx, "GetBucketLocation query failed (%v)", err)
 			return fmt.Errorf("no bucket region provided and automatic region lookup failed (%w)", err)
 		}
 		if locationResponse.LocationConstraint == "" {
@@ -107,7 +104,7 @@ func (c *Config) awsConfig() awsv2.Config {
 
 type Opt func(config *Config) error
 
-func WithLogger(log logger.Logger) Opt {
+func WithLogger(log *slog.Logger) Opt {
 	return func(config *Config) error {
 		config.logger = log
 		return nil

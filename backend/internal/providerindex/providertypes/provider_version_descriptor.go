@@ -2,8 +2,6 @@ package providertypes
 
 import (
 	"time"
-
-	"github.com/opentofu/libregistry/types/provider"
 )
 
 // ProviderVersionDescriptor describes a provider version.
@@ -11,7 +9,7 @@ import (
 // swagger:model ProviderVersionDescriptor
 type ProviderVersionDescriptor struct {
 	// required: true
-	ID provider.VersionNumber `json:"id"`
+	ID string `json:"id"`
 	// required: true
 	Published time.Time `json:"published"`
 }

@@ -6,25 +6,21 @@ import (
 	"os"
 	"path"
 
-	"github.com/opentofu/libregistry/types/provider"
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 )
 
-func (s storage) getProviderPath(providerAddr provider.Addr) indexstorage.Path {
-	providerAddr = providerAddr.Normalize()
+func (s storage) getProviderPath(providerAddr providertypes.ProviderAddr) indexstorage.Path {
 	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name))
 }
 
-func (s storage) getProviderFile(providerAddr provider.Addr) indexstorage.Path {
-	providerAddr = providerAddr.Normalize()
+func (s storage) getProviderFile(providerAddr providertypes.ProviderAddr) indexstorage.Path {
 	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, "index.json"))
 }
 
-func (s storage) GetProvider(ctx context.Context, providerAddr provider.Addr) (providertypes.Provider, error) {
-	// TODO validate provider addr
+func (s storage) GetProvider(ctx context.Context, providerAddr providertypes.ProviderAddr) (providertypes.Provider, error) {
 	index := providertypes.Provider{
-		Addr:        providertypes.Addr(providerAddr),
+		Addr:        providerAddr,
 		Description: "",
 		Versions:    []providertypes.ProviderVersionDescriptor{},
 	}
@@ -46,15 +42,15 @@ func (s storage) StoreProvider(ctx context.Context, provider providertypes.Provi
 	// TODO validate provider addr
 	marshalled, err := json.Marshal(provider)
 	if err != nil {
-		return &ProviderStoreFailedError{BaseError: BaseError{Cause: err}, ProviderAddr: provider.Addr.Addr}
+		return &ProviderStoreFailedError{BaseError: BaseError{Cause: err}, ProviderAddr: provider.Addr}
 	}
-	if err := s.indexStorageAPI.WriteFile(ctx, s.getProviderFile(provider.Addr.Addr), marshalled); err != nil {
-		return &ProviderStoreFailedError{BaseError: BaseError{Cause: err}, ProviderAddr: provider.Addr.Addr}
+	if err := s.indexStorageAPI.WriteFile(ctx, s.getProviderFile(provider.Addr), marshalled); err != nil {
+		return &ProviderStoreFailedError{BaseError: BaseError{Cause: err}, ProviderAddr: provider.Addr}
 	}
 	return nil
 }
 
-func (s storage) DeleteProvider(ctx context.Context, providerAddr provider.Addr) error {
+func (s storage) DeleteProvider(ctx context.Context, providerAddr providertypes.ProviderAddr) error {
 	// TODO validate provider addr
 	return s.indexStorageAPI.RemoveAll(ctx, s.getProviderPath(providerAddr))
 }

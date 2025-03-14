@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 
-	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/tofudl"
 )
 
@@ -26,19 +26,19 @@ type ExternalTofuExtractorConfig struct {
 // if needed.
 func NewExternalTofuExtractor(
 	config ExternalTofuExtractorConfig,
-	log logger.Logger,
+	log *slog.Logger,
 	downloader tofudl.Downloader,
 ) (Extractor, error) {
 	return &externalTofuExtractor{
 		config:     config,
-		logger:     log.WithName("module-extractor"),
+		logger:     log.With(slog.String("name", "module-extractor")),
 		downloader: downloader,
 	}, nil
 }
 
 type externalTofuExtractor struct {
 	config     ExternalTofuExtractorConfig
-	logger     logger.Logger
+	logger     *slog.Logger
 	downloader tofudl.Downloader
 }
 
@@ -121,7 +121,7 @@ func (e *externalTofuExtractor) Extract(ctx context.Context, moduleDirectory str
 			}
 		}
 		if exitErr.ExitCode() != 0 {
-			e.logger.Debug(ctx, "tofu metadata dump exited with a non-zero exit code (%d). Output:\n%s", exitErr.ExitCode(), output.Bytes())
+			e.logger.DebugContext(ctx, "tofu metadata dump exited with a non-zero exit code (%d). Output:\n%s", exitErr.ExitCode(), output.Bytes())
 			return Schema{}, &SchemaExtractionFailedError{
 				output.Bytes(),
 				err,
@@ -144,7 +144,7 @@ func (e *externalTofuExtractor) Extract(ctx context.Context, moduleDirectory str
 type stderrLogger struct {
 	prefix        string
 	ctx           context.Context
-	loggerBackend logger.Logger
+	loggerBackend *slog.Logger
 	buf           []byte
 	error         bool
 }
@@ -170,5 +170,5 @@ func (s *stderrLogger) Close() error {
 }
 
 func (s *stderrLogger) writeLine(line string) {
-	s.loggerBackend.Error(s.ctx, s.prefix+line)
+	s.loggerBackend.ErrorContext(s.ctx, s.prefix+line)
 }

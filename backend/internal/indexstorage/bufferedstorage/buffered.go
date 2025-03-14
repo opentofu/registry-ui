@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path"
 	"runtime"
 	"sync"
 	"time"
 
-	"github.com/opentofu/libregistry/logger"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/opentofu/registry-ui/internal/indexstorage"
@@ -23,8 +23,8 @@ type BufferedStorage interface {
 	UncommittedFiles() int
 }
 
-func New(log logger.Logger, localDir string, backingStorage indexstorage.API, parallelism int) (BufferedStorage, error) {
-	log = log.WithName("Transactional Storage")
+func New(log *slog.Logger, localDir string, backingStorage indexstorage.API, parallelism int) (BufferedStorage, error) {
+	log = log.With(slog.String("name", "Transactional Storage"))
 
 	index := newLocalIndex(localDir, log)
 
@@ -62,7 +62,7 @@ func New(log logger.Logger, localDir string, backingStorage indexstorage.API, pa
 }
 
 type buffered struct {
-	logger         logger.Logger
+	logger         *slog.Logger
 	backingStorage indexstorage.API
 	index          *localIndex
 	localDir       string
@@ -179,7 +179,7 @@ func (b *buffered) Rollback(ctx context.Context) error {
 }
 
 func (b *buffered) rollback(ctx context.Context) error {
-	b.logger.Info(ctx, "Rolling back changes...")
+	b.logger.InfoContext(ctx, "Rolling back changes...")
 
 	return b.reset(ctx)
 }
@@ -201,7 +201,7 @@ func (b *buffered) Commit(ctx context.Context) error {
 }
 
 func (b *buffered) commit(ctx context.Context) error {
-	b.logger.Info(ctx, "Committing changes to persistent storage...")
+	b.logger.InfoContext(ctx, "Committing changes to persistent storage...")
 
 	if err := b.index.MarkCommitStarted(ctx); err != nil {
 		return err
@@ -213,41 +213,41 @@ func (b *buffered) commit(ctx context.Context) error {
 
 	eg.SetLimit(b.parallelism)
 	if err := b.commitWalk(ctx, cancel, b.index.Root, "", eg); err != nil {
-		b.logger.Info(ctx, "Commit failed (%v).", err)
+		b.logger.InfoContext(ctx, "Commit failed (%v).", err)
 		return err
 	}
 	if err := eg.Wait(); err != nil {
-		b.logger.Info(ctx, "Commit failed (%v).", err)
+		b.logger.InfoContext(ctx, "Commit failed (%v).", err)
 		return err
 	}
 	if err := b.reset(ctx); err != nil {
-		b.logger.Info(ctx, "Commit failed (%v).", err)
+		b.logger.InfoContext(ctx, "Commit failed (%v).", err)
 		return err
 	}
-	b.logger.Info(ctx, "Commit complete.")
+	b.logger.InfoContext(ctx, "Commit complete.")
 	return nil
 }
 
 func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, dir *directory, dirPath indexstorage.Path, eg *errgroup.Group) error {
 	// TODO this is super ugly and definitely violates the index boundary. Make this nicer.
 	if dir.IsWiped {
-		b.logger.Debug(ctx, "Removing /%s/* ...", dirPath)
+		b.logger.DebugContext(ctx, "Removing /%s/* ...", dirPath)
 		removeStart := time.Now()
 		if err := b.backingStorage.RemoveAll(ctx, dirPath); err != nil {
-			b.logger.Trace(ctx, "Failed to remove /%s/* (%v).", dirPath, err)
+			b.logger.DebugContext(ctx, "Failed to remove /%s/* (%v).", dirPath, err)
 			return err
 		}
 		// Remove the directory remotely and remove the wipe mark so it behaves like a normal directory in a later run
 		// in case the commit fails at a later stage.
 		if err := b.index.UnmarkDirWiped(ctx, dir); err != nil {
-			b.logger.Trace(ctx, "Failed to remove /%s/* (%v).", dirPath, err)
+			b.logger.DebugContext(ctx, "Failed to remove /%s/* (%v).", dirPath, err)
 			return err
 		}
 		removeEnd := time.Now()
-		b.logger.Debug(ctx, "Completed removing /%s/* in %f seconds.", dirPath, removeEnd.Sub(removeStart).Seconds())
+		b.logger.DebugContext(ctx, "Completed removing /%s/* in %f seconds.", dirPath, removeEnd.Sub(removeStart).Seconds())
 	}
 
-	b.logger.Info(ctx, "Committing /%s ...", dirPath)
+	b.logger.InfoContext(ctx, "Committing /%s ...", dirPath)
 
 	// Since the directory is now wiped if needed, it is safe to process all subdirectories and files in parallel.
 	for name, subdir := range dir.Subdirectories {
@@ -261,12 +261,12 @@ func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, di
 		default:
 		}
 		newPath := indexstorage.Path(path.Join(string(dirPath), name))
-		b.logger.Trace(ctx, "Committing directory /%s...", newPath)
+		b.logger.DebugContext(ctx, "Committing directory /%s...", newPath)
 		if err := b.commitWalk(ctx, cancel, subdir, newPath, eg); err != nil {
-			b.logger.Trace(ctx, "Committing directory /%s failed (%v).", newPath, err)
+			b.logger.DebugContext(ctx, "Committing directory /%s failed (%v).", newPath, err)
 			return fmt.Errorf("failed to commit %s (%w)", name, err)
 		}
-		b.logger.Trace(ctx, "Committing directory /%s completed.", newPath)
+		b.logger.DebugContext(ctx, "Committing directory /%s completed.", newPath)
 	}
 	for name, f := range dir.Files {
 		if !f.IsDirty {
@@ -283,29 +283,29 @@ func (b *buffered) commitWalk(ctx context.Context, cancel context.CancelFunc, di
 			uploadStart := time.Now()
 			uploadPath := path.Join(string(dirPath), name)
 			fullPath := path.Join(b.localDir, uploadPath)
-			b.logger.Debug(ctx, "Storing file /%s ...", uploadPath)
+			b.logger.DebugContext(ctx, "Storing file /%s ...", uploadPath)
 			contents, err := os.ReadFile(fullPath)
 			if err != nil {
-				b.logger.Trace(ctx, "Storing file /%s failed (%v)...", uploadPath, err)
+				b.logger.DebugContext(ctx, "Storing file /%s failed (%v)...", uploadPath, err)
 				cancel()
 				return fmt.Errorf("failed to read local file")
 			}
-			b.logger.Trace(ctx, "Read file /%s (%d bytes).", uploadPath, len(contents))
+			b.logger.DebugContext(ctx, "Read file /%s (%d bytes).", uploadPath, len(contents))
 			if err := b.backingStorage.WriteFile(ctx, indexstorage.Path(uploadPath), contents); err != nil {
-				b.logger.Trace(ctx, "Storing file /%s failed (%v)...", uploadPath, err)
+				b.logger.DebugContext(ctx, "Storing file /%s failed (%v)...", uploadPath, err)
 				cancel()
 				return fmt.Errorf("failed to sync %s (%w)", uploadPath, err)
 			}
-			b.logger.Trace(ctx, "Stored file /%s (%d bytes).", uploadPath, len(contents))
+			b.logger.DebugContext(ctx, "Stored file /%s (%d bytes).", uploadPath, len(contents))
 			// Remove the dirty mark so a later run doesn't try to upload it again if this run fails later down the
 			// line.
 			if err := b.index.UnmarkFileDirty(ctx, f); err != nil {
-				b.logger.Trace(ctx, "Storing /%s failed (%v)...", uploadPath, err)
+				b.logger.DebugContext(ctx, "Storing /%s failed (%v)...", uploadPath, err)
 				cancel()
 				return fmt.Errorf("failed to remove the dirty mark from %s (%w)", uploadPath, err)
 			}
 			uploadEnd := time.Now()
-			b.logger.Debug(ctx, "Storing file /%s completed in %f seconds.", uploadPath, uploadEnd.Sub(uploadStart).Seconds())
+			b.logger.DebugContext(ctx, "Storing file /%s completed in %f seconds.", uploadPath, uploadEnd.Sub(uploadStart).Seconds())
 			return nil
 		})
 	}

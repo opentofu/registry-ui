@@ -5,13 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 	"runtime"
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/libregistry/metadata"
 	"github.com/opentofu/libregistry/metadata/storage/filesystem"
 	"github.com/opentofu/libregistry/vcs"
@@ -46,7 +46,7 @@ type S3Parameters struct {
 	Region     string
 }
 
-func New(log logger.Logger, githubToken string) (BackendFactory, error) {
+func New(log *slog.Logger, githubToken string) (BackendFactory, error) {
 	return &backendFactory{
 		logger:      log,
 		githubToken: githubToken,
@@ -68,7 +68,7 @@ type BackendFactory interface {
 }
 
 type backendFactory struct {
-	logger      logger.Logger
+	logger      *slog.Logger
 	githubToken string
 }
 
@@ -88,7 +88,7 @@ func (b backendFactory) Create(
 
 func getBackend(
 	ctx context.Context,
-	log logger.Logger,
+	log *slog.Logger,
 	registryDir string,
 	workDir string,
 	destinationDir string,
@@ -119,7 +119,7 @@ func getBackend(
 		// Skip cleaning up to allow for long-term reuse
 		github.WithSkipCleanupWorkingCopyOnClose(true),
 		github.WithCheckoutRootDirectory(workDir),
-		github.WithLogger(log),
+		github.WithLogger(nil), //TODO (log)
 		github.WithToken(githubToken),
 	)
 	if err != nil {
@@ -208,7 +208,7 @@ func getBackend(
 	return internal.New(cloner, moduleIndexGenerator, providerIndexGenerator, searchAPI, openAPIWriter, bufferedStorage, internal.WithLogger(log))
 }
 
-func getProviderIndexer(ctx context.Context, rootStorage indexstorage.API, log logger.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, blocklist blocklist.BlockList) (providerindex.DocumentationGenerator, error) {
+func getProviderIndexer(ctx context.Context, rootStorage indexstorage.API, log *slog.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, blocklist blocklist.BlockList) (providerindex.DocumentationGenerator, error) {
 	storage, err := rootStorage.Subdirectory(ctx, "providers")
 	if err != nil {
 		return nil, err
@@ -225,7 +225,7 @@ func getProviderIndexer(ctx context.Context, rootStorage indexstorage.API, log l
 	return scrapingManager, nil
 }
 
-func getModuleIndexGenerator(ctx context.Context, workDir string, rootStorage indexstorage.API, log logger.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, blocklist blocklist.BlockList, tofuBinaryPath string) (moduleindex.Generator, error) {
+func getModuleIndexGenerator(ctx context.Context, workDir string, rootStorage indexstorage.API, log *slog.Logger, reader metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, searchAPI search.API, blocklist blocklist.BlockList, tofuBinaryPath string) (moduleindex.Generator, error) {
 	moduleStorage, err := rootStorage.Subdirectory(ctx, "modules")
 	if err != nil {
 		return nil, err

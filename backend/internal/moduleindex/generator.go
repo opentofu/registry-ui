@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path"
 	"slices"
@@ -16,7 +17,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/libregistry/metadata"
 	"github.com/opentofu/libregistry/types/module"
 	"github.com/opentofu/libregistry/vcs"
@@ -95,9 +95,9 @@ func WithForceRepoDataUpdate(force bool) Opts {
 	}
 }
 
-func New(log logger.Logger, metadataAPI metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, storage indexstorage.API, moduleSchemaExtractor moduleschema.Extractor, searchAPI search.API, blocklist blocklist.BlockList) Generator {
+func New(log *slog.Logger, metadataAPI metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, storage indexstorage.API, moduleSchemaExtractor moduleschema.Extractor, searchAPI search.API, blocklist blocklist.BlockList) Generator {
 	return &generator{
-		log:                   log.WithName("Module indexer"),
+		log:                   log.With(slog.String("name", "Module indexer")),
 		metadataAPI:           metadataAPI,
 		vcsClient:             vcsClient,
 		licenseDetector:       licenseDetector,
@@ -114,7 +114,7 @@ type generator struct {
 	metadataAPI           metadata.API
 	moduleSchemaExtractor moduleschema.Extractor
 	storage               indexstorage.API
-	log                   logger.Logger
+	log                   *slog.Logger
 	search                moduleSearch
 	blocklist             blocklist.BlockList
 }
@@ -140,7 +140,7 @@ func (g generator) GenerateNamespaceAndName(ctx context.Context, namespace strin
 
 func (g generator) GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error {
 	namespacePrefix = module.NormalizeNamespace(namespacePrefix)
-	g.log.Info(ctx, "Listing all modules...")
+	g.log.InfoContext(ctx, "Listing all modules...")
 	moduleListFull, err := g.metadataAPI.ListModules(ctx)
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func (g generator) GenerateNamespacePrefix(ctx context.Context, namespacePrefix 
 
 func (g generator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
 	namespace = module.NormalizeNamespace(namespace)
-	g.log.Info(ctx, "Listing all modules...")
+	g.log.InfoContext(ctx, "Listing all modules...")
 	moduleList, err := g.metadataAPI.ListModulesByNamespace(ctx, namespace)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (g generator) GenerateNamespace(ctx context.Context, namespace string, opts
 }
 
 func (g generator) Generate(ctx context.Context, opts ...Opts) error {
-	g.log.Info(ctx, "Listing all modules...")
+	g.log.InfoContext(ctx, "Listing all modules...")
 	moduleList, err := g.metadataAPI.ListModules(ctx)
 	if err != nil {
 		return err
@@ -198,7 +198,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 		Modules: []*Module{},
 	}
 
-	g.log.Info(ctx, "Reading module index file...")
+	g.log.InfoContext(ctx, "Reading module index file...")
 	modulesData, err := g.storage.ReadFile(ctx, indexstorage.Path(indexPath))
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -219,7 +219,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 	for _, moduleAddr := range moduleList {
 		moduleAddr := Addr(moduleAddr)
 		if err := moduleAddr.Validate(); err != nil {
-			g.log.Info(ctx, "Module %s has an invalid address, skipping...", moduleAddr.String())
+			g.log.InfoContext(ctx, "Module %s has an invalid address, skipping...", moduleAddr.String())
 			continue
 		}
 		eg.Go(func() error {
@@ -253,12 +253,12 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 				// If the blocked status has changed, we need to reindex the entire module to make sure the content
 				// is gone or re-added, depending on the flag.
 				forceModule = true
-				g.log.Info(ctx, "Module %s changed blocked status, reindexing all versions...", moduleAddr)
+				g.log.InfoContext(ctx, "Module %s changed blocked status, reindexing all versions...", moduleAddr)
 			}
 			entry.IsBlocked = blocked
 			entry.BlockedReason = blockedReason
 
-			g.log.Info(ctx, "Getting module metadata for %s...", moduleAddr)
+			g.log.InfoContext(ctx, "Getting module metadata for %s...", moduleAddr)
 			moduleMetadata, err := g.metadataAPI.GetModule(ctx, moduleAddr.Addr)
 			if err != nil {
 				return fmt.Errorf("failed to fetch metadata for module %s (%w)", moduleAddr, err)
@@ -283,7 +283,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 
 			for _, ver := range metadataVersions {
 				if err := ver.Validate(); err != nil {
-					g.log.Warn(ctx, "Module %s version %s has an invalid version number, skipping...", moduleAddr.String(), ver.Version)
+					g.log.WarnContext(ctx, "Module %s version %s has an invalid version number, skipping...", moduleAddr.String(), ver.Version)
 					versionsToRemove = append(versionsToRemove, ver)
 					continue
 				}
@@ -291,7 +291,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 				ver = ver.Normalize()
 				hasVersion := entry.HasVersion(ver.Version)
 				if hasVersion && !forceModule {
-					g.log.Info(ctx, "The index already has version %s for module %s, skipping...", ver.Version, moduleAddr.String())
+					g.log.InfoContext(ctx, "The index already has version %s for module %s, skipping...", ver.Version, moduleAddr.String())
 					continue
 				}
 
@@ -306,10 +306,10 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 				if err != nil {
 					var versionNotFound *vcs.VersionNotFoundError
 					if errors.As(err, &versionNotFound) {
-						g.log.Warn(ctx, "Module %s version %s not found in VCS system, skipping... (%v)", moduleAddr.String(), ver.Version, err)
+						g.log.WarnContext(ctx, "Module %s version %s not found in VCS system, skipping... (%v)", moduleAddr.String(), ver.Version, err)
 						continue
 					}
-					g.log.Warn(ctx, "Cannot determine publication time for module %s version %s (%v)", moduleAddr.String(), ver.Version, err)
+					g.log.WarnContext(ctx, "Cannot determine publication time for module %s version %s (%v)", moduleAddr.String(), ver.Version, err)
 				} else {
 					publicationTime = vcsVersion.Created
 				}
@@ -320,7 +320,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 				if err := g.generateModuleVersion(ctx, moduleAddr, *entry, modVersion, vcsVer); err != nil {
 					var repoNotFound *vcs.RepositoryNotFoundError
 					if errors.As(err, &repoNotFound) {
-						g.log.Info(ctx, "The repository for the module %s has been removed from the VCS system, queueing removal from index.", moduleAddr.String())
+						g.log.InfoContext(ctx, "The repository for the module %s has been removed from the VCS system, queueing removal from index.", moduleAddr.String())
 						lock.Lock()
 						modulesToRemove = append(modulesToRemove, moduleAddr)
 						lock.Unlock()
@@ -328,10 +328,10 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					}
 					var versionNotFound *vcs.VersionNotFoundError
 					if !errors.As(err, &versionNotFound) {
-						g.log.Error(ctx, "Module indexing for %s version %s failed (%v)", moduleAddr.String(), ver.Version, err)
+						g.log.ErrorContext(ctx, "Module indexing for %s version %s failed (%v)", moduleAddr.String(), ver.Version, err)
 						return fmt.Errorf("failed to generate module %s version %s (%w)", moduleAddr.String(), ver.Version, err)
 					}
-					g.log.Info(ctx, "The version %s for the module %s has been removed from the VCS system, queueing removal from index.", ver.Version, moduleAddr.String())
+					g.log.InfoContext(ctx, "The version %s for the module %s has been removed from the VCS system, queueing removal from index.", ver.Version, moduleAddr.String())
 					versionsToRemove = append(versionsToRemove, ver)
 					if err := g.search.removeModuleVersionFromSearchIndex(ctx, moduleAddr.Addr, ver.Version); err != nil {
 						return fmt.Errorf("failed to remove module %s version %s from search index (%w)", moduleAddr, ver.Version, err)
@@ -356,7 +356,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 			}
 
 			if len(entry.Versions) == 0 {
-				g.log.Info(ctx, "Module %s has no versions, queueing for removal from index.", entry.Addr.String())
+				g.log.InfoContext(ctx, "Module %s has no versions, queueing for removal from index.", entry.Addr.String())
 				lock.Lock()
 				modulesToRemoveForce = append(modulesToRemoveForce, moduleAddr)
 				lock.Unlock()
@@ -431,7 +431,7 @@ func (g generator) removeModuleVersion(ctx context.Context, moduleAddr ModuleAdd
 }
 
 func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleAddr, entry Module, ver ModuleVersionDescriptor, vcsVersion vcs.VersionNumber) error {
-	g.log.Info(ctx, "Generating index artifacts for module %s version %s...", moduleAddr.String(), ver.ID)
+	g.log.InfoContext(ctx, "Generating index artifacts for module %s version %s...", moduleAddr.String(), ver.ID)
 	indexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, string(ver.ID), "index.json")
 	result := ModuleVersion{
 		ModuleVersionDescriptor: ver,
@@ -453,7 +453,7 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 		Examples:            map[string]Example{},
 		Submodules:          map[string]Submodule{},
 	}
-	g.log.Info(ctx, "Reading module index for %s version %s...", moduleAddr, ver.ID)
+	g.log.InfoContext(ctx, "Reading module index for %s version %s...", moduleAddr, ver.ID)
 	contents, err := g.storage.ReadFile(ctx, indexstorage.Path(indexPath))
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -465,18 +465,18 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 		}
 	}
 
-	g.log.Info(ctx, "Checking out module %s version %s...", moduleAddr, ver.ID)
+	g.log.InfoContext(ctx, "Checking out module %s version %s...", moduleAddr, ver.ID)
 	workingCopy, err := g.vcsClient.Checkout(ctx, moduleAddr.ToRepositoryAddr(), vcsVersion)
 	if err != nil {
 		return fmt.Errorf("failed to check out %s version %s (%w)", moduleAddr.String(), ver.ID, err)
 	}
 	defer func() {
 		if err := workingCopy.Close(); err != nil {
-			g.log.Error(ctx, "Failed to close working copy for %s (%v)", moduleAddr, err)
+			g.log.ErrorContext(ctx, "Failed to close working copy for %s (%v)", moduleAddr, err)
 		}
 	}()
 
-	g.log.Info(ctx, "Updating license for module %s version %s...", moduleAddr, ver.ID)
+	g.log.InfoContext(ctx, "Updating license for module %s version %s...", moduleAddr, ver.ID)
 	if err := g.refreshLicense(ctx, moduleAddr, ver, &result, workingCopy); err != nil {
 		return fmt.Errorf("failed to fetch licenses for %s version %s (%w)", moduleAddr, ver.ID, err)
 	}
@@ -485,10 +485,10 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 
 	result.Link, err = workingCopy.Client().GetVersionBrowseURL(ctx, workingCopy.Repository(), workingCopy.Version())
 	if err != nil {
-		g.log.Warn(ctx, "Cannot determine browse URL for module repository %s version %s (%v)", workingCopy.Repository(), workingCopy.Version(), err)
+		g.log.WarnContext(ctx, "Cannot determine browse URL for module repository %s version %s (%v)", workingCopy.Repository(), workingCopy.Version(), err)
 	}
 
-	g.log.Info(ctx, "Updating module details for %s version %s...", moduleAddr, ver.ID)
+	g.log.InfoContext(ctx, "Updating module details for %s version %s...", moduleAddr, ver.ID)
 	if err := g.refreshModuleDetails(ctx, moduleAddr, ver, &result.Details, workingCopy, licenseOK, entry.IsBlocked, entry.BlockedReason, "", ""); err != nil {
 		return fmt.Errorf("failed to extract module defaults for %s version %s (%w)", moduleAddr, ver.ID, err)
 	}
@@ -610,7 +610,7 @@ func (g generator) extractReadme(ctx context.Context, moduleAddr ModuleAddr, ver
 	if hasReadme {
 		readmeViewURL, err = workingCopy.Client().GetFileViewURL(ctx, workingCopy.Repository(), workingCopy.Version(), sourcePath)
 		if err != nil {
-			g.log.Warn(ctx, "Cannot determine edit link for %s (%v)", readmePath, err)
+			g.log.WarnContext(ctx, "Cannot determine edit link for %s (%v)", readmePath, err)
 		}
 	}
 	return hasReadme, readmeViewURL, nil
@@ -658,7 +658,7 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 		dstPrefix, err := g.sanitizePath(directoryPrefix, name)
 		if err != nil {
 			// Invalid path, ignore.
-			g.log.Warn(ctx, "Failed to index %s version %s submodule %s (%v)", addr, ver.ID, dstPrefix, err)
+			g.log.WarnContext(ctx, "Failed to index %s version %s submodule %s (%v)", addr, ver.ID, dstPrefix, err)
 			continue
 		}
 		if err := g.refreshModuleDetails(ctx, addr, ver, &submodule.Details, workingCopy, licenseOK, blocked, blockedReason, sourcePrefix, dstPrefix); err != nil {
@@ -706,7 +706,7 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 		dstPrefix, err := g.sanitizePath(directoryPrefix, name)
 		if err != nil {
 			// Invalid path, don't include in the index
-			g.log.Warn(ctx, "Failed to index %s version %s example %s (%v)", moduleAddr, ver.ID, dstPrefix, err)
+			g.log.WarnContext(ctx, "Failed to index %s version %s example %s (%v)", moduleAddr, ver.ID, dstPrefix, err)
 			continue
 		}
 		if err := g.refreshExampleDetails(
@@ -862,11 +862,11 @@ func (g generator) fetchRepoInfo(ctx context.Context, entry *Module) {
 	if err != nil {
 		var repoNotFound *vcs.RepositoryNotFoundError
 		if errors.As(err, &repoNotFound) {
-			g.log.Warn(ctx, "Repository not found for module %s, skipping... (%v)", entry.Addr.String(), err)
+			g.log.WarnContext(ctx, "Repository not found for module %s, skipping... (%v)", entry.Addr.String(), err)
 			return
 		}
 		// We handle description errors as soft errors because they are purely presentational.
-		g.log.Warn(ctx, "Cannot update repository description for module %s (%v)", entry.Addr.String(), err)
+		g.log.WarnContext(ctx, "Cannot update repository description for module %s (%v)", entry.Addr.String(), err)
 	}
 	entry.Description = repoInfo.Description
 	entry.Popularity = repoInfo.Popularity
@@ -878,14 +878,14 @@ func (g generator) fetchRepoInfo(ctx context.Context, entry *Module) {
 	}
 	link, err := g.vcsClient.GetRepositoryBrowseURL(ctx, *forkRepo)
 	if err != nil {
-		g.log.Warn(ctx, "Cannot determine repository browse URL for %s (%v)", forkRepo.String(), err)
+		g.log.WarnContext(ctx, "Cannot determine repository browse URL for %s (%v)", forkRepo.String(), err)
 		return
 	}
 	entry.ForkOfLink = link
 
 	forkedAddr, err := module.AddrFromRepository(*forkRepo)
 	if err != nil {
-		g.log.Warn(ctx, "Cannot convert repository name %s to a module addr (%v)", forkRepo.String(), err)
+		g.log.WarnContext(ctx, "Cannot convert repository name %s to a module addr (%v)", forkRepo.String(), err)
 		return
 	}
 	_, err = g.metadataAPI.GetModule(ctx, forkedAddr)
@@ -896,7 +896,7 @@ func (g generator) fetchRepoInfo(ctx context.Context, entry *Module) {
 
 	upstreamRepoInfo, err := g.vcsClient.GetRepositoryInfo(ctx, *forkRepo)
 	if err != nil {
-		g.log.Warn(ctx, "Cannot fetch upstream repository info for %s (%v)", forkRepo.String(), err)
+		g.log.WarnContext(ctx, "Cannot fetch upstream repository info for %s (%v)", forkRepo.String(), err)
 		return
 	}
 	entry.UpstreamPopularity = upstreamRepoInfo.Popularity

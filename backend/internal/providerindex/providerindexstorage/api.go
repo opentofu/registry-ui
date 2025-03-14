@@ -4,7 +4,6 @@ package providerindexstorage
 import (
 	"context"
 
-	"github.com/opentofu/libregistry/types/provider"
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 )
@@ -47,9 +46,9 @@ type API interface {
 	//     description: A list of all versions of a provider with metadata.
 	//     schema:
 	//       '$ref': '#/definitions/Provider'
-	GetProvider(ctx context.Context, providerAddr provider.Addr) (providertypes.Provider, error)
+	GetProvider(ctx context.Context, providerAddr providertypes.ProviderAddr) (providertypes.Provider, error)
 	StoreProvider(ctx context.Context, provider providertypes.Provider) error
-	DeleteProvider(ctx context.Context, providerAddr provider.Addr) error
+	DeleteProvider(ctx context.Context, providerAddr providertypes.ProviderAddr) error
 
 	// GetProviderVersion returns the details of one specific provider version.
 	//
@@ -78,9 +77,9 @@ type API interface {
 	//     description: The details of a specific provider version.
 	//     schema:
 	//       '$ref': '#/definitions/ProviderVersion'
-	GetProviderVersion(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber) (providertypes.ProviderVersion, error)
-	StoreProviderVersion(ctx context.Context, providerAddr provider.Addr, providerVersion providertypes.ProviderVersion) error
-	DeleteProviderVersion(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber) error
+	GetProviderVersion(ctx context.Context, providerAddr providertypes.ProviderAddr, version string) (providertypes.ProviderVersion, error)
+	StoreProviderVersion(ctx context.Context, providerAddr providertypes.ProviderAddr, providerVersion providertypes.ProviderVersion) error
+	DeleteProviderVersion(ctx context.Context, providerAddr providertypes.ProviderAddr, version string) error
 
 	// GetProviderDoc returns a root provider document if it exists.
 	//
@@ -109,8 +108,8 @@ type API interface {
 	//     description: The contents of the document.
 	//     schema:
 	//       type: file
-	GetProviderDoc(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber) ([]byte, error)
-	StoreProviderDoc(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, data []byte) error
+	GetProviderDoc(ctx context.Context, providerAddr providertypes.ProviderAddr, version string) ([]byte, error)
+	StoreProviderDoc(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, data []byte) error
 
 	// GetProviderDocItem returns a provider document.
 	//
@@ -150,8 +149,8 @@ type API interface {
 	//     description: The contents of the document.
 	//     schema:
 	//       type: file
-	GetProviderDocItem(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, kind providertypes.DocItemKind, name providertypes.DocItemName) ([]byte, error)
-	StoreProviderDocItem(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, kind providertypes.DocItemKind, name providertypes.DocItemName, data []byte) error
+	GetProviderDocItem(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, kind providertypes.DocItemKind, name providertypes.DocItemName) ([]byte, error)
+	StoreProviderDocItem(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, kind providertypes.DocItemKind, name providertypes.DocItemName, data []byte) error
 
 	// GetProviderCDKTFDoc returns a CDKTF root document.
 	//
@@ -186,8 +185,8 @@ type API interface {
 	//     description: The contents of the document.
 	//     schema:
 	//       type: file
-	GetProviderCDKTFDoc(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, language providertypes.CDKTFLanguage) ([]byte, error)
-	StoreProviderCDKTFDoc(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, language providertypes.CDKTFLanguage, data []byte) error
+	GetProviderCDKTFDoc(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, language providertypes.CDKTFLanguage) ([]byte, error)
+	StoreProviderCDKTFDoc(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, language providertypes.CDKTFLanguage, data []byte) error
 
 	// GetProviderCDKTFDocItem returns a CDKTF document item.
 	//
@@ -233,8 +232,8 @@ type API interface {
 	//     description: The contents of the document.
 	//     schema:
 	//       type: file
-	GetProviderCDKTFDocItem(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, language providertypes.CDKTFLanguage, kind providertypes.DocItemKind, name providertypes.DocItemName) ([]byte, error)
-	StoreProviderCDKTFDocItem(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, language providertypes.CDKTFLanguage, kind providertypes.DocItemKind, name providertypes.DocItemName, data []byte) error
+	GetProviderCDKTFDocItem(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, language providertypes.CDKTFLanguage, kind providertypes.DocItemKind, name providertypes.DocItemName) ([]byte, error)
+	StoreProviderCDKTFDocItem(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, language providertypes.CDKTFLanguage, kind providertypes.DocItemKind, name providertypes.DocItemName, data []byte) error
 }
 
 func New(indexStorageAPI indexstorage.API) (API, error) {

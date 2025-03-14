@@ -2,8 +2,7 @@ package providertypes
 
 import (
 	"slices"
-
-	"github.com/opentofu/libregistry/types/provider"
+	"strings"
 )
 
 // Provider is a single provider with all its versions.
@@ -79,13 +78,13 @@ func (p *Provider) Equals(other *Provider) bool {
 		return false
 	} else {
 		for i := range len(p.ReverseAliases) {
-			if !p.ReverseAliases[i].Equals(other.ReverseAliases[i].Addr) {
+			if !p.ReverseAliases[i].Equals(other.ReverseAliases[i]) {
 				return false
 			}
 		}
 	}
-	return p.Addr.Equals(other.Addr.Addr) && slices.Equal(p.Warnings, other.Warnings) && p.Link == other.Link &&
-		(p.CanonicalAddr == other.CanonicalAddr || p.CanonicalAddr.Equals(other.CanonicalAddr.Addr)) &&
+	return p.Addr.Equals(other.Addr) && slices.Equal(p.Warnings, other.Warnings) && p.Link == other.Link &&
+		(p.CanonicalAddr == other.CanonicalAddr || (p.CanonicalAddr != nil && other.CanonicalAddr != nil && (*p.CanonicalAddr).Equals((*other.CanonicalAddr)))) &&
 		p.Description == other.Description && p.Popularity == other.Popularity && p.ForkCount == other.ForkCount &&
 		p.ForkOfLink == other.ForkOfLink && p.ForkOf == other.ForkOf &&
 		p.UpstreamPopularity == other.UpstreamPopularity && p.UpstreamForkCount == other.UpstreamForkCount &&
@@ -100,7 +99,6 @@ func (p *Provider) DeepCopy() *Provider {
 	var canonicalAddr *ProviderAddr
 	if p.CanonicalAddr != nil {
 		canonicalAddr = &ProviderAddr{
-			Addr:      p.CanonicalAddr.Addr,
 			Display:   p.CanonicalAddr.Display,
 			Namespace: p.CanonicalAddr.Namespace,
 			Name:      p.CanonicalAddr.Name,
@@ -133,13 +131,12 @@ func (p *Provider) DeepCopy() *Provider {
 }
 
 func (p *Provider) Compare(other Provider) int {
-	return p.Addr.Compare(other.Addr.Addr)
+	return strings.Compare(p.Addr.Display, other.Addr.Display)
 }
 
-func (p *Provider) HasVersion(version provider.VersionNumber) bool {
-	version = version.Normalize()
+func (p *Provider) HasVersion(version string) bool {
 	for _, ver := range p.Versions {
-		if ver.ID.Normalize() == version {
+		if ver.ID == version {
 			return true
 		}
 	}
@@ -153,24 +150,24 @@ func (p *Provider) AddVersions(versions ...ProviderVersionDescriptor) {
 	p.Versions = append(p.Versions, versions...)
 
 	slices.SortStableFunc(p.Versions, func(a, b ProviderVersionDescriptor) int {
-		return -a.ID.Compare(b.ID)
+		return -strings.Compare(a.ID, b.ID)
 	})
 }
 
-func (p *Provider) RemoveVersions(in provider.VersionList, notIn provider.VersionList) []provider.VersionNumber {
-	inVersionNumberMap := map[provider.VersionNumber]struct{}{}
-	notInVersionNumberMap := map[provider.VersionNumber]struct{}{}
+func (p *Provider) RemoveVersions(in []string, notIn []string) []string {
+	inVersionNumberMap := map[string]struct{}{}
+	notInVersionNumberMap := map[string]struct{}{}
 	for _, version := range in {
-		inVersionNumberMap[version.Version.Normalize()] = struct{}{}
+		inVersionNumberMap[version] = struct{}{}
 	}
 	for _, version := range notIn {
-		notInVersionNumberMap[version.Version.Normalize()] = struct{}{}
+		notInVersionNumberMap[version] = struct{}{}
 	}
-	var removedVersions []provider.VersionNumber
+	var removedVersions []string
 
 	var newVersions []ProviderVersionDescriptor
 	for _, ver := range p.Versions {
-		id := ver.ID.Normalize()
+		id := ver.ID
 		_, notInOK := notInVersionNumberMap[id]
 		_, inOK := inVersionNumberMap[id]
 		if notInOK && !inOK {
@@ -186,7 +183,7 @@ func (p *Provider) RemoveVersions(in provider.VersionList, notIn provider.Versio
 func (p *Provider) UpdateVersions(updatedVersions ...ProviderVersionDescriptor) {
 	for _, updatedVersion := range updatedVersions {
 		for i, existingVersion := range p.Versions {
-			if existingVersion.ID.Compare(updatedVersion.ID) == 0 {
+			if strings.Compare(existingVersion.ID, updatedVersion.ID) == 0 {
 				p.Versions[i].ID = updatedVersion.ID
 				p.Versions[i].Published = updatedVersion.Published
 			}

@@ -20,10 +20,10 @@ type providerSearch struct {
 func (p providerSearch) indexProviderVersion(ctx context.Context, providerAddr provider.Addr, providerDetails *providertypes.Provider, providerVersionDetails providertypes.ProviderVersion) error {
 	version := providerVersionDetails.ProviderVersionDescriptor.ID
 	popularity := providerDetails.Popularity
-	if providerAddr.ToRepositoryAddr() == providerDetails.ForkOf.ToRepositoryAddr() {
+	/* TODO cam72cam if providerAddr.ToRepositoryAddr() == providerDetails.ForkOf.ToRepositoryAddr() {
 		// If the non-canonical repo address matches where we forked from, we take the popularity of the upstream.
 		popularity = providerDetails.UpstreamPopularity
-	}
+	}*/
 	providerItem := searchtypes.IndexItem{
 		ID:          searchtypes.IndexID(indexPrefix + "/" + providerAddr.String()),
 		Type:        searchtypes.IndexTypeProvider,

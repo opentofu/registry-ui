@@ -2,8 +2,6 @@ package providertypes
 
 import (
 	"slices"
-
-	"github.com/opentofu/libregistry/types/provider"
 )
 
 // TODO: move the request/response handling into a dedicated package alongside a proper web API.
@@ -56,7 +54,7 @@ func (m *ProviderList) RemoveProviders(in []ProviderAddr, notIn []ProviderAddr, 
 	return removedProviders
 }
 
-func (m *ProviderList) HasProvider(providerAddr provider.Addr) bool {
+func (m *ProviderList) HasProvider(providerAddr ProviderAddr) bool {
 	for _, mod := range m.Providers {
 		if mod.Addr.Equals(providerAddr) {
 			return true
@@ -65,7 +63,7 @@ func (m *ProviderList) HasProvider(providerAddr provider.Addr) bool {
 	return false
 }
 
-func (m *ProviderList) GetProvider(providerAddr provider.Addr) *Provider {
+func (m *ProviderList) GetProvider(providerAddr ProviderAddr) *Provider {
 	for i, mod := range m.Providers {
 		mod := mod
 		if mod.Addr.Equals(providerAddr) {

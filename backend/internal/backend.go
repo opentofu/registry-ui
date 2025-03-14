@@ -3,9 +3,8 @@ package internal
 import (
 	"context"
 	"fmt"
-	"regexp"
+	"log/slog"
 
-	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/libregistry/types/module"
 	"github.com/opentofu/libregistry/types/provider"
 	"golang.org/x/sync/errgroup"
@@ -33,9 +32,6 @@ func New(
 			return nil, err
 		}
 	}
-	if err := cfg.ApplyDefaults(); err != nil {
-		return nil, err
-	}
 	return &backend{
 		cloner:                 cloner,
 		moduleIndexGenerator:   moduleIndexGenerator,
@@ -54,18 +50,10 @@ type Backend interface {
 type Opt func(c *Config) error
 
 type Config struct {
-	Logger logger.Logger
+	Logger *slog.Logger
 }
 
-func (c *Config) ApplyDefaults() error {
-	if c.Logger == nil {
-		c.Logger = logger.NewNoopLogger()
-	}
-	c.Logger = c.Logger.WithName("Backend")
-	return nil
-}
-
-func WithLogger(log logger.Logger) Opt {
+func WithLogger(log *slog.Logger) Opt {
 	return func(c *Config) error {
 		c.Logger = log
 		return nil
@@ -75,10 +63,7 @@ func WithLogger(log logger.Logger) Opt {
 type GenerateOpt func(c *GenerateConfig) error
 
 type GenerateConfig struct {
-	SkipUpdateProviders bool
-	SkipUpdateModules   bool
 	NamespacePrefix     string
-	Namespace           string
 	Name                string
 	TargetSystem        string
 	ForceRepoDataUpdate bool
@@ -177,26 +162,6 @@ func (f ForceRegenerateEntry) MustRegenerateProvider(_ context.Context, addr pro
 	})
 }
 
-func (g GenerateConfig) validate() error { //nolint:unused
-	if g.Name != "" && g.Namespace == "" {
-		return fmt.Errorf("cannot use name filtering without namespace filtering")
-	}
-	if g.TargetSystem != "" && g.Name == "" {
-		return fmt.Errorf("cannot use target system filtering without name filtering")
-	}
-	if g.TargetSystem != "" && g.SkipUpdateModules {
-		return fmt.Errorf("target system filtering makes no sense without module updates")
-	}
-	return nil
-}
-
-func WithSkipUpdateProviders(skip bool) GenerateOpt {
-	return func(c *GenerateConfig) error {
-		c.SkipUpdateProviders = skip
-		return nil
-	}
-}
-
 func WithForceRepoDataUpdate(force bool) GenerateOpt {
 	return func(c *GenerateConfig) error {
 		c.ForceRepoDataUpdate = force
@@ -204,48 +169,15 @@ func WithForceRepoDataUpdate(force bool) GenerateOpt {
 	}
 }
 
-func WithSkipUpdateModules(skip bool) GenerateOpt {
-	return func(c *GenerateConfig) error {
-		c.SkipUpdateModules = skip
-		return nil
-	}
-}
-
-var namespaceRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
-var nameRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
-var targetSystemRe = regexp.MustCompile("^[a-zA-Z0-9._-]*$")
-
 func WithNamespacePrefix(namespacePrefix string) GenerateOpt {
 	return func(c *GenerateConfig) error {
-		if namespacePrefix != "" && c.Namespace != "" {
-			return fmt.Errorf("filtering for both namespace and namespace prefix is not supported")
-		}
-		if !namespaceRe.MatchString(namespacePrefix) {
-			return fmt.Errorf("invalid namespace: %s", namespaceRe)
-		}
 		c.NamespacePrefix = namespacePrefix
-		return nil
-	}
-}
-
-func WithNamespace(namespace string) GenerateOpt {
-	return func(c *GenerateConfig) error {
-		if namespace != "" && c.NamespacePrefix != "" {
-			return fmt.Errorf("filtering for both namespace and namespace prefix is not supported")
-		}
-		if !namespaceRe.MatchString(namespace) {
-			return fmt.Errorf("invalid namespace: %s", namespaceRe)
-		}
-		c.Namespace = namespace
 		return nil
 	}
 }
 
 func WithName(name string) GenerateOpt {
 	return func(c *GenerateConfig) error {
-		if !nameRe.MatchString(name) {
-			return fmt.Errorf("invalid name: %s", nameRe)
-		}
 		c.Name = name
 		return nil
 	}
@@ -253,9 +185,6 @@ func WithName(name string) GenerateOpt {
 
 func WithTargetSystem(targetSystem string) GenerateOpt {
 	return func(c *GenerateConfig) error {
-		if !targetSystemRe.MatchString(targetSystem) {
-			return fmt.Errorf("invalid target system: %s", targetSystemRe)
-		}
 		c.TargetSystem = targetSystem
 		return nil
 	}
@@ -283,93 +212,89 @@ func (b backend) Generate(ctx context.Context, opts ...GenerateOpt) error {
 	eg.Go(func() error {
 		// TODO only do this if a commit has previously started, otherwise roll back. This needs a change in the
 		//      data structure marking that a commit has started.
-		b.cfg.Logger.Info(ctx, "Committing any previous changes...")
+		b.cfg.Logger.InfoContext(ctx, "Committing any previous changes...")
 		// Commit changes from a previous failed commit before we begin so we have a clean directory and can safely
 		// roll back if generate fails.
 		if err := b.storage.Recover(ctx); err != nil {
-			b.cfg.Logger.Error(ctx, "Commit failed (%v).", err)
+			b.cfg.Logger.ErrorContext(ctx, "Commit failed (%v).", err)
 			return err
 		}
-		b.cfg.Logger.Info(ctx, "Commit complete.")
+		b.cfg.Logger.InfoContext(ctx, "Commit complete.")
 		return nil
 	})
 	eg.Go(func() error {
-		b.cfg.Logger.Info(ctx, "Cloning registry repository...")
+		b.cfg.Logger.InfoContext(ctx, "Cloning registry repository...")
 		if err := b.cloner.Clone(ctx); err != nil {
-			b.cfg.Logger.Error(ctx, "Clone failed (%v).", err)
+			b.cfg.Logger.ErrorContext(ctx, "Clone failed (%v).", err)
 			return fmt.Errorf("failed to clone registry (%w)", err)
 		}
-		b.cfg.Logger.Info(ctx, "Clone complete.")
+		b.cfg.Logger.InfoContext(ctx, "Clone complete.")
 		return nil
 	})
 	if err := eg.Wait(); err != nil {
 		return err
 	}
-	b.cfg.Logger.Info(ctx, "Generating artifacts...")
+	b.cfg.Logger.InfoContext(ctx, "Generating artifacts...")
 	err := b.generate(ctx, cfg)
 	if err != nil {
-		b.cfg.Logger.Warn(ctx, "Generation failed, rolling back changes (%v)...", err)
+		b.cfg.Logger.WarnContext(ctx, "Generation failed, rolling back changes (%v)...", err)
 		if rollbackErr := b.storage.Rollback(ctx); rollbackErr != nil {
-			b.cfg.Logger.Error(ctx, "Rollback failed (%v).", err)
+			b.cfg.Logger.ErrorContext(ctx, "Rollback failed (%v).", err)
 			return fmt.Errorf("rollback failed (%s) on generate failure (%w)", rollbackErr, err)
 		}
-		b.cfg.Logger.Info(ctx, "Rollback complete.")
+		b.cfg.Logger.InfoContext(ctx, "Rollback complete.")
 		return err
 	}
-	b.cfg.Logger.Info(ctx, "Generation complete, committing changes...")
+	b.cfg.Logger.InfoContext(ctx, "Generation complete, committing changes...")
 	if err := b.storage.Commit(ctx); err != nil {
-		b.cfg.Logger.Warn(ctx, "Commit failed (%v). Please save the storage directory and re-run commit.", err)
+		b.cfg.Logger.WarnContext(ctx, "Commit failed (%v). Please save the storage directory and re-run commit.", err)
 		return err
 	}
-	b.cfg.Logger.Info(ctx, "Commit complete.")
+	b.cfg.Logger.InfoContext(ctx, "Commit complete.")
 	return nil
 }
 
 func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
-	if !cfg.SkipUpdateModules {
-		if cfg.TargetSystem != "" {
-			if err := b.moduleIndexGenerator.GenerateSingleModule(ctx, module.Addr{
-				Namespace:    cfg.Namespace,
-				Name:         cfg.Name,
-				TargetSystem: cfg.TargetSystem,
-			}); err != nil {
-				return fmt.Errorf("failed to generate modules (%w)", err)
-			}
-		} else if cfg.Name != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespaceAndName(ctx, cfg.Namespace, cfg.Name, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to generate modules (%w)", err)
-			}
-		} else if cfg.Namespace != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to generate modules (%w)", err)
-			}
-		} else if cfg.NamespacePrefix != "" {
-			if err := b.moduleIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to generate modules (%w)", err)
-			}
-		} else {
-			if err := b.moduleIndexGenerator.Generate(ctx, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to generate modules (%w)", err)
-			}
+	if cfg.TargetSystem != "" {
+		if err := b.moduleIndexGenerator.GenerateSingleModule(ctx, module.Addr{
+			Namespace:    cfg.Namespace,
+			Name:         cfg.Name,
+			TargetSystem: cfg.TargetSystem,
+		}); err != nil {
+			return fmt.Errorf("failed to generate modules (%w)", err)
+		}
+	} else if cfg.Name != "" {
+		if err := b.moduleIndexGenerator.GenerateNamespaceAndName(ctx, cfg.Namespace, cfg.Name, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to generate modules (%w)", err)
+		}
+	} else if cfg.Namespace != "" {
+		if err := b.moduleIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to generate modules (%w)", err)
+		}
+	} else if cfg.NamespacePrefix != "" {
+		if err := b.moduleIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to generate modules (%w)", err)
+		}
+	} else {
+		if err := b.moduleIndexGenerator.Generate(ctx, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to generate modules (%w)", err)
 		}
 	}
-	if !cfg.SkipUpdateProviders && cfg.TargetSystem == "" {
-		if cfg.Name != "" {
-			if err := b.providerIndexGenerator.GenerateSingleProvider(ctx, provider.Addr{Namespace: cfg.Namespace, Name: cfg.Name}, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to index providers (%w)", err)
-			}
-		} else if cfg.Namespace != "" {
-			if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to index providers (%w)", err)
-			}
-		} else if cfg.NamespacePrefix != "" {
-			if err := b.providerIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to index providers (%w)", err)
-			}
-		} else {
-			if err := b.providerIndexGenerator.Generate(ctx, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
-				return fmt.Errorf("failed to index providers (%w)", err)
-			}
+	if cfg.Name != "" {
+		if err := b.providerIndexGenerator.GenerateSingleProvider(ctx, provider.Addr{Namespace: cfg.Namespace, Name: cfg.Name}, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to index providers (%w)", err)
+		}
+	} else if cfg.Namespace != "" {
+		if err := b.providerIndexGenerator.GenerateNamespace(ctx, cfg.Namespace, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to index providers (%w)", err)
+		}
+	} else if cfg.NamespacePrefix != "" {
+		if err := b.providerIndexGenerator.GenerateNamespacePrefix(ctx, cfg.NamespacePrefix, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to index providers (%w)", err)
+		}
+	} else {
+		if err := b.providerIndexGenerator.Generate(ctx, providerindex.WithForce(cfg.ForceRegenerate), providerindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
+			return fmt.Errorf("failed to index providers (%w)", err)
 		}
 	}
 

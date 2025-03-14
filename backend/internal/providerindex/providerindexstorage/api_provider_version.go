@@ -7,24 +7,19 @@ import (
 	"path"
 	"time"
 
-	"github.com/opentofu/libregistry/types/provider"
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 )
 
-func (s storage) getProviderVersionPath(providerAddr provider.Addr, version provider.VersionNumber) indexstorage.Path {
-	providerAddr = providerAddr.Normalize()
-	version = version.Normalize()
+func (s storage) getProviderVersionPath(providerAddr providertypes.ProviderAddr, version string) indexstorage.Path {
 	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), providerAddr.Name))
 }
 
-func (s storage) getProviderVersionFile(providerAddr provider.Addr, version provider.VersionNumber) indexstorage.Path {
-	providerAddr = providerAddr.Normalize()
-	version = version.Normalize()
+func (s storage) getProviderVersionFile(providerAddr providertypes.ProviderAddr, version string) indexstorage.Path {
 	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), "index.json"))
 }
 
-func (s storage) GetProviderVersion(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber) (providertypes.ProviderVersion, error) {
+func (s storage) GetProviderVersion(ctx context.Context, providerAddr providertypes.ProviderAddr, version string) (providertypes.ProviderVersion, error) {
 	result := providertypes.ProviderVersion{
 		ProviderVersionDescriptor: providertypes.ProviderVersionDescriptor{
 			ID:        version,
@@ -33,11 +28,6 @@ func (s storage) GetProviderVersion(ctx context.Context, providerAddr provider.A
 		Docs:      providertypes.ProviderDocs{},
 		CDKTFDocs: map[providertypes.CDKTFLanguage]providertypes.ProviderDocs{},
 		Licenses:  nil,
-	}
-
-	// TODO validate provider addr
-	if err := version.Validate(); err != nil {
-		return result, err
 	}
 
 	indexContents, err := s.indexStorageAPI.ReadFile(ctx, s.getProviderVersionFile(providerAddr, version))
@@ -54,11 +44,7 @@ func (s storage) GetProviderVersion(ctx context.Context, providerAddr provider.A
 	return result, nil
 }
 
-func (s storage) StoreProviderVersion(ctx context.Context, providerAddr provider.Addr, providerVersion providertypes.ProviderVersion) error {
-	// TODO validate provider addr
-	if err := providerVersion.ID.Validate(); err != nil {
-		return err
-	}
+func (s storage) StoreProviderVersion(ctx context.Context, providerAddr providertypes.ProviderAddr, providerVersion providertypes.ProviderVersion) error {
 	marshalled, err := json.Marshal(providerVersion)
 	if err != nil {
 		return &ProviderVersionStoreFailedError{BaseError: BaseError{Cause: err}, ProviderAddr: providerAddr, Version: providerVersion.ID}
@@ -69,10 +55,6 @@ func (s storage) StoreProviderVersion(ctx context.Context, providerAddr provider
 	return nil
 }
 
-func (s storage) DeleteProviderVersion(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber) error {
-	// TODO validate provider addr
-	if err := version.Validate(); err != nil {
-		return err
-	}
+func (s storage) DeleteProviderVersion(ctx context.Context, providerAddr providertypes.ProviderAddr, version string) error {
 	return s.indexStorageAPI.RemoveAll(ctx, s.getProviderVersionPath(providerAddr, version))
 }

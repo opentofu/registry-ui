@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/libregistry/types/module"
 	backend "github.com/opentofu/registry-ui/internal"
 	"github.com/opentofu/registry-ui/internal/blocklist"
@@ -83,36 +82,36 @@ func main() {
 		_, _ = os.Stderr.Write([]byte(err.Error()))
 		os.Exit(1)
 	}
-	mainLogger := logger.NewSLogLogger(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	mainLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: level,
-	})))
+	}))
 
 	ctx := context.Background()
 
 	if err := setRLimit(ctx, mainLogger); err != nil {
-		mainLogger.Error(ctx, err.Error())
+		mainLogger.ErrorContext(ctx, err.Error())
 		os.Exit(1)
 	}
 
 	approvedLicenses, err := readLicensesFile(ctx, licensesFile)
 	if err != nil {
-		mainLogger.Error(ctx, err.Error())
+		mainLogger.ErrorContext(ctx, err.Error())
 		os.Exit(1)
 	}
 
-	mainLogger.Info(ctx, "Initializing metadata system...")
+	mainLogger.InfoContext(ctx, "Initializing metadata system...")
 
 	blockList := blocklist.New()
 	if blockListFile != "" {
 		if err := blockList.LoadFile(blockListFile); err != nil {
-			mainLogger.Error(ctx, "Failed to load block file %s (%v)", blockListFile, err)
+			mainLogger.ErrorContext(ctx, "Failed to load block file %s (%v)", blockListFile, err)
 			os.Exit(1)
 		}
 	}
 
 	backendFactory, err := factory.New(mainLogger, ghToken)
 	if err != nil {
-		mainLogger.Error(ctx, err.Error())
+		mainLogger.ErrorContext(ctx, err.Error())
 		os.Exit(1)
 	}
 
@@ -128,7 +127,7 @@ func main() {
 		approvedLicenses,
 	)
 	if err != nil {
-		mainLogger.Error(ctx, err.Error())
+		mainLogger.ErrorContext(ctx, err.Error())
 		os.Exit(1)
 	}
 
@@ -136,7 +135,7 @@ func main() {
 
 	forceOpts, err := parseForceOpts(forceRegenerate)
 	if err != nil {
-		mainLogger.Error(ctx, err.Error())
+		mainLogger.ErrorContext(ctx, err.Error())
 		os.Exit(1)
 	}
 
@@ -152,11 +151,11 @@ func main() {
 			backend.WithForceRepoDataUpdate(forceRepoDataUpdate),
 		)...,
 	); err != nil {
-		mainLogger.Error(ctx, err.Error())
+		mainLogger.ErrorContext(ctx, err.Error())
 		os.Exit(1)
 	}
 
-	mainLogger.Info(ctx, "Done!")
+	mainLogger.InfoContext(ctx, "Done!")
 }
 
 func readLicensesFile(_ context.Context, licensesFile string) ([]string, error) {

@@ -2,375 +2,214 @@ package providerindex
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"io/fs"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/exec"
+	"path"
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/opentofu/libregistry/logger"
-	"github.com/opentofu/libregistry/metadata"
-	"github.com/opentofu/libregistry/types/provider"
 	"github.com/opentofu/libregistry/vcs"
-	"github.com/opentofu/registry-ui/internal/blocklist"
-	"golang.org/x/sync/errgroup"
+	"github.com/opentofu/registry-ui/internal/registry/github"
+	"github.com/opentofu/registry-ui/internal/registry/provider"
 
 	"github.com/opentofu/registry-ui/internal/providerindex/providerdocsource"
 	"github.com/opentofu/registry-ui/internal/providerindex/providerindexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
-	"github.com/opentofu/registry-ui/internal/search"
 
 	"github.com/opentofu/registry-ui/internal/license"
 )
 
-// DocumentationGenerator is a tool to generate all index files for modules.
-type DocumentationGenerator interface {
-	// Generate generates all module index files incrementally and removes items no longer in the registry.
-	Generate(ctx context.Context, opts ...Opts) error
+func GenerateDocumentation(log *slog.Logger, ctx context.Context, providers provider.List, licenseDetector license.Detector, destination providerindexstorage.API, db *sql.DB, workDir string) error {
+	log = log.With(slog.String("name", "Provider indexer"))
 
-	// GenerateNamespace generates provider index files incrementally for one namespace.
-	GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error
-
-	// GenerateNamespacePrefix generates provider index files incrementally for multiple namespaces matching the given
-	// prefix.
-	GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error
-
-	// GenerateSingleProvider generates module index files for a single provider only.
-	GenerateSingleProvider(ctx context.Context, addr provider.Addr, opts ...Opts) error
-}
-
-type GenerateConfig struct {
-	Force               ForceRegenerate
-	ForceRepoDataUpdate bool
-}
-
-type noForce struct {
-}
-
-func (n noForce) MustRegenerateProvider(_ context.Context, _ provider.Addr) bool {
-	return false
-}
-
-func (c *GenerateConfig) applyDefaults() error {
-	if c.Force == nil {
-		c.Force = &noForce{}
-	}
-	return nil
-}
-
-type Opts func(ctx context.Context, generateConfig *GenerateConfig) error
-
-func WithForce(force ForceRegenerate) Opts {
-	return func(_ context.Context, generateConfig *GenerateConfig) error {
-		generateConfig.Force = force
-		return nil
-	}
-}
-
-func WithForceRepoDataUpdate(force bool) Opts {
-	return func(_ context.Context, generateConfig *GenerateConfig) error {
-		generateConfig.ForceRepoDataUpdate = force
-		return nil
-	}
-}
-
-func NewDocumentationGenerator(log logger.Logger, metadataAPI metadata.API, vcsClient vcs.Client, licenseDetector license.Detector, source providerdocsource.API, destination providerindexstorage.API, searchAPI search.API, blocklist blocklist.BlockList) DocumentationGenerator {
-	return &documentationGenerator{
-		log:             log.WithName("Provider indexer"),
-		metadataAPI:     metadataAPI,
-		vcsClient:       vcsClient,
-		licenseDetector: licenseDetector,
-		source:          source,
-		destination:     destination,
-		search: providerSearch{
-			searchAPI: searchAPI,
-		},
-		blocklist: blocklist,
-	}
-}
-
-type documentationGenerator struct {
-	log             logger.Logger
-	metadataAPI     metadata.API
-	vcsClient       vcs.Client
-	licenseDetector license.Detector
-	search          providerSearch
-	source          providerdocsource.API
-	destination     providerindexstorage.API
-	blocklist       blocklist.BlockList
-}
-
-func (d *documentationGenerator) GenerateSingleProvider(ctx context.Context, addr provider.Addr, opts ...Opts) error {
-	addr = addr.Normalize()
-	if err := d.scrape(ctx, []provider.Addr{addr}, opts); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *documentationGenerator) Generate(ctx context.Context, opts ...Opts) error {
-	d.log.Info(ctx, "Listing all providers...")
-	providerList, err := d.metadataAPI.ListProviders(ctx, true)
-	if err != nil {
-		return err
-	}
-	d.log.Info(ctx, "Loaded %d providers", len(providerList))
-
-	err = d.scrape(ctx, providerList, opts)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *documentationGenerator) GenerateNamespace(ctx context.Context, namespace string, opts ...Opts) error {
-	d.log.Info(ctx, "Listing all providers in namespace %s...", namespace)
-	providerList, err := d.metadataAPI.ListProvidersByNamespace(ctx, namespace, true)
-	if err != nil {
-		return err
-	}
-
-	d.log.Info(ctx, "Loaded %d providers", len(providerList))
-
-	err = d.scrape(ctx, providerList, opts)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *documentationGenerator) GenerateNamespacePrefix(ctx context.Context, namespacePrefix string, opts ...Opts) error {
-	d.log.Info(ctx, "Listing all providers with the namespace prefix %s...", namespacePrefix)
-	providerListFull, err := d.metadataAPI.ListProviders(ctx, true)
-	if err != nil {
-		return err
-	}
-	var providerList []provider.Addr
-	for _, providerAddr := range providerListFull {
-		if strings.HasPrefix(providerAddr.Namespace, namespacePrefix) {
-			providerList = append(providerList, providerAddr)
-		}
-	}
-	d.log.Info(ctx, "Loaded %d providers", len(providerList))
-
-	err = d.scrape(ctx, providerList, opts)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *documentationGenerator) scrape(ctx context.Context, providers []provider.Addr, opts []Opts) error {
 	// TODO add filtering for removals to the function signature similar to modules.
 
-	cfg := GenerateConfig{}
-	for _, opt := range opts {
-		if err := opt(ctx, &cfg); err != nil {
-			return err
-		}
-	}
-	if err := cfg.applyDefaults(); err != nil {
-		return err
-	}
-
-	existingProviders, err := d.destination.GetProviderList(ctx)
+	existingProviders, err := destination.GetProviderList(ctx)
 	if err != nil {
 		var notFound *providerindexstorage.ProviderListNotFoundError
 		if !errors.As(err, &notFound) {
 			return fmt.Errorf("failed to fetch provider version list (%w)", err)
 		}
 	}
+	// TODO fill in from PG
+	//var existingProviders providertypes.ProviderList
 
 	lock := &sync.Mutex{}
 	var providersToAdd []*providertypes.Provider
-	var providersToRemove []provider.Addr
+	var providersToRemove []providertypes.ProviderAddr
 
-	processProviders := func(filterHC bool) error {
-		var eg errgroup.Group
-		eg.SetLimit(25)
-		for _, addr := range providers {
+	processProviders := func(filterHC bool) provider.Action {
+		return func(raw provider.Provider) error {
+			addr := providertypes.Addr(raw)
+
 			isHC := addr.Namespace == "hashicorp"
 			if (filterHC && !isHC) || (!filterHC && isHC) {
-				continue
+				return nil
 			}
 
-			eg.Go(func() error {
-				blocked, blockedReason := d.blocklist.IsProviderBlocked(addr)
-
-				// We are fetching the provider entry from the megaindex and storing it
-				// further down below as a separate index file so the frontend has an easier time
-				// fetching it.
-				providerEntry := existingProviders.GetProvider(addr)
-				// originalProviderEntry serves the purpose of being an original copy to compare to
-				// so we don't write the index if it hasn't actually been modified to save costs.
-				var originalProviderEntry *providertypes.Provider
-				needsAdd := false
-				if providerEntry == nil {
-					providerEntry = &providertypes.Provider{
-						Addr:          providertypes.Addr(addr),
-						Link:          "",
-						Description:   "",
-						Versions:      nil,
-						IsBlocked:     blocked,
-						BlockedReason: blockedReason,
-					}
-					needsAdd = true
-				} else {
-					originalProviderEntry = providerEntry.DeepCopy()
+			// We are fetching the provider entry from the megaindex and storing it
+			// further down below as a separate index file so the frontend has an easier time
+			// fetching it.
+			providerEntry := existingProviders.GetProvider(addr)
+			// originalProviderEntry serves the purpose of being an original copy to compare to
+			// so we don't write the index if it hasn't actually been modified to save costs.
+			var originalProviderEntry *providertypes.Provider
+			needsAdd := false
+			if providerEntry == nil {
+				providerEntry = &providertypes.Provider{
+					Addr:        addr,
+					Link:        "",
+					Description: "",
+					Versions:    nil,
 				}
+				needsAdd = true
+			} else {
+				originalProviderEntry = providerEntry.DeepCopy()
+			}
 
-				// scrape the docs into their own directory
-				if err := d.scrapeProvider(ctx, providertypes.Addr(addr), providerEntry, cfg, blocked, blockedReason); err != nil {
-					var notFound *metadata.ProviderNotFoundError
-					if errors.As(err, &notFound) {
-						d.log.Info(ctx, "Provider %s not found, removing from UI... (%v)", addr, err)
-						lock.Lock()
-						providersToRemove = append(providersToRemove, addr)
-						lock.Unlock()
-						return nil
-					}
-					d.log.Error(ctx, "Failed to scrape provider %s/%s: %v", addr.Namespace, addr.Name, err)
-					return err
-				}
-
-				// Some providers may have versions detected by the registry, but somehow not in libregistry+scrape
-				// Filter them out here for now
-				if len(providerEntry.Versions) == 0 {
-					d.log.Info(ctx, "Provider %s does not have any versions, removing from UI... (%v)", addr, err)
+			// scrape the docs into their own directory
+			if err := scrapeProvider(log, ctx, raw, providerEntry, workDir, licenseDetector, destination, db); err != nil {
+				var notFound ProviderNotFoundError
+				if errors.As(err, &notFound) {
+					log.InfoContext(ctx, "Provider %s not found, removing from UI... (%v)", addr, err)
 					lock.Lock()
 					providersToRemove = append(providersToRemove, addr)
 					lock.Unlock()
 					return nil
 				}
+				log.ErrorContext(ctx, "Failed to scrape provider %s/%s: %v", addr.Namespace, addr.Name, err)
+				return err
+			}
 
-				// Here we compare the provider entry to its original copy to make sure
-				// we are only writing this index if needed. This is needed because writes
-				// on R2 cost money, whereas reads don't and updating all the provider and
-				// module indexes on every run costs ~300$ per month.
-				if originalProviderEntry == nil || !originalProviderEntry.Equals(providerEntry) {
-					if err := d.destination.StoreProvider(ctx, *providerEntry); err != nil {
-						return fmt.Errorf("failed to store provider %s (%w)", addr, err)
-					}
-				}
-
-				if needsAdd {
-					lock.Lock()
-					providersToAdd = append(providersToAdd, providerEntry)
-					lock.Unlock()
-				}
-
+			// Some providers may have versions detected by the registry, but somehow not in libregistry+scrape
+			// Filter them out here for now
+			if len(providerEntry.Versions) == 0 {
+				log.InfoContext(ctx, "Provider %s does not have any versions, removing from UI...", addr)
+				lock.Lock()
+				providersToRemove = append(providersToRemove, addr)
+				lock.Unlock()
 				return nil
+			}
 
-			})
-		}
+			// Here we compare the provider entry to its original copy to make sure
+			// we are only writing this index if needed. This is needed because writes
+			// on R2 cost money, whereas reads don't and updating all the provider and
+			// module indexes on every run costs ~300$ per month.
+			if originalProviderEntry == nil || !originalProviderEntry.Equals(providerEntry) {
+				if err := destination.StoreProvider(ctx, *providerEntry); err != nil {
+					return fmt.Errorf("failed to store provider %s (%w)", addr, err)
+				}
+			}
 
-		if err := eg.Wait(); err != nil {
-			return err
+			if needsAdd {
+				lock.Lock()
+				providersToAdd = append(providersToAdd, providerEntry)
+				lock.Unlock()
+			}
+
+			return nil
 		}
-		return nil
 	}
 
-	if err := processProviders(false); err != nil {
+	if err := providers.Parallel(25, processProviders(false)); err != nil {
 		return err
 	}
-	if err := processProviders(true); err != nil {
+	if err := providers.Parallel(25, processProviders(true)); err != nil {
 		return err
 	}
 
 	existingProviders.AddProviders(providersToAdd...)
 	// TODO remove providers that are no longer needed.
 
-	if err := d.destination.StoreProviderList(ctx, existingProviders); err != nil {
+	if err := destination.StoreProviderList(ctx, existingProviders); err != nil {
 		return fmt.Errorf("failed to store provider list (%w)", err)
 	}
 
 	return nil
 }
 
-func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider, cfg GenerateConfig, blocked bool, blockedReason string) error {
-	d.log.Trace(ctx, "Generating index for provider %s/%s", addr.Namespace, addr.Name)
+func scrapeProvider(log *slog.Logger, ctx context.Context, raw provider.Provider, providerData *providertypes.Provider, workDir string, licenseDetector license.Detector, destination providerindexstorage.API, db *sql.DB) error {
+	addr := providertypes.Addr(raw)
 
-	canonicalAddr, err := d.metadataAPI.GetProviderCanonicalAddr(ctx, addr.Addr)
+	log.DebugContext(ctx, "Generating index for provider %s/%s", addr.Namespace, addr.Name)
+
+	providerData.Link = raw.RepositoryURL()
+
+	meta, err := raw.ReadMetadata()
 	if err != nil {
 		return err
-	}
-
-	meta, err := d.metadataAPI.GetProvider(ctx, canonicalAddr, false)
-	if err != nil {
-		return err
-	}
-
-	if meta.CustomRepository != "" {
-		providerData.Link = meta.CustomRepository
-	} else {
-		link, err := d.vcsClient.GetRepositoryBrowseURL(ctx, canonicalAddr.ToRepositoryAddr())
-		if err != nil {
-			providerData.Link = link
-		}
 	}
 
 	// Reverse the version order to ensure that the search index is updated with newer versions overriding older
 	// versions.
 	slices.Reverse(meta.Versions)
-	repoInfoFetched := false
 	var versionsToAdd []providertypes.ProviderVersionDescriptor
 	var versionsToUpdate []providertypes.ProviderVersionDescriptor
 
-	forceProvider := cfg.Force.MustRegenerateProvider(ctx, addr.Addr)
-	if blocked != providerData.IsBlocked {
-		// If the blocked status has changed, force re-generating everything to make sure all previous content is gone.
-		forceProvider = true
-		d.log.Info(ctx, "Provider %s changed blocked status, reindexing all versions...", addr)
-	}
-
 	providerData.Warnings = meta.Warnings
 
-	if cfg.ForceRepoDataUpdate {
-		d.extractRepoInfo(ctx, addr, providerData)
-		repoInfoFetched = true
+	//providerVersions(db, providerData)
+
+	forceRepoInfo := true // CAM72CAM This should be done once a day/week/something?
+	if forceRepoInfo {    //|| len(versionsToAdd) != 0 || len(versionsToUpdate) != 0 {
+		extractRepoInfo(ctx, log, raw, providerData)
 	}
 
 	for _, version := range meta.Versions {
-		if err := version.Version.Validate(); err != nil {
-			d.log.Warn(ctx, "Invalid version number for provider %s: %s, skipping... (%v)", addr, version.Version, err)
+		hasVersion := providerData.HasVersion("v" + version.Version)
+		if hasVersion && false {
+			log.DebugContext(ctx, "The provider index already has %s version %s, skipping...", addr, version.Version)
 			continue
-		}
-		hasVersion := providerData.HasVersion(version.Version)
-		if hasVersion && !forceProvider {
-			d.log.Debug(ctx, "The provider index already has %s version %s, skipping...", addr, version.Version)
-			continue
-		}
-		if !repoInfoFetched {
-			d.extractRepoInfo(ctx, addr, providerData)
-			repoInfoFetched = true
 		}
 
-		providerVersion, err := d.scrapeVersion(ctx, addr, canonicalAddr, providerData, version, blocked, blockedReason)
+		// FUTURE: consider use git --work-tree=$TAG_DIR checkout $TAG  -- . for per-version checkouts
+
+		providerVersion, err := scrapeVersion(ctx, log, raw, providerData, version, workDir, licenseDetector, destination)
 		if err != nil {
-			var repoNotFound *vcs.RepositoryNotFoundError
+			var repoNotFound *RepositoryNotFoundError
 			if errors.As(err, &repoNotFound) {
-				d.log.Warn(ctx, "Repository not found for provider %s, skipping... (%v)", addr.Addr, err)
-				return &metadata.ProviderNotFoundError{
-					ProviderAddr: addr.Addr,
+				log.WarnContext(ctx, "Repository not found for provider %s, skipping... (%v)", addr, err)
+				/* TODO CAM72CAM return &metadata.ProviderNotFoundError{
+					ProviderAddr: addr,
 					Cause:        err,
-				}
+				}*/
 			}
-			var versionNotFound *vcs.VersionNotFoundError
+			var versionNotFound *VersionNotFoundError
 			if errors.As(err, &versionNotFound) {
-				d.log.Warn(ctx, "Version %s not found for provider %s, skipping (%v)", version.Version, addr.Addr, err)
+				log.WarnContext(ctx, "Version %s not found for provider %s, skipping (%v)", version.Version, addr, err)
 				// We don't care, don't add it to the version list.
 				continue
 			}
 			return err
 		}
+
+		tx, err := db.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		if err := insertItems(tx, providerData, providerVersion); err != nil {
+			err = errors.Join(err, tx.Rollback())
+			return err
+		}
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+		// TEMPORARY
+
 		if hasVersion {
-			versionsToUpdate = append(versionsToUpdate, providerVersion.ProviderVersionDescriptor)
 			// TODO: currently we don't remove documents that may not be there anymore. This should be addressed by
 			//       diffing the old and new descriptor.
+			versionsToUpdate = append(versionsToUpdate, providerVersion.ProviderVersionDescriptor)
 		} else {
 			versionsToAdd = append(versionsToAdd, providerVersion.ProviderVersionDescriptor)
 		}
@@ -381,6 +220,7 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 
 	// TODO remove versions that no longer exist.
 
+	/* TODO cam72cam
 	if !canonicalAddr.Equals(addr.Addr) {
 		canonicalAddrStruct := providertypes.Addr(canonicalAddr)
 		providerData.CanonicalAddr = &canonicalAddrStruct
@@ -388,7 +228,7 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 		providerData.CanonicalAddr = nil
 	}
 
-	reverseAliases, err := d.metadataAPI.GetProviderReverseAliases(ctx, addr.Addr)
+	reverseAliases, err := metadataAPI.GetProviderReverseAliases(ctx, addr.Addr)
 	if err != nil {
 		return err
 	}
@@ -396,117 +236,228 @@ func (d *documentationGenerator) scrapeProvider(ctx context.Context, addr provid
 	for i, reverseAlias := range reverseAliases {
 		providerData.ReverseAliases[i] = providertypes.Addr(reverseAlias)
 	}
+	*/
 
 	return nil
 }
 
-func (d *documentationGenerator) extractRepoInfo(ctx context.Context, addr providertypes.ProviderAddr, providerData *providertypes.Provider) {
+func extractRepoInfo(ctx context.Context, log *slog.Logger, raw provider.Provider, providerData *providertypes.Provider) {
+	addr := providertypes.Addr(raw)
+
 	// Make sure to fetch the description for the search index:
-	repoInfo, err := d.vcsClient.GetRepositoryInfo(ctx, addr.ToRepositoryAddr())
+	repoInfo, err := getRepositoryInfo(ctx, raw)
 	if err != nil {
 		var repoNotFound *vcs.RepositoryNotFoundError
 		if errors.As(err, &repoNotFound) {
-			d.log.Warn(ctx, "Repository not found for provider %s, skipping... (%v)", addr.String(), err)
+			log.WarnContext(ctx, "Repository not found for provider %s, skipping... (%v)", addr.String(), err)
 			return
 		}
 		// We handle description errors as soft errors because they are purely presentational.
-		d.log.Warn(ctx, "Cannot update repository description for provider %s (%v)", addr.String(), err)
+		log.WarnContext(ctx, "Cannot update repository description for provider %s (%v)", addr.String(), err)
 		return
 	}
 	providerData.Description = repoInfo.Description
-	providerData.Popularity = repoInfo.Popularity
+	providerData.Popularity = repoInfo.StargazersCount
 	providerData.ForkCount = repoInfo.ForkCount
 
-	forkRepo := repoInfo.ForkOf
+	forkRepo := repoInfo.Parent
 	if forkRepo == nil {
 		return
 	}
-	link, err := d.vcsClient.GetRepositoryBrowseURL(ctx, *forkRepo)
-	if err != nil {
-		d.log.Warn(ctx, "Cannot determine repository browse URL for %s (%v)", forkRepo.String(), err)
-		return
-	}
-	providerData.ForkOfLink = link
+	providerData.ForkOfLink = forkRepo.HTMLUrl
 
-	forkedAddr, err := provider.AddrFromRepository(*forkRepo)
+	/*CAM72CAM This is Useless!
+	forkedAddr, err := lrprovider.AddrFromRepository(*forkRepo)
 	if err != nil {
-		d.log.Warn(ctx, "Cannot convert repository name %s to a provider addr (%v)", forkRepo.String(), err)
+		log.WarnContext(ctx, "Cannot convert repository name %s to a provider addr (%v)", forkRepo.String(), err)
 		return
 	}
-	_, err = d.metadataAPI.GetProvider(ctx, forkedAddr, false)
+	_, err = metadataAPI.GetProvider(ctx, forkedAddr, false)
 	if err != nil {
 		return
 	}
 	providerData.ForkOf = providertypes.Addr(forkedAddr)
 
-	upstreamRepoInfo, err := d.vcsClient.GetRepositoryInfo(ctx, *forkRepo)
+	upstreamRepoInfo, err := vcsClient.GetRepositoryInfo(ctx, *forkRepo)
 	if err != nil {
-		d.log.Warn(ctx, "Cannot fetch upstream repository info for %s (%v)", forkRepo.String(), err)
+		log.WarnContext(ctx, "Cannot fetch upstream repository info for %s (%v)", forkRepo.String(), err)
 		return
 	}
 	providerData.UpstreamPopularity = upstreamRepoInfo.Popularity
-	providerData.UpstreamForkCount = upstreamRepoInfo.ForkCount
+	providerData.UpstreamForkCount = upstreamRepoInfo.ForkCount*/
 }
 
-func (d *documentationGenerator) scrapeVersion(ctx context.Context, addr providertypes.ProviderAddr, canonicalAddr provider.Addr, providerDetails *providertypes.Provider, version provider.Version, blocked bool, blockedReason string) (providertypes.ProviderVersion, error) {
+func scrapeVersion(ctx context.Context, log *slog.Logger, raw provider.Provider, providerDetails *providertypes.Provider, version provider.Version, workDir string, licenseDetector license.Detector, destination providerindexstorage.API) (providertypes.ProviderVersion, error) {
+	addr := providertypes.Addr(raw)
+
 	// We get the VCS version before normalizing as the tag name may be different.
-	vcsVersion := version.Version.ToVCSVersion()
-	version.Version = version.Version.Normalize()
-	d.log.Info(ctx, "Scraping documentation for %s version %s...", addr, version.Version)
+	log.InfoContext(ctx, "Scraping documentation for %s version %s...", addr, version.Version)
 
-	// TODO get the release date instead of the tag date
-	tag, err := d.vcsClient.GetTagVersion(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
-	if err != nil {
-		var verNotFoundError *vcs.VersionNotFoundError
-		if !errors.As(err, &verNotFoundError) {
-			return providertypes.ProviderVersion{}, err
-		}
-
-		// Fallback for missing/added v prefix.
-		if strings.HasPrefix(string(vcsVersion), "v") {
-			vcsVersion = vcs.VersionNumber(strings.TrimPrefix(string(vcsVersion), "v"))
-		} else {
-			vcsVersion = "v" + vcsVersion
-		}
-		tag, err = d.vcsClient.GetTagVersion(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
+	repoPath := path.Join(workDir, addr.Namespace, addr.Name)
+	if _, err := os.Stat(repoPath); errors.Is(err, fs.ErrNotExist) {
+		err := os.MkdirAll(repoPath, 0700)
 		if err != nil {
 			return providertypes.ProviderVersion{}, err
 		}
-	}
 
-	workingCopy, err := d.vcsClient.Checkout(ctx, canonicalAddr.ToRepositoryAddr(), vcsVersion)
-	if err != nil {
+		gitClone := exec.Command("git", "clone", raw.RepositoryURL(), repoPath)
+		gitCloneOut, err := gitClone.Output()
+		log.Info(string(gitCloneOut)) // CAM72CAM TODO BETTER OUTPUT
+		if err != nil {
+			// TODO CAM72CAM ExitError.Stderr
+			return providertypes.ProviderVersion{}, RepositoryNotFoundError{
+				RepositoryAddr: raw.RepositoryURL(),
+				Cause:          err,
+			}
+		}
+	} else if err != nil {
 		return providertypes.ProviderVersion{}, err
 	}
-	defer func() {
-		if err := workingCopy.Close(); err != nil {
-			d.log.Error(ctx, "Failed to close working copy for %s (%v)", addr, err)
-		}
-	}()
 
-	providerData, err := d.source.Describe(ctx, workingCopy, blocked, blockedReason)
+	// TODO CAM72CAM v prefix handling
+	gitCheckout := exec.Command("git", "reset", "--hard", "v"+version.Version)
+	gitCheckout.Dir = repoPath
+	gitCheckoutOut, err := gitCheckout.Output()
+	log.Info(string(gitCheckoutOut)) // CAM72CAM TODO BETTER OUTPUT
+	if err != nil {
+		// TODO CAM72CAM check tags to see if it's been deleted
+		// TODO CAM72CAM ExitError.Stderr
+		return providertypes.ProviderVersion{}, VersionNotFoundError{
+			RepositoryAddr: raw.RepositoryURL(),
+			Version:        "v" + version.Version,
+			Cause:          err,
+		}
+	}
+
+	gitCreated := exec.Command("git", "show", "--no-patch", "--no-notes", "--pretty=%cI", "HEAD")
+	gitCreated.Dir = repoPath
+	gitCreatedOut, err := gitCreated.Output()
+	if err != nil {
+		// TODO CAM72CAM ExitError.Stderr
+		return providertypes.ProviderVersion{}, err
+	}
+	created, err := time.Parse(time.RFC3339, strings.TrimSpace(string(gitCreatedOut)))
 	if err != nil {
 		return providertypes.ProviderVersion{}, err
 	}
 
 	versionDescriptor := providertypes.ProviderVersionDescriptor{
-		ID:        version.Version.Normalize(),
-		Published: tag.Created,
+		ID:        "v" + version.Version,
+		Published: created.UTC(),
 	}
 
-	// Make sure we delete all old data in case a re-indexing needs to institute a block and remove everything.
-	if err := d.destination.DeleteProviderVersion(ctx, addr.Addr, versionDescriptor.ID); err != nil {
+	versionData, err := providerdocsource.Process(ctx, raw, repoPath, versionDescriptor, licenseDetector, log, destination)
+	if err != nil {
 		return providertypes.ProviderVersion{}, err
 	}
 
-	versionData, err := providerData.Store(ctx, addr.Addr, versionDescriptor, d.destination)
-	if err != nil {
-		return versionData, fmt.Errorf("failed to store documentation for %s version %s (%w)", addr, version.Version, err)
-	}
-
-	if err := d.search.indexProviderVersion(ctx, addr.Addr, providerDetails, versionData); err != nil {
+	/* TODO cam72cam
+	if err := search.indexProviderVersion(ctx, addr.Addr, providerDetails, versionData); err != nil {
 		return versionData, err
-	}
+	}*/
 
 	return versionData, nil
+}
+
+// Lifted from libregistry
+type ProviderNotFoundError struct {
+	ProviderAddr providertypes.ProviderAddr
+	Cause        error
+}
+
+func (m ProviderNotFoundError) Error() string {
+	if m.Cause != nil {
+		return "Provider not found: " + m.ProviderAddr.String() + " (" + m.Cause.Error() + ")"
+	}
+	return "Provider not found: " + m.ProviderAddr.String()
+}
+
+func (m ProviderNotFoundError) Unwrap() error {
+	return m.Cause
+}
+
+// From libregistry
+type repoInfoResponse struct {
+	Description     string `json:"description"`
+	StargazersCount int    `json:"stargazers_count"`
+	ForkCount       int    `json:"forks_count"`
+	Parent          *struct {
+		HTMLUrl string `json:"html_url"`
+		Name    string `json:"name"`
+		Owner   struct {
+			Login string `json:"login"`
+		} `json:"owner"`
+	} `json:"parent"`
+}
+
+func getRepositoryInfo(ctx context.Context, raw provider.Provider) (repoInfoResponse, error) {
+	var response repoInfoResponse
+
+	// TODO cam72cam retry logic
+	// TODO  cam72cam errors
+
+	token, err := github.EnvAuthToken()
+	if err != nil {
+		return response, err
+	}
+
+	client := http.DefaultClient
+
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/repos/"+raw.EffectiveNamespace()+"/"+raw.RepositoryName(), nil)
+	if err != nil {
+		return response, err
+	}
+	req.Header.Set("User-Agent", github.UserAgent)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return response, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return response, fmt.Errorf("Expected 200, got %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return response, err
+	}
+
+	err = json.Unmarshal(body, &response)
+
+	return response, err
+}
+
+type RepositoryNotFoundError struct {
+	RepositoryAddr string
+	Cause          error
+}
+
+func (r RepositoryNotFoundError) Error() string {
+	if r.Cause != nil {
+		return "Repository not found: " + r.RepositoryAddr + " (" + r.Cause.Error() + ")"
+	}
+	return "Repository not found: " + r.RepositoryAddr
+}
+
+func (r RepositoryNotFoundError) Unwrap() error {
+	return r.Cause
+}
+
+type VersionNotFoundError struct {
+	RepositoryAddr string
+	Version        string
+	Cause          error
+}
+
+func (v VersionNotFoundError) Error() string {
+	if v.Cause != nil {
+		return "Version " + v.Version + " not found in repository" + v.RepositoryAddr + " (" + v.Cause.Error() + ")"
+	}
+	return "Version " + v.Version + " not found in repository" + v.RepositoryAddr
+}
+
+func (v VersionNotFoundError) Unwrap() error {
+	return v.Cause
 }

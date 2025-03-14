@@ -3,18 +3,17 @@ package bufferedstorage
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"os"
 	"path"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/opentofu/libregistry/logger"
-
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 )
 
-func newLocalIndex(localDir string, logger logger.Logger) *localIndex {
+func newLocalIndex(localDir string, logger *slog.Logger) *localIndex {
 	return &localIndex{
 		CommitStarted: false,
 		Root: &directory{
@@ -42,7 +41,7 @@ type localIndex struct {
 
 	lastCommitted time.Time
 
-	logger logger.Logger
+	logger *slog.Logger
 }
 
 type fileStatus int
@@ -212,7 +211,7 @@ func (l *localIndex) trySave(ctx context.Context) error {
 }
 
 func (l *localIndex) save(ctx context.Context) error {
-	l.logger.Debug(ctx, "Saving local index")
+	l.logger.DebugContext(ctx, "Saving local index")
 	marshalled, err := json.Marshal(l)
 	if err != nil {
 		return err

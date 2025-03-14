@@ -4,14 +4,11 @@ import (
 	"context"
 	"path"
 
-	"github.com/opentofu/libregistry/types/provider"
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 )
 
-func (s storage) getProviderDocItemPath(_ context.Context, providerAddr provider.Addr, version provider.VersionNumber, kind providertypes.DocItemKind, name providertypes.DocItemName) indexstorage.Path {
-	providerAddr = providerAddr.Normalize()
-	version = version.Normalize()
+func (s storage) getProviderDocItemPath(_ context.Context, providerAddr providertypes.ProviderAddr, version string, kind providertypes.DocItemKind, name providertypes.DocItemName) indexstorage.Path {
 	name = name.Normalize()
 	if kind == providertypes.DocItemKindRoot {
 		return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), string(name)+".md"))
@@ -19,11 +16,7 @@ func (s storage) getProviderDocItemPath(_ context.Context, providerAddr provider
 	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), string(kind)+"s", string(name)+".md"))
 }
 
-func (s storage) GetProviderDocItem(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, kind providertypes.DocItemKind, name providertypes.DocItemName) ([]byte, error) {
-	// TODO validate provider addr
-	if err := version.Validate(); err != nil {
-		return nil, err
-	}
+func (s storage) GetProviderDocItem(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, kind providertypes.DocItemKind, name providertypes.DocItemName) ([]byte, error) {
 	if err := kind.Validate(); err != nil {
 		return nil, err
 	}
@@ -33,11 +26,7 @@ func (s storage) GetProviderDocItem(ctx context.Context, providerAddr provider.A
 	return s.indexStorageAPI.ReadFile(ctx, s.getProviderDocItemPath(ctx, providerAddr, version, kind, name))
 }
 
-func (s storage) StoreProviderDocItem(ctx context.Context, providerAddr provider.Addr, version provider.VersionNumber, kind providertypes.DocItemKind, name providertypes.DocItemName, data []byte) error {
-	// TODO validate provider addr
-	if err := version.Validate(); err != nil {
-		return err
-	}
+func (s storage) StoreProviderDocItem(ctx context.Context, providerAddr providertypes.ProviderAddr, version string, kind providertypes.DocItemKind, name providertypes.DocItemName, data []byte) error {
 	if err := kind.Validate(); err != nil {
 		return err
 	}
