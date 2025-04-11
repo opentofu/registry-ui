@@ -15,8 +15,8 @@ const searchQuery = `
 						  GROUP BY id, last_updated, type, addr, version, title, description, link_variables, document, popularity, warnings),
 	     max_popularity AS (SELECT max(popularity) AS max_popularity FROM term_matches tm),
 		 ranked_entities AS (SELECT *,
-								 /* The provider rank fudge ranks providers higher than their resources (excluding archived terraform-providers) */
-									CASE WHEN type = 'provider' AND addr NOT LIKE 'terraform-providers/%' AND addr NOT LIKE 'opentofu/%' THEN 1 ELSE 0 END          AS provider_rank_fudge,
+								 /* The rank fudge ranks providers and modules higher than their resources/submodules (excluding archived terraform-providers) */
+									CASE WHEN (type = 'provider' OR type = 'module') AND addr NOT LIKE 'terraform-providers/%' AND addr NOT LIKE 'opentofu/%' THEN 1 ELSE 0 END          AS type_rank_fudge,
 								 /* When warnings are present, rank the provider lower because it's likely deprecated. */
 								 /* DISABLED CASE WHEN warnings > 1 THEN -1 ELSE 0 END              AS warnings_rank_fudge, */
 								 0 as warnings_rank_fudge,
@@ -30,12 +30,12 @@ const searchQuery = `
 		 providers AS (SELECT *
 					   FROM ranked_entities
 					   WHERE type LIKE 'provider%'
-					   ORDER BY (provider_rank_fudge + warnings_rank_fudge + 1) *(popularity_rank + title_sim + name_sim + description_sim/0.5) DESC
+					   ORDER BY (type_rank_fudge + warnings_rank_fudge + 1) *(popularity_rank + title_sim + name_sim + description_sim/0.5) DESC
 					   LIMIT 5),
 		 modules AS (SELECT *
 					 FROM ranked_entities
 					 WHERE type LIKE 'module%'
-					 ORDER BY (warnings_rank_fudge + 1) * (popularity_rank + title_sim + name_sim + description_sim/0.5) DESC
+					 ORDER BY (type_rank_fudge + warnings_rank_fudge + 1) * (popularity_rank + title_sim + name_sim + description_sim/0.5) DESC
 					 LIMIT 5)
 	SELECT *
 	FROM providers
