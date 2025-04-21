@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"slices"
 	"strings"
 
 	"github.com/go-enry/go-license-detector/v4/licensedb"
@@ -231,23 +232,72 @@ func (d detector) Detect(_ context.Context, repository fs.ReadDirFS, detectOptio
 		}
 		return nil, fmt.Errorf("error detecting licenses: %w", err)
 	}
-	var result []License
+
+	filesWithLicenses := make(map[string][]License)
+
 	for license, match := range licenses {
-		if strings.HasPrefix(license, "deprecated_") {
+		// Is this intended for the filename or the license name?
+		// TODO Document this!!!
+		/*if strings.HasPrefix(license, "deprecated_") {
 			continue
-		}
-		if match.Confidence >= d.config.ConfidenceThreshold {
-			_, isCompatible := d.licenseMap[strings.ToLower(license)]
-			l := License{
-				SPDX:         license,
-				Confidence:   match.Confidence,
-				IsCompatible: isCompatible,
-				File:         match.File,
+		}*/
+
+		_, isCompatible := d.licenseMap[strings.ToLower(license)]
+
+		for file, confidence := range match.Files {
+			if confidence >= d.config.ConfidenceThreshold {
+				filesWithLicenses[file] = append(filesWithLicenses[file], License{
+					SPDX:         license,
+					Confidence:   confidence,
+					IsCompatible: isCompatible,
+					File:         file,
+				})
 			}
+		}
+	}
+
+	// Accumulate the full list of potential license files, for later sorting and iteration
+	var licenseFiles []string
+	for file := range filesWithLicenses {
+		licenseFiles = append(licenseFiles, file)
+
+		// Make sure that the potential license entries are sorted in order of confidence
+		slices.SortFunc(filesWithLicenses[file], func(a, b License) int {
+			if a.Confidence > b.Confidence {
+				return 1
+			}
+			if a.Confidence < b.Confidence {
+				return -1
+			}
+			// Sometimes a license file could contain multiple entries
+			// We still want to have a stable sort so fall back to license name
+			return strings.Compare(strings.ToLower(a.SPDX), strings.ToLower(b.SPDX))
+		})
+	}
+
+	// Sort for consistency.
+	// Length is a good starting metric, but it could definitely be improved
+	// This is written with LICENSE.txt, LICENSE_THIRD_PARTY.txt in mind.
+	slices.SortFunc(licenseFiles, func(a, b string) int {
+		if len(a) > len(b) {
+			return 1
+		} else if len(b) > len(a) {
+			return -1
+		}
+		return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+	})
+
+	var result []License
+
+	// Iterate through sorted list of potential license files
+	for _, file := range licenseFiles {
+		for _, l := range filesWithLicenses[file] {
 			if err := detectCfg.LinkFetcher(&l); err != nil {
 				return nil, err
 			}
-			if match.Confidence >= d.config.ConfidenceOverrideThreshold {
+
+			// Exit early (keeping in mind the sort order above)
+			if l.Confidence >= d.config.ConfidenceOverrideThreshold {
 				return []License{
 					l,
 				}, nil
