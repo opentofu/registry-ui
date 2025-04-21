@@ -264,10 +264,10 @@ func (d detector) Detect(_ context.Context, repository fs.ReadDirFS, detectOptio
 		// Make sure that the potential license entries are sorted in order of confidence
 		slices.SortFunc(filesWithLicenses[file], func(a, b License) int {
 			if a.Confidence > b.Confidence {
-				return 1
+				return -1
 			}
 			if a.Confidence < b.Confidence {
-				return -1
+				return 1
 			}
 			// Sometimes a license file could contain multiple entries
 			// We still want to have a stable sort so fall back to license name
