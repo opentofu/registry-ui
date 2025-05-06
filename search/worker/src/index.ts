@@ -113,7 +113,7 @@ export default {
 		}
 
 		switch (url.pathname) {
-			case '/providers/top':
+			case '/top/providers':
 				response = await handleTopProvidersRequest(request, env, ctx);
 				break;
 			case '/registry/docs/search':

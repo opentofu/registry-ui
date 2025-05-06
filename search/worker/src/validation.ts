@@ -11,7 +11,7 @@ interface ValidationError {
 	};
 }
 
-type ValidationResul<T> = ValidationSuccess<T> | ValidationError;
+type ValidationResult<T> = ValidationSuccess<T> | ValidationError;
 
 const newValidationErrorResult = (message: string, status: number): ValidationError => ({ error: { message, status } });
 
