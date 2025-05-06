@@ -1,14 +1,32 @@
 import { Client, neon, neonConfig } from '@neondatabase/serverless';
 
-import { DBClient } from "./types";
+import { DBClient } from './types';
 import { getClient } from './client';
-import { query } from './query';
-import { validateSearchRequest } from './validation';
+import { getTopProviders, query } from './query';
+import { validateSearchRequest, validateTopProvidersRequest } from './validation';
 
 async function fetchData(client: DBClient, queryParam: string, ctx: ExecutionContext): Promise<Response> {
 	try {
 		const start = performance.now();
 		const results = await query(client, queryParam);
+		const end = performance.now();
+		console.log(`Query took ${end - start}ms`);
+		ctx.waitUntil(client.end()); // Don't block on closing the connection
+		return Response.json(results, {
+			headers: {
+				'Cache-Control': 'public, max-age=300', // Cache for 5 mins
+			},
+		});
+	} catch (error) {
+		console.error('Error during fetch:', error);
+		return new Response('An internal server error occurred', { status: 500 });
+	}
+}
+
+async function fetchTopProviders(client: DBClient, limit: number, ctx: ExecutionContext): Promise<Response> {
+	try {
+		const start = performance.now();
+		const results = await getTopProviders(client, limit);
 		const end = performance.now();
 		console.log(`Query took ${end - start}ms`);
 		ctx.waitUntil(client.end()); // Don't block on closing the connection
@@ -32,6 +50,17 @@ async function handleSearchRequest(request: Request, env: Env, ctx: ExecutionCon
 	const client = await getClient(env.ENVIRONMENT, env.DATABASE_URL);
 	console.log('Querying for:', validation.queryParam);
 	const response = await fetchData(client, validation.queryParam, ctx);
+	return response;
+}
+
+async function handleTopProvidersRequest(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+	const validation = validateTopProvidersRequest(request);
+	if (validation.error) {
+		return new Response(validation.error.message, { status: validation.error.status });
+	}
+	const client = await getClient(env.ENVIRONMENT, env.DATABASE_URL);
+	console.log('Querying for top providers with limit:', validation.queryParam);
+	const response = await fetchTopProviders(client, validation.queryParam, ctx);
 	return response;
 }
 
@@ -84,6 +113,9 @@ export default {
 		}
 
 		switch (url.pathname) {
+			case '/top/providers':
+				response = await handleTopProvidersRequest(request, env, ctx);
+				break;
 			case '/registry/docs/search':
 			case '/search':
 				response = await handleSearchRequest(request, env, ctx);
