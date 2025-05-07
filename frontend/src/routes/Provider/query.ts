@@ -19,6 +19,17 @@ export const getProviderVersionDataQuery = (
   });
 };
 
+// Custom error class for documentation not found errors
+export class DocNotFoundError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.name = "DocNotFoundError";
+    this.statusCode = statusCode;
+  }
+}
+
 export const getProviderDocsQuery = (
   namespace: string | undefined,
   provider: string | undefined,
@@ -37,8 +48,30 @@ export const getProviderDocsQuery = (
           ? `index.md`
           : `${type}/${name}.md`;
 
-      const data = await api(`${urlBase}${path}`).text();
-      return data;
+      try {
+        const response = await api(`${urlBase}${path}`);
+        const text = await response.text();
+
+        if (text === "") {
+          throw new DocNotFoundError("Document is empty", 204);
+        }
+
+        return text;
+      } catch (error) {
+        // Check if this is a 404 error from ky, if it is then surface this up to the query caller
+        // this way we can handle it in the UI nicely
+        if (
+          error instanceof Error &&
+          "response" in error &&
+          (error as Error & Record<"response", { status: number }>).response
+            ?.status === 404
+        ) {
+          // Convert to our custom error type
+          throw new DocNotFoundError("Document not found", 404);
+        }
+        // Re-throw other errors
+        throw error;
+      }
     },
   });
 };
