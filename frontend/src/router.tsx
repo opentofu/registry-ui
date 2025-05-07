@@ -279,7 +279,7 @@ export const router = createBrowserRouter(
     },
   ],
   {
-    async unstable_dataStrategy({ request, params, matches }) {
+    async dataStrategy({ request, params, matches }) {
       const context = {};
 
       let response: Response | undefined;

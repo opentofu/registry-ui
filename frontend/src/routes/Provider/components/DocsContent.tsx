@@ -1,6 +1,10 @@
 import { Markdown } from "@/components/Markdown";
-import { useSuspenseQueries } from "@tanstack/react-query";
-import { getProviderDocsQuery, getProviderVersionDataQuery } from "../query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  DocNotFoundError,
+  getProviderDocsQuery,
+  getProviderVersionDataQuery,
+} from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderDoc } from "../utils/getProviderDoc";
 import { EditLink } from "@/components/EditLink";
@@ -8,20 +12,52 @@ import { EditLink } from "@/components/EditLink";
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
 
-  const [{ data: docs }, { data: versionData }] = useSuspenseQueries({
-    queries: [
-      getProviderDocsQuery(namespace, provider, version, type, doc, lang),
-      getProviderVersionDataQuery(namespace, provider, version),
-    ],
+  const { data: docs, error } = useQuery({
+    ...getProviderDocsQuery(namespace, provider, version, type, doc, lang),
+    retry: false,
   });
 
+  const { data: versionData } = useSuspenseQuery(
+    getProviderVersionDataQuery(namespace, provider, version),
+  );
+
   const editLink = getProviderDoc(versionData, type, doc, lang)?.edit_link;
+
+  if (error) {
+    if (
+      error instanceof DocNotFoundError &&
+      error.statusCode === 404 &&
+      versionData
+    ) {
+      // handle 404 errors specifically if and only if we have the version data AND we got a 404
+      return <ProviderDocsContentNotFound />;
+    } else {
+      // throw it back up to be handled by the error boundary
+      throw error;
+    }
+  }
+
+  if (!docs) {
+    return <ProviderDocsContentSkeleton />;
+  }
 
   return (
     <>
       <Markdown text={docs} />
       {editLink && <EditLink url={editLink} />}
     </>
+  );
+}
+
+export function ProviderDocsContentNotFound() {
+  return (
+    <div className="py-8">
+      <h2 className="mb-4 text-2xl font-bold">Documentation not found</h2>
+      <p>
+        The requested documentation page could not be found, but provider
+        information is available.
+      </p>
+    </div>
   );
 }
 
