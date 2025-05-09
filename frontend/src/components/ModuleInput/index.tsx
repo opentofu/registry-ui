@@ -25,9 +25,11 @@ export function ModuleInput({
         </code>
         <HeadingLink id={name} label={`${name} input`} />
       </h4>
-      <Paragraph className="mt-1 ml-4"><Markdown text={description} /></Paragraph>
+      <Paragraph className="ml-4 mt-1">
+        <Markdown text={description} />
+      </Paragraph>
       {showDefaultValue && (
-        <Paragraph className="mt-2 ml-4">
+        <Paragraph className="ml-4 mt-2">
           Default value:{" "}
           <code className="text-mono break-words text-sm text-purple-700 dark:text-purple-300">
             {JSON.stringify(defaultValue)}
