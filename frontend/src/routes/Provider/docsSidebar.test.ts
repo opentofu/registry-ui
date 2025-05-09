@@ -1,7 +1,84 @@
 import { describe, expect, test } from "vitest";
 
 import type { Docs } from "./docsSidebar";
-import { NestedItem, transformStructure } from "./docsSidebar";
+import {
+  NestedItem,
+  filterSidebarItem,
+  transformStructure,
+} from "./docsSidebar";
+
+describe("filterSidebarItem", () => {
+  const commonFilter = "aam_aaa_policy_aaa_stats";
+  const sidebarData = {
+    name: "Data Sources",
+    items: [
+      {
+        name: "aam_aaa_policy_aaa_rule_stats",
+      },
+      {
+        name: "aam_aaa_policy_aaa_stats",
+      },
+      {
+        name: "SHOULD_NOT_MATCH",
+      },
+    ],
+  } as NestedItem;
+
+  test("should handle empty input", () => {
+    const data = {} as NestedItem;
+
+    const result = filterSidebarItem(data, "");
+
+    expect(result).toBe(true);
+  });
+
+  test("should return partial matches", () => {
+    const data = sidebarData;
+
+    const result = filterSidebarItem(data, commonFilter);
+
+    expect(result).toBe(true);
+  });
+
+  test("should not match if a word is not found", () => {
+    const data = sidebarData as NestedItem;
+
+    const result = filterSidebarItem(data, `${commonFilter}_extra`);
+
+    expect(result).toBe(false);
+  });
+
+  test("should ignore case", () => {
+    const data = sidebarData as NestedItem;
+
+    const result = data.items?.map((item) =>
+      filterSidebarItem(item, commonFilter),
+    );
+
+    expect(result).toStrictEqual([true, true, false]);
+  });
+
+  test("should ignore underscores, hyphens, and spaces", () => {
+    const data = sidebarData as NestedItem;
+
+    const weirdFilter = "aam-aaa-policy aaa       stats";
+    const result = data.items?.map((item) =>
+      filterSidebarItem(item, weirdFilter),
+    );
+
+    expect(result).toStrictEqual([true, true, false]);
+  });
+
+  test("should only match specific items", () => {
+    const data = sidebarData as NestedItem;
+
+    const result = data.items?.map((item) =>
+      filterSidebarItem(item, commonFilter),
+    );
+
+    expect(result).toStrictEqual([true, true, false]);
+  });
+});
 
 describe("transformStructure", () => {
   test("should handle empty input", () => {
