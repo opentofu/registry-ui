@@ -15,6 +15,7 @@ export function ModuleInput({
   description,
   defaultValue,
 }: ModuleInputProps) {
+  const showDefaultValue = defaultValue !== undefined;
   return (
     <li>
       <h4 id={name} className="group scroll-mt-5 font-bold">
@@ -25,7 +26,7 @@ export function ModuleInput({
         <HeadingLink id={name} label={`${name} input`} />
       </h4>
       <Paragraph className="mt-1 ml-4"><Markdown text={description} /></Paragraph>
-      {!!defaultValue && (
+      {showDefaultValue && (
         <Paragraph className="mt-2 ml-4">
           Default value:{" "}
           <code className="text-mono break-words text-sm text-purple-700 dark:text-purple-300">
