@@ -6,7 +6,10 @@ interface MarkdownProps {
 }
 
 export function Markdown({ text }: MarkdownProps) {
-  const { result } = useMemo(() => processor.processSync(text), [text]);
+  const { result } = useMemo(
+    () => processor.processSync(text.trimStart()),
+    [text],
+  );
 
   return result;
 }
