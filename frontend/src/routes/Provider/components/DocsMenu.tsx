@@ -3,12 +3,17 @@ import { TreeView, TreeViewItem } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useState, useTransition } from "react";
+import { useDeferredValue, useState, useTransition } from "react";
 import { To, useHref, useLinkClickHandler } from "react-router-dom";
 
-import { NestedItem, transformStructure } from "../docsSidebar";
+import {
+  NestedItem,
+  filterSidebarItem,
+  transformStructure,
+} from "../docsSidebar";
 import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderVersionDataQuery } from "../query";
+import { Suspense } from "react";
 
 type TabLinkProps = {
   to: To;
@@ -46,17 +51,23 @@ type DocsTreeViewItemProps = {
   item: NestedItem;
   isOpenByDefault?: boolean;
   nested?: boolean;
+  searchFilter?: string;
 };
 function DocsTreeViewItem({
   item,
   isOpenByDefault = false,
   nested = false,
+  searchFilter = "",
 }: DocsTreeViewItemProps) {
   const { lang } = useProviderParams();
   const [open, setOpen] = useState(isOpenByDefault);
+  const filteredItems = item.items?.filter((subitem) =>
+    filterSidebarItem(subitem, searchFilter),
+  );
+
   let button;
 
-  if (item.items) {
+  if (filteredItems) {
     button = (
       <button
         className="flex gap-2 px-4 py-2 text-left text-inherit hover:bg-gray-100 dark:hover:bg-blue-900"
@@ -85,9 +96,9 @@ function DocsTreeViewItem({
   return (
     <TreeViewItem nested={nested} className={nested ? "ml-2" : ""}>
       {button}
-      {open && item.items && (
+      {open && filteredItems && (
         <TreeView className="ml-4">
-          {item.items.map((subitem) => (
+          {filteredItems.map((subitem) => (
             <DocsTreeViewItem
               key={subitem.name}
               item={subitem}
@@ -107,11 +118,27 @@ export function ProviderDocsMenu() {
   const { data } = useSuspenseQuery(
     getProviderVersionDataQuery(namespace, provider, version),
   );
+  const [searchFilter, setSearchFilter] = useState("");
+  const deferredSearchFilter = useDeferredValue(searchFilter);
 
+  const filterInput = (
+    <Suspense>
+      <input
+        type="text"
+        placeholder="Filter..."
+        className="mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-none dark:bg-gray-800"
+        value={deferredSearchFilter}
+        onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
+      />
+    </Suspense>
+  );
   const items = transformStructure(data.docs, type, doc);
-
+  const filteredItems = items.filter((item) =>
+    filterSidebarItem(item, searchFilter),
+  );
   return (
     <TreeView className="mr-4 mt-4">
+      {filterInput}
       <TreeViewItem>
         <TabLink
           to={{
@@ -122,11 +149,12 @@ export function ProviderDocsMenu() {
           active={!type && !doc}
         />
       </TreeViewItem>
-      {items.map((doc) => (
+      {filteredItems.map((doc) => (
         <DocsTreeViewItem
           key={doc.name}
           item={doc}
           isOpenByDefault={doc.open}
+          searchFilter={searchFilter}
         />
       ))}
     </TreeView>
