@@ -44,9 +44,7 @@ const runCmd = async (bucketFileName, path) => {
 const run = async () => {
   console.log(`Reading ${DIR_PATH}...`)
   const files = await readdir(DIR_PATH, { recursive: true });
-  const total = files.length;
-
-  console.log(`Processing about ${total} files/folders...`);
+  console.log(`Processing about ${files.length} files/folders...`);
   // We're processing sequentially because wranger r2 put doesn't handle
   // well concurrency giving a lot of errors, even with 2 files at once.
   for(const f of files) {
