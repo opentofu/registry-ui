@@ -8,6 +8,7 @@ import {
 import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderDoc } from "../utils/getProviderDoc";
 import { EditLink } from "@/components/EditLink";
+import { reworkRelativePaths } from "./docsProcessor";
 
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
@@ -41,9 +42,14 @@ export function ProviderDocsContent() {
     return <ProviderDocsContentSkeleton />;
   }
 
+  let finalDocs = docs;
+  if (namespace && provider && version) {
+    finalDocs = reworkRelativePaths(docs || "", namespace, provider, version);
+  }
+
   return (
     <>
-      <Markdown text={docs} />
+      <Markdown text={finalDocs} />
       {editLink && <EditLink url={editLink} />}
     </>
   );
