@@ -5,8 +5,11 @@ import { DocsSidebarMenu } from "./components/SidebarMenu";
 import { MetaTags } from "@/components/MetaTags";
 import { Document } from "./types";
 
+import { useLocation } from "react-router-dom";
+
 export function Docs() {
   const docs = useLoaderData() as Document;
+  const location = useLocation();
 
   return (
     <SidebarLayout
@@ -17,7 +20,11 @@ export function Docs() {
       }
     >
       <MetaTags title={docs.data.title} description={docs.data.description} />
-      <div className="p-5" dangerouslySetInnerHTML={{ __html: docs.content }} />
+      <div
+        key={location.pathname}
+        className="p-5"
+        dangerouslySetInnerHTML={{ __html: docs.content }}
+      />
     </SidebarLayout>
   );
 }

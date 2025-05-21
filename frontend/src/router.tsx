@@ -62,10 +62,23 @@ export const router = createBrowserRouter(
         },
         {
           id: "docs",
-          path: "/docs/*",
+          path: "/docs",
           element: <Docs />,
           loader: docsLoader,
         },
+        {
+          id: "docs-section",
+          path: "/docs/:section",
+          element: <Docs />,
+          loader: docsLoader,
+        },
+        {
+          id: "docs-subsection",
+          path: "/docs/:section/:subsection",
+          element: <Docs />,
+          loader: docsLoader,
+        },
+
         {
           id: "providers",
           path: "/providers",

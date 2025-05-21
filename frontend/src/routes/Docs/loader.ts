@@ -8,7 +8,16 @@ const slugPathMap = import.meta.env.PROD
   : devUtils.getSlugPathMap();
 
 export const docsLoader: LoaderFunction = async ({ params }) => {
-  const { "*": slug = "" } = params;
+  let slug = "";
+
+  if (params.section) {
+    slug += params.section;
+
+    if (params.subsection) {
+      slug += "/" + params.subsection;
+    }
+  }
+
   const normalizedSlug = slug.replace(/[^a-zA-Z0-9/-]/g, "");
 
   const document = slugPathMap[normalizedSlug];
