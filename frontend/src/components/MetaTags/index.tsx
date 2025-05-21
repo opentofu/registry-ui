@@ -1,5 +1,3 @@
-import { Helmet } from "react-helmet-async";
-
 interface MetaTagsProps {
   title?: string;
   description?: string;
@@ -11,7 +9,7 @@ export function MetaTags({ title, description }: MetaTagsProps) {
     : "OpenTofu Registry";
 
   return (
-    <Helmet>
+    <>
       <title>{siteTitle}</title>
       <meta property="og:title" content={siteTitle} />
       <meta name="twitter:title" content={siteTitle} />
@@ -19,6 +17,6 @@ export function MetaTags({ title, description }: MetaTagsProps) {
       {description && <meta property="og:description" content={description} />}
       {description && <meta name="twitter:description" content={description} />}
       <meta property="og:url" content={location.href} />
-    </Helmet>
+    </>
   );
 }

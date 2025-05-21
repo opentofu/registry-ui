@@ -42,7 +42,6 @@
     "prismjs": "^1.30.0",
     "react": "^19.1.0",
     "react-dom": "^19.0.0",
-    "react-helmet-async": "^2.0.5",
     "react-router-dom": "6.30.0",
     "react-virtuoso": "^4.12.7",
     "rehype-raw": "^7.0.0",
