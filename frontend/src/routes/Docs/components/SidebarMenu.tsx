@@ -4,7 +4,7 @@ import { chevron } from "@/icons/chevron";
 
 import clsx from "clsx";
 import { useState } from "react";
-import { NavLink, To } from "react-router-dom";
+import { NavLink, To } from "react-router";
 import sidebar from "../../../../docs/sidebar.json";
 import { SidebarItem } from "../types";
 

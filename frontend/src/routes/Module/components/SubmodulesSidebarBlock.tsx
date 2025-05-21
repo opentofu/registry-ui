@@ -1,6 +1,6 @@
 import { SidebarBlock } from "@/components/SidebarBlock";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { getModuleVersionDataQuery } from "../query";
 import { useState } from "react";
 import { useModuleParams } from "../hooks/useModuleParams";

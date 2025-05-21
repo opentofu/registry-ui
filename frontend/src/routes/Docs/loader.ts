@@ -1,4 +1,4 @@
-import { LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { NotFoundPageError } from "@/utils/errors";
 import * as prodUtils from "./utils" with { type: "macro" };
 import * as devUtils from "./utils";

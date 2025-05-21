@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router";
 import { Home } from "./routes/Home";
 import { Modules } from "./routes/Modules";
 import { Providers } from "./routes/Providers";
@@ -347,9 +347,6 @@ export const router = createBrowserRouter(
           }),
         {},
       );
-    },
-    future: {
-      v7_relativeSplatPath: true,
     },
   },
 );

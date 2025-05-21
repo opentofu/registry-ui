@@ -1,6 +1,6 @@
 import { queryClient } from "@/query";
 import { getModuleSubmoduleReadmeQuery } from "../query";
-import { defer, LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { ModuleRouteContext } from "@/routes/Module/types";
 
 export const moduleSubmoduleReadmeLoader: LoaderFunction = async (
@@ -17,7 +17,7 @@ export const moduleSubmoduleReadmeLoader: LoaderFunction = async (
     ),
   );
 
-  return defer({
+  return {
     readme,
-  });
+  };
 };

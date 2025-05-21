@@ -17,7 +17,7 @@ import { definitions } from "@/api";
 import { getSearchQuery } from "../../q";
 import { search } from "../../icons/search";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 
 function getSearchResultType(value: string) {

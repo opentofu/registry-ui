@@ -1,6 +1,6 @@
 import { queryClient } from "@/query";
 import { getModuleVersionDataQuery } from "./query";
-import { defer, LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { ModuleRouteContext } from "./types";
 
 export const moduleLoader: LoaderFunction = async ({ params }, context) => {
@@ -13,7 +13,7 @@ export const moduleLoader: LoaderFunction = async ({ params }, context) => {
     ),
   );
 
-  return defer({
+  return {
     versionData,
-  });
+  };
 };
