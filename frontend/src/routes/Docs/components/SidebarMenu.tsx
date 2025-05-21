@@ -63,7 +63,7 @@ function DocsTreeViewItem({
     button = (
       <TabLink
         to={{
-          pathname: item.slug,
+          pathname: `/docs/${item.slug}`,
         }}
         label={item.title}
       />
