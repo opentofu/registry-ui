@@ -65,6 +65,6 @@
   },
   "devDependencies": {
     "@vite-pwa/assets-generator": "^0.2.6",
-    "vitest": "^2.1.9"
+    "vitest": "^3.1.4"
   }
 }
