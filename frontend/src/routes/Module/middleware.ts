@@ -1,5 +1,5 @@
 import { queryClient } from "@/query";
-import { LoaderFunction, matchPath, redirect } from "react-router-dom";
+import { LoaderFunction, matchPath, redirect } from "react-router";
 import { getModuleDataQuery, getModuleVersionDataQuery } from "./query";
 import { ModuleRouteContext } from "./types";
 

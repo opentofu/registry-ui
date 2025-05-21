@@ -1,6 +1,6 @@
 import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import clsx from "clsx";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 type BaseLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">;
 

@@ -1,5 +1,5 @@
 import { queryClient } from "@/query";
-import { LoaderFunction, redirect } from "react-router-dom";
+import { LoaderFunction, redirect } from "react-router";
 import { getProviderDataQuery } from "./query";
 import { ProviderRouteContext } from "./types";
 import { isValidDocsType } from "./utils/isValidDocsType";

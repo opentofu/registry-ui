@@ -1,4 +1,4 @@
-import { useParams, useRouteLoaderData } from "react-router-dom";
+import { useParams, useRouteLoaderData } from "react-router";
 import { ModuleRouteContext } from "../types";
 
 export function useModuleParams() {

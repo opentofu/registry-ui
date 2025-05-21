@@ -1,11 +1,11 @@
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData } from "react-router";
 import { SidebarPanel } from "@/components/SidebarPanel";
 import { DocsSidebarMenu } from "./components/SidebarMenu";
 import { MetaTags } from "@/components/MetaTags";
 import { Document } from "./types";
 
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 export function Docs() {
   const docs = useLoaderData() as Document;

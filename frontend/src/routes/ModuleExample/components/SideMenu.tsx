@@ -3,7 +3,7 @@ import { TreeView } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import clsx from "clsx";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { ModuleTabLink } from "./TabLink";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "@/routes/Module/query";

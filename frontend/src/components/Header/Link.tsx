@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Link, useMatches } from "react-router-dom";
+import { Link, useMatches } from "react-router";
 
 interface LinkProps {
   label: string;

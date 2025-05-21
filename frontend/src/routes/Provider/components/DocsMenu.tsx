@@ -4,7 +4,7 @@ import { chevron } from "@/icons/chevron";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useDeferredValue, useState, useTransition } from "react";
-import { To, useHref, useLinkClickHandler } from "react-router-dom";
+import { To, useHref, useLinkClickHandler } from "react-router";
 
 import {
   NestedItem,

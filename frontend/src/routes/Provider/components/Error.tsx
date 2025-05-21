@@ -1,5 +1,5 @@
 import { NotFoundPageError } from "@/utils/errors";
-import { Navigate, useLocation, useRouteError } from "react-router-dom";
+import { Navigate, useLocation, useRouteError } from "react-router";
 import { useProviderParams } from "../hooks/useProviderParams";
 
 function ProviderVersionRedirect() {

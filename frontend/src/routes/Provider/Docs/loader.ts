@@ -1,7 +1,7 @@
 import { queryClient } from "@/query";
 import { isValidDocsType } from "../utils/isValidDocsType";
 import { getProviderDocsQuery } from "../query";
-import { defer, LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { ProviderRouteContext } from "../types";
 
 export const providerDocsLoader: LoaderFunction = (
@@ -26,7 +26,7 @@ export const providerDocsLoader: LoaderFunction = (
     ),
   );
 
-  return defer({
+  return {
     docs,
-  });
+  };
 };

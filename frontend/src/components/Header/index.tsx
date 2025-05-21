@@ -5,7 +5,7 @@ import { x } from "../../icons/x";
 import { slack } from "../../icons/slack";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Search } from "../Search";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 
 export function Header() {
   // if we're on the home page, dont show the search bar
