@@ -58,13 +58,13 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
     "unified": "^11.0.5",
-    "unplugin-macros": "^0.13.6",
+    "unplugin-macros": "^0.17.0",
     "vfile-matter": "^5.0.1",
     "vite": "^6.3.5",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
-    "@vite-pwa/assets-generator": "^0.2.6",
+    "@vite-pwa/assets-generator": "^1.0.0",
     "vitest": "^3.1.4"
   }
 }
