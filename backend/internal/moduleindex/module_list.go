@@ -6,9 +6,7 @@ import (
 	"github.com/opentofu/libregistry/types/module"
 )
 
-// swagger:model ModuleList
 type ModuleList struct {
-	// required:true
 	Modules []*Module `json:"modules"`
 }
 

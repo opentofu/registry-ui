@@ -35,6 +35,20 @@ In order to power search, we index the data in a PostgreSQL database and provide
 You can run the backend by running `go run ./cmd/generate/main.go` in the [`backend`](backend) directory. This command
 has a number of options detailed below.
 
+#### OpenAPI Specification
+
+The backend serves an OpenAPI specification that is manually maintained at `backend/internal/server/openapi.yml`. When you update this OpenAPI specification, you must also run the conversion script to generate the backward-compatible Swagger 2.0 format:
+
+```bash
+cd backend/internal/server && ./convert.sh
+```
+
+This script requires the `api-spec-converter` package to be installed globally:
+
+```bash
+npm install -g api-spec-converter
+```
+
 #### General options
 
 | Option                    | Description                                                                                                                                                                                                                                                                                             |

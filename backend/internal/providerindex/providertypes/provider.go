@@ -7,44 +7,30 @@ import (
 )
 
 // Provider is a single provider with all its versions.
-//
-// swagger:model Provider
 type Provider struct {
 	// If you add something here, don't forget to update the Equals() and DeepCopy() functions below.
 
 	// Addr holds the address of a provider. It can be split by / to obtain a namespace and name.
-	//
-	// required: true
+
 	Addr ProviderAddr `json:"addr"`
 	// Warnings contains a list of warning strings issued to the OpenTofu client when fetching the provider info. This
 	// typically indicates a deprecation or move of the provider to another location.
-	//
-	// required: false
 	Warnings []string `json:"warnings,omitempty"`
 	// Link contains the link to the repository this provider was built from. Note that this may not match the
 	// Addr field since the repository may be different. Note that this field may not be available for all
 	// providers.
-	//
-	// required:false
 	Link string `json:"link"`
 	// CanonicalAddr stores the canonical address of the provider. If this is set, it signals that there
 	// is an alias in place. The canonical address describes the repository to ultimately fetch the data from.
-	//
-	// required: false
 	CanonicalAddr *ProviderAddr `json:"canonical_addr"`
 	// ReverseAliases contains a list of providers that are aliases of the current one. This field is the inverse of
 	// CanonicalAddr.
-	// required: false
 	ReverseAliases []ProviderAddr `json:"reverse_aliases"`
 	// Description is the extracted description for the provider. This may be empty.
-	//
-	// required: true
 	Description string `json:"description"`
 	// Popularity indicates how popular the underlying repository is in the VCS system.
-	// required: true
 	Popularity int `json:"popularity"`
 	// ForkCount indicates how many forks this provider has.
-	// required: true
 	ForkCount int `json:"fork_count"`
 	// ForkOfLink may contain a link to a repository this provider is forked from.
 	ForkOfLink string `json:"fork_of_link,omitempty"`
@@ -56,12 +42,8 @@ type Provider struct {
 	// UpstreamForkCount contains the number of forks of the upstream repository.
 	UpstreamForkCount int `json:"upstream_fork_count"`
 	// Versions holds the list of versions this provider supports.
-	//
-	// required: true
 	Versions []ProviderVersionDescriptor `json:"versions"`
-	// required: true
 	IsBlocked bool `json:"is_blocked"`
-	// required: false
 	BlockedReason string `json:"blocked_reason,omitempty"`
 
 	// If you add something here, don't forget to update the Equals() and DeepCopy() functions below.

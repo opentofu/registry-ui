@@ -16,19 +16,14 @@ func Addr(addr provider.Addr) ProviderAddr {
 }
 
 // ProviderAddr is an enriched model of provider.Addr with display properties for the frontend.
-//
-// swagger:model
 type ProviderAddr struct {
 	provider.Addr
 
 	// Display contains the user-readable display variant of this addr. This may be capitalized.
-	// required: true
 	Display string `json:"display"`
 	// Namespace contains the lower-case namespace part of the addr.
-	// required: true
 	Namespace string `json:"namespace"`
 	// Name contains the lower-case name part of the addr.
-	// required: true
 	Name string `json:"name"`
 }
 

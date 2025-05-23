@@ -7,12 +7,8 @@ import (
 )
 
 // ModuleVersionDescriptor describes a single version.
-//
-// swagger:model
 type ModuleVersionDescriptor struct {
-	// required: true
 	ID module.VersionNumber `json:"id"`
-	// required: true
 	Published time.Time `json:"published"`
 }
 
