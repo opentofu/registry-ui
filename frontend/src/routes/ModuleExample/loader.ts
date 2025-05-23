@@ -1,5 +1,5 @@
 import { queryClient } from "@/query";
-import { defer, LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { getModuleExampleDataQuery } from "./query";
 import { ProviderRouteContext } from "../Provider/types";
 
@@ -17,7 +17,7 @@ export const moduleExampleLoader: LoaderFunction = async (
     ),
   );
 
-  return defer({
+  return {
     example,
-  });
+  };
 };

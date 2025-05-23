@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { PageTitle } from "@/components/PageTitle";
 import { Breadcrumbs, BreadcrumbsSkeleton } from "@/components/Breadcrumbs";
 import { ReactNode } from "react";

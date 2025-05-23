@@ -80,8 +80,6 @@ describe("reworkRelativePaths", () => {
 
     const output = reworkRelativePaths(input, "hashicorp", "aws", "v1.0.0");
 
-    console.log("output", output);
-
     const expectedLinks = [
       "/provider/hashicorp/aws/v1.0.0/docs/resources/api_gateway_deployment",
       "/provider/hashicorp/aws/v1.0.0/docs/resources/api_gateway_rest_api",

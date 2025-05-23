@@ -1,4 +1,4 @@
-import { LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 
 import { ModuleSubmoduleRouteContext } from "./types";
 

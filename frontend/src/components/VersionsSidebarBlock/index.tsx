@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 
 import { DateTime } from "../DateTime";
 import { Icon } from "../Icon";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { SidebarBlock } from "../SidebarBlock";
 import { chevron } from "../../icons/chevron";
 import clsx from "clsx";

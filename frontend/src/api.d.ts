@@ -4,57 +4,54 @@
  */
 
 export interface paths {
-  "/modules/{namespace}/{name}/{target}/{version}/README.md": {
+  "/registry/docs/modules/{namespace}/{name}/{target}/{version}/README.md": {
     get: operations["GetModuleReadme"];
   };
-  "/modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md": {
+  "/registry/docs/modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md": {
     get: operations["GetModuleExampleReadme"];
   };
-  "/modules/{namespace}/{name}/{target}/{version}/index.json": {
+  "/registry/docs/modules/{namespace}/{name}/{target}/{version}/index.json": {
     get: operations["GetModuleVersion"];
   };
-  "/modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md": {
+  "/registry/docs/modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md": {
     get: operations["GetSubmoduleReadme"];
   };
-  "/modules/{namespace}/{name}/{target}/index.json": {
+  "/registry/docs/modules/{namespace}/{name}/{target}/index.json": {
     get: operations["GetModule"];
   };
-  "/modules/index.json": {
+  "/registry/docs/modules/index.json": {
     get: operations["GetModuleList"];
   };
-  "/providers/{namespace}/{name}/{version}/{kind}s/{document}.md": {
+  "/registry/docs/providers/{namespace}/{name}/{version}/{kind}s/{document}.md": {
     get: operations["GetProviderDocItem"];
   };
-  "/providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md": {
+  "/registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md": {
     get: operations["GetProviderCDKTFDocItem"];
   };
-  "/providers/{namespace}/{name}/{version}/cdktf/{language}/index.md": {
+  "/registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/index.md": {
     get: operations["GetProviderCDKTFDoc"];
   };
-  "/providers/{namespace}/{name}/{version}/index.json": {
+  "/registry/docs/providers/{namespace}/{name}/{version}/index.json": {
     get: operations["GetProviderVersion"];
   };
-  "/providers/{namespace}/{name}/{version}/index.md": {
+  "/registry/docs/providers/{namespace}/{name}/{version}/index.md": {
     get: operations["GetProviderDoc"];
   };
-  "/providers/{namespace}/{name}/index.json": {
+  "/registry/docs/providers/{namespace}/{name}/index.json": {
     get: operations["GetProvider"];
   };
-  "/providers/index.json": {
+  "/registry/docs/providers/index.json": {
     get: operations["GetProviderList"];
   };
-  "/search": {
+  "/registry/docs/search": {
     get: operations["Search"];
-  };
-  "/search.ndjson": {
-    get: operations["GetSearchIndex"];
   };
 }
 
 export interface definitions {
   /**
-   * @description Addr represents a full provider address (NAMESPACE/NAME). It currently translates to
-   * github.com/NAMESPACE/terraform-provider-NAME .
+   * @description Addr describes a module address combination of NAMESPACE-NAME-TARGETSYSTEM. This will translate to
+   * github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME for now.
    */
   Addr: { [key: string]: unknown };
   /** BaseDetails is an embedded struct describing a module or a submodule. */
@@ -92,9 +89,13 @@ export interface definitions {
     last_updated?: string;
     link?: { [key: string]: string };
     parent_id?: definitions["IndexID"];
+    /** Format: int64 */
+    popularity?: number;
     title?: string;
     type?: definitions["IndexType"];
     version?: string;
+    /** Format: int64 */
+    warnings?: number;
   };
   IndexType: string;
   ItemDeletion: {
@@ -102,21 +103,25 @@ export interface definitions {
     deleted_at: string;
     id: definitions["IndexID"];
   };
-  /** License describes a license found in a repository. */
+  /**
+   * @description License describes a license found in a repository. Note: the license detection is best effort. When displaying the
+   * license to the user, always show a link to the actual license and warn users that they have to inspect the license
+   * themselves.
+   */
   License: {
     /**
      * Format: float
      * @description Confidence indicates how accurate the license detection is.
      */
-    confidence?: number;
+    confidence: number;
     /** @description File holds the file in the repository where the license was detected. */
-    file?: string;
+    file: string;
     /** @description IsCompatible signals if the license is compatible with the OpenTofu project. */
-    is_compatible?: boolean;
+    is_compatible: boolean;
     /** @description Link may contain a link to the license file for humans to view. This may be empty. */
     link?: string;
     /** @description SPDX is the SPDX identifier for the license. */
-    spdx?: string;
+    spdx: string;
   };
   /** List is a list of licenses found in a repository. */
   LicenseList: definitions["License"][];
@@ -124,7 +129,30 @@ export interface definitions {
     addr: definitions["ModuleAddr"];
     blocked_reason?: string;
     description: string;
+    /**
+     * Format: int64
+     * @description ForkCount indicates how many forks this provider has.
+     */
+    fork_count: number;
+    fork_of?: definitions["ModuleAddr"];
+    /** @description ForkOfLink may contain a link to a repository this provider is forked from. */
+    fork_of_link?: string;
     is_blocked: boolean;
+    /**
+     * Format: int64
+     * @description Popularity indicates how popular the underlying repository is in the VCS system.
+     */
+    popularity: number;
+    /**
+     * Format: int64
+     * @description UpstreamForkCount contains the number of forks of the upstream repository.
+     */
+    upstream_fork_count?: number;
+    /**
+     * Format: int64
+     * @description UpstreamPopularity contains the popularity of the original repository this repository is forked of.
+     */
+    upstream_popularity?: number;
     versions: definitions["ModuleVersionDescriptor"][];
   };
   /**
@@ -201,6 +229,7 @@ export interface definitions {
   ModuleProviderConfigSchema: {
     full_name?: string;
     name?: string;
+    version_constraint?: string;
   };
   ModuleResource: {
     address?: string;
@@ -214,6 +243,9 @@ export interface definitions {
   ModuleSchema: {
     module_calls?: { [key: string]: definitions["ModuleCall"] };
     outputs?: { [key: string]: definitions["ModuleOutput"] };
+    provider_config?: {
+      [key: string]: definitions["ModuleProviderConfigSchema"];
+    };
     resources?: definitions["ModuleResource"][];
     variables?: { [key: string]: definitions["ModuleVariable"] };
   };
@@ -235,7 +267,7 @@ export interface definitions {
     edit_link?: string;
     /** @description Examples lists all examples for this version. */
     examples: { [key: string]: definitions["ModuleExample"] };
-    id: definitions["VersionNumber"];
+    id: definitions["ModuleVersionNumber"];
     /** @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved. */
     incompatible_license: boolean;
     licenses: definitions["LicenseList"];
@@ -261,10 +293,16 @@ export interface definitions {
   };
   /** ModuleVersionDescriptor describes a single version. */
   ModuleVersionDescriptor: {
-    id: definitions["VersionNumber"];
+    id: definitions["ModuleVersionNumber"];
     /** Format: date-time */
     published: string;
   };
+  /**
+   * @description VersionNumber describes the semver version number. Note that in contrast to provider versions module versions
+   * do not have a compulsory "v" prefix. Call ToVCSVersion() before you call Normalize() in order to get the correct
+   * VCS version.
+   */
+  ModuleVersionNumber: string;
   /** Output describes a module output as the UI expects it. */
   Output: {
     description: string;
@@ -274,11 +312,51 @@ export interface definitions {
   Provider: {
     addr: definitions["ProviderAddr"];
     blocked_reason?: string;
+    canonical_addr?: definitions["ProviderAddr"];
     /** @description Description is the extracted description for the provider. This may be empty. */
     description: string;
+    /**
+     * Format: int64
+     * @description ForkCount indicates how many forks this provider has.
+     */
+    fork_count: number;
+    fork_of?: definitions["ProviderAddr"];
+    /** @description ForkOfLink may contain a link to a repository this provider is forked from. */
+    fork_of_link?: string;
     is_blocked: boolean;
+    /**
+     * @description Link contains the link to the repository this provider was built from. Note that this may not match the
+     * Addr field since the repository may be different. Note that this field may not be available for all
+     * providers.
+     */
+    link?: string;
+    /**
+     * Format: int64
+     * @description Popularity indicates how popular the underlying repository is in the VCS system.
+     */
+    popularity: number;
+    /**
+     * @description ReverseAliases contains a list of providers that are aliases of the current one. This field is the inverse of
+     * CanonicalAddr.
+     */
+    reverse_aliases?: definitions["ProviderAddr"][];
+    /**
+     * Format: int64
+     * @description UpstreamForkCount contains the number of forks of the upstream repository.
+     */
+    upstream_fork_count?: number;
+    /**
+     * Format: int64
+     * @description UpstreamPopularity contains the popularity of the original repository this repository is forked of.
+     */
+    upstream_popularity?: number;
     /** @description Versions holds the list of versions this provider supports. */
     versions: definitions["ProviderVersionDescriptor"][];
+    /**
+     * @description Warnings contains a list of warning strings issued to the OpenTofu client when fetching the provider info. This
+     * typically indicates a deprecation or move of the provider to another location.
+     */
+    warnings?: string[];
   };
   /** ProviderAddr is an enriched model of provider.Addr with display properties for the frontend. */
   ProviderAddr: {
@@ -321,7 +399,7 @@ export interface definitions {
   ProviderVersion: {
     cdktf_docs: { [key: string]: definitions["ProviderDocs"] };
     docs: definitions["ProviderDocs"];
-    id: definitions["VersionNumber"];
+    id: definitions["ProviderVersionNumber"];
     /** @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved. */
     incompatible_license: boolean;
     license: definitions["LicenseList"];
@@ -331,10 +409,12 @@ export interface definitions {
   };
   /** ProviderVersionDescriptor describes a provider version. */
   ProviderVersionDescriptor: {
-    id: definitions["VersionNumber"];
+    id: definitions["ProviderVersionNumber"];
     /** Format: date-time */
     published: string;
   };
+  /** VersionNumber describes the semver version number. */
+  ProviderVersionNumber: string;
   /** Resource describes a resource a module uses as the UI expects it. */
   Resource: {
     address: string;
@@ -391,8 +471,6 @@ export interface definitions {
     sensitive: boolean;
     type: string;
   };
-  /** VersionNumber describes the semver version number. */
-  VersionNumber: string;
 }
 
 export interface operations {
@@ -646,14 +724,6 @@ export interface operations {
       };
       /** Invalid search query. */
       400: unknown;
-    };
-  };
-  GetSearchIndex: {
-    responses: {
-      /** A newline-delimited search index suitable for insertion into a database. The records are not guaranteed to be in order. Each item is a GeneratedIndexItem. */
-      200: {
-        schema: definitions["GeneratedIndexItem"][];
-      };
     };
   };
 }
