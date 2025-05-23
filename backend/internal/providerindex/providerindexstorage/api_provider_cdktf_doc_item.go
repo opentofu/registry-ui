@@ -5,9 +5,12 @@ import (
 	"path"
 
 	"github.com/opentofu/libregistry/types/provider"
+
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 )
+
+const cdktfDirName = "cdktf"
 
 func (s storage) getProviderCDKTFDocItemPath(_ context.Context, providerAddr provider.Addr, version provider.VersionNumber, language providertypes.CDKTFLanguage, kind providertypes.DocItemKind, name providertypes.DocItemName) indexstorage.Path {
 	providerAddr = providerAddr.Normalize()

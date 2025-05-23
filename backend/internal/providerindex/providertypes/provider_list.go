@@ -9,12 +9,8 @@ import (
 // TODO: move the request/response handling into a dedicated package alongside a proper web API.
 
 // ProviderList is a list of providers.
-//
-// swagger:model ProviderList
 type ProviderList struct {
 	// Providers holds the list of providers.
-	//
-	// required: true
 	Providers []*Provider `json:"providers"`
 }
 

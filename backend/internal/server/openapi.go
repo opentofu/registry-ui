@@ -39,7 +39,7 @@ type writer struct {
 }
 
 func (w writer) Write(ctx context.Context) error {
-	if err := w.storage.WriteFile(ctx, "swagger.yml", openapiYaml); err != nil {
+	if err := w.storage.WriteFile(ctx, "swagger.yml", swaggerYaml); err != nil {
 		return err
 	}
 	if err := w.storage.WriteFile(ctx, "openapi.yml", openapiYaml); err != nil {

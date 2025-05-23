@@ -48,9 +48,7 @@ func (m *MetaIndex) UnmarshalJSON(data []byte) error {
 
 	m.itemsByParent = map[IndexID]map[IndexID]struct{}{}
 	for _, item := range unmarshalled.Items {
-		if err := m.addItem(item); err != nil {
-			return err
-		}
+		m.addItem(item)
 	}
 	for i, t := range unmarshalled.Deletions {
 		// Only load the deletion if 30 days have not passed since.
@@ -80,13 +78,14 @@ func (m *MetaIndex) AddItem(_ context.Context, i IndexItem) error {
 		}
 	}
 
-	return m.addItem(i)
+	m.addItem(i)
+	return nil
 }
 
-func (m *MetaIndex) addItem(i IndexItem) error {
+func (m *MetaIndex) addItem(i IndexItem) {
 	if existingItem, ok := m.Items[i.ID]; ok {
 		if existingItem.Equals(i) {
-			return nil
+			return
 		}
 	}
 
@@ -103,7 +102,7 @@ func (m *MetaIndex) addItem(i IndexItem) error {
 		}
 		m.itemsByParent[i.ParentID][i.ID] = struct{}{}
 	}
-	return nil
+
 }
 
 func (m *MetaIndex) RemoveItem(_ context.Context, id IndexID) error {

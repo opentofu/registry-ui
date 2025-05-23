@@ -7,11 +7,7 @@ import (
 )
 
 // ProviderVersionDescriptor describes a provider version.
-//
-// swagger:model ProviderVersionDescriptor
 type ProviderVersionDescriptor struct {
-	// required: true
-	ID provider.VersionNumber `json:"id"`
-	// required: true
-	Published time.Time `json:"published"`
+	ID        provider.VersionNumber `json:"id"`
+	Published time.Time              `json:"published"`
 }

@@ -8,26 +8,18 @@ import (
 	"github.com/opentofu/libregistry/types/module"
 )
 
-// swagger:model Module
 type Module struct {
 	// If you add a field here, update Equals() and DeepCopy() below.
 
-	// required: true
-	Addr ModuleAddr `json:"addr"`
-	// required: true
-	Description string `json:"description"`
-	// required: true
-	Versions []ModuleVersionDescriptor `json:"versions"`
-	// required: true
-	IsBlocked bool `json:"is_blocked"`
-	// required: false
-	BlockedReason string `json:"blocked_reason,omitempty"`
+	Addr          ModuleAddr                `json:"addr"`
+	Description   string                    `json:"description"`
+	Versions      []ModuleVersionDescriptor `json:"versions"`
+	IsBlocked     bool                      `json:"is_blocked"`
+	BlockedReason string                    `json:"blocked_reason,omitempty"`
 
 	// Popularity indicates how popular the underlying repository is in the VCS system.
-	// required: true
 	Popularity int `json:"popularity"`
 	// ForkCount indicates how many forks this provider has.
-	// required: true
 	ForkCount int `json:"fork_count"`
 	// ForkOfLink may contain a link to a repository this provider is forked from.
 	ForkOfLink string `json:"fork_of_link,omitempty"`
@@ -94,27 +86,17 @@ func (m *Module) Validate() error {
 
 // ModuleAddr describes a module address enriched with data for the API. Use the Addr() function
 // to generate this from a module.Addr.
-//
-// swagger:model
 type ModuleAddr struct {
 	module.Addr
 
 	// Contains the display version of the addr presentable to the end user. This may be
 	// capitalized.
-	//
-	// required: true
 	Display string `json:"display"`
 	// Contains the namespace of the addr.
-	//
-	// required: true
 	Namespace string `json:"namespace"`
 	// Contains the name of the addr.
-	//
-	// required: true
 	Name string `json:"name"`
 	// Contains the target system of the addr.
-	//
-	// required: true
 	Target string `json:"target"`
 }
 

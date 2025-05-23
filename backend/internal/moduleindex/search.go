@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/opentofu/libregistry/types/module"
+
 	"github.com/opentofu/registry-ui/internal/search"
 	"github.com/opentofu/registry-ui/internal/search/searchtypes"
 )
