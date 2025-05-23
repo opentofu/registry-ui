@@ -1,19 +1,64 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>OpenTofu Registry UI API</title>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <title>OpenTofu Registry API Documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="OpenTofu Registry API documentation for modules and providers"
+    />
+
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Load Montserrat font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .redoc-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: "Montserrat", sans-serif;
+        color: #32329f;
+      }
     </style>
-</head>
-<body>
-<redoc spec-url='/openapi.yml'></redoc>
-<!-- TODO self-host this -->
-<script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"> </script>
-</body>
+  </head>
+  <body>
+    <div class="redoc-loading" id="loading">Loading API Documentation...</div>
+
+    <redoc
+      spec-url="/openapi.yml"
+      lazy-rendering
+      native-scrollbars
+      required-props-first
+      sort-props-alphabetically
+      expand-responses="200,201"
+      menu-toggle
+      hide-download-button="false"
+    >
+    </redoc>
+
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+          const loading = document.getElementById("loading");
+          if (loading) loading.style.display = "none";
+        }, 1000);
+      });
+    </script>
+  </body>
 </html>

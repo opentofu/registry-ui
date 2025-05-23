@@ -1,23 +1,19 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"os"
-	"os/exec"
 )
 
 func main() {
-	cmd := exec.Command("go", "run", "github.com/go-swagger/go-swagger/cmd/swagger@v0.31.0", "generate", "spec", "-o", "server/openapi.yml", "-m")
-	cmd.Env = append(os.Environ(), "SWAGGER_GENERATE_EXTENSION=false")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			os.Exit(exitErr.ExitCode())
-		}
-		log.Print(err)
-		os.Exit(1)
+	fmt.Println("OpenAPI 3.0 specification is manually maintained.")
+	
+	// Check if the openapi.yml file exists
+	if _, err := os.Stat("../server/openapi.yml"); os.IsNotExist(err) {
+		log.Fatal("Error: openapi.yml not found. The OpenAPI 3.0 spec should be manually maintained.")
 	}
+	
+	fmt.Println("✅ OpenAPI 3.0 specification is ready:")
+	fmt.Println("  - OpenAPI 3.0: internal/server/openapi.yml")
 }

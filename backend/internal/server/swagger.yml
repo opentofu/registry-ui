@@ -1,0 +1,1143 @@
+swagger: '2.0'
+info:
+  description: >
+    The API to fetch documentation index and documentation files from the
+    OpenTofu registry.
+
+
+    **API Specifications:**
+
+    - OpenAPI 3.0: [/openapi.yml](https://api.opentofu.org/openapi.yml)
+
+    - Swagger 2.0: [/swagger.yml](https://api.opentofu.org/swagger.yml)
+  license:
+    name: MPL-2.0
+    url: 'https://mozilla.org/MPL/2.0/'
+  title: OpenTofu Registry Docs API
+  version: 1.0.0-beta
+host: api.opentofu.org
+basePath: /
+schemes:
+  - https
+paths:
+  /registry/docs/modules/index.json:
+    get:
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: A list of all modules
+          schema:
+            $ref: '#/definitions/ModuleList'
+      tags:
+        - Modules
+      description: Returns a list of all modules
+      operationId: GetModuleList
+      summary: Get module list
+  '/registry/docs/modules/{namespace}/{name}/{target}/index.json':
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: 'Namespace of the module, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the module, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: 'Target system of the module, all lower case'
+          in: path
+          name: target
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A list of all versions of a module with metadata
+          schema:
+            $ref: '#/definitions/Module'
+      tags:
+        - Modules
+      description: Returns a list of all versions of a module with metadata
+      operationId: GetModule
+      summary: Get module
+  '/registry/docs/modules/{namespace}/{name}/{target}/{version}/README.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the module, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the module, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: 'Target system of the module, all lower case'
+          in: path
+          name: target
+          required: true
+          type: string
+        - description: Version number of the module with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Modules
+      description: Returns the readme of a module
+      operationId: GetModuleReadme
+      summary: Get module readme
+  '/registry/docs/modules/{namespace}/{name}/{target}/{version}/examples/{example}/README.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the module, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the module, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: 'Target system of the module, all lower case'
+          in: path
+          name: target
+          required: true
+          type: string
+        - description: Version number of the module with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+        - description: Example name
+          in: path
+          name: example
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Modules
+      description: Returns the readme of a module example
+      operationId: GetModuleExampleReadme
+      summary: Get module example readme
+  '/registry/docs/modules/{namespace}/{name}/{target}/{version}/index.json':
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: 'Namespace of the module, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the module, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: 'Target system of the module, all lower case'
+          in: path
+          name: target
+          required: true
+          type: string
+        - description: Version number of the module with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The details of a specific module version
+          schema:
+            $ref: '#/definitions/ModuleVersion'
+      tags:
+        - Modules
+      description: Returns the details of a specific module version
+      operationId: GetModuleVersion
+      summary: Get module version
+  '/registry/docs/modules/{namespace}/{name}/{target}/{version}/modules/{submodule}/README.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the module, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the module, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: 'Target system of the module, all lower case'
+          in: path
+          name: target
+          required: true
+          type: string
+        - description: Version number of the module with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+        - description: Submodule name
+          in: path
+          name: submodule
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Modules
+      description: Returns the readme of a submodule
+      operationId: GetSubmoduleReadme
+      summary: Get submodule readme
+  /registry/docs/providers/index.json:
+    get:
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: A list of all providers
+          schema:
+            $ref: '#/definitions/ProviderList'
+      tags:
+        - Providers
+      description: Returns a list of all providers
+      operationId: GetProviderList
+      summary: Get provider list
+  '/registry/docs/providers/{namespace}/{name}/index.json':
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: 'Namespace of the provider, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the provider, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A list of all versions of a provider with metadata
+          schema:
+            $ref: '#/definitions/Provider'
+      tags:
+        - Providers
+      description: Returns a list of all versions of a provider with metadata
+      operationId: GetProvider
+      summary: Get provider
+  '/registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/index.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the provider, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the provider, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: Version number of the provider with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+        - description: The CDKTF language to fetch
+          enum:
+            - typescript
+            - python
+            - go
+            - csharp
+            - java
+          in: path
+          name: language
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Providers
+      description: Returns a CDKTF root document
+      operationId: GetProviderCDKTFDoc
+      summary: Get provider CDKTF documentation
+  '/registry/docs/providers/{namespace}/{name}/{version}/cdktf/{language}/{kind}s/{document}.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the provider, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the provider, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: Version number of the provider with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+        - description: The CDKTF language to fetch
+          enum:
+            - typescript
+            - python
+            - go
+            - csharp
+            - java
+          in: path
+          name: language
+          required: true
+          type: string
+        - description: The kind of document to fetch
+          enum:
+            - resource
+            - datasource
+            - function
+            - guide
+          in: path
+          name: kind
+          required: true
+          type: string
+        - description: The name of the document without the .md suffix
+          in: path
+          name: document
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Providers
+      description: Returns a CDKTF document item
+      operationId: GetProviderCDKTFDocItem
+      summary: Get provider CDKTF document item
+  '/registry/docs/providers/{namespace}/{name}/{version}/index.json':
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: 'Namespace of the provider, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the provider, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: Version number of the provider with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The details of a specific provider version
+          schema:
+            $ref: '#/definitions/ProviderVersion'
+      tags:
+        - Providers
+      description: Returns the details of a specific provider version
+      operationId: GetProviderVersion
+      summary: Get provider version
+  '/registry/docs/providers/{namespace}/{name}/{version}/index.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the provider, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the provider, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: Version number of the provider with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Providers
+      description: Returns a root provider document if it exists
+      operationId: GetProviderDoc
+      summary: Get provider documentation
+  '/registry/docs/providers/{namespace}/{name}/{version}/{kind}s/{document}.md':
+    get:
+      produces:
+        - text/markdown
+      parameters:
+        - description: 'Namespace of the provider, all lower case'
+          in: path
+          name: namespace
+          required: true
+          type: string
+        - description: 'Name of the provider, all lower case'
+          in: path
+          name: name
+          required: true
+          type: string
+        - description: Version number of the provider with the "v" prefix
+          in: path
+          name: version
+          required: true
+          type: string
+        - description: The kind of document to fetch
+          enum:
+            - resource
+            - datasource
+            - function
+            - guide
+          in: path
+          name: kind
+          required: true
+          type: string
+        - description: The name of the document without the .md suffix
+          in: path
+          name: document
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The contents of the document
+          schema:
+            type: string
+      tags:
+        - Providers
+      description: Returns a provider document
+      operationId: GetProviderDocItem
+      summary: Get provider document item
+  /registry/docs/search:
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: The search query string. This should be a URL encoded string
+          in: query
+          name: q
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A list of search results matching the query
+          schema:
+            items:
+              $ref: '#/definitions/SearchResultItem'
+            type: array
+        '400':
+          description: Invalid search query
+      tags:
+        - Search
+      description: Returns a list of search results matching the query
+      operationId: Search
+      summary: Search
+  /top/providers:
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: >-
+            The maximum number of providers to return (must be between 1 and
+            500)
+          in: query
+          maximum: 500
+          minimum: 1
+          name: limit
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: A list of top providers ordered by popularity
+          schema:
+            items:
+              $ref: '#/definitions/TopProviderItem'
+            type: array
+        '400':
+          description: Invalid limit parameter
+      tags:
+        - Search
+      description: Returns a list of the top providers ordered by popularity
+      operationId: GetTopProviders
+      summary: Get top providers
+definitions:
+  DocItemName:
+    type: string
+  License:
+    description: >-
+      License describes a license found in a repository. Note the license
+      detection is best effort
+    properties:
+      confidence:
+        description: Confidence indicates how accurate the license detection is
+        format: float
+        type: number
+      file:
+        description: File holds the file in the repository where the license was detected
+        type: string
+      is_compatible:
+        description: >-
+          IsCompatible signals if the license is compatible with the OpenTofu
+          project
+        type: boolean
+      link:
+        description: >-
+          Link may contain a link to the license file for humans to view. This
+          may be empty
+        type: string
+      spdx:
+        description: SPDX is the SPDX identifier for the license
+        type: string
+    required:
+      - spdx
+      - confidence
+      - is_compatible
+      - file
+    type: object
+  LicenseList:
+    items:
+      $ref: '#/definitions/License'
+    title: List is a list of licenses found in a repository
+    type: array
+  Module:
+    properties:
+      addr:
+        $ref: '#/definitions/ModuleAddr'
+      blocked_reason:
+        type: string
+      description:
+        type: string
+      fork_count:
+        description: ForkCount indicates how many forks this provider has
+        format: int64
+        type: integer
+      fork_of:
+        $ref: '#/definitions/ModuleAddr'
+      fork_of_link:
+        description: >-
+          ForkOfLink may contain a link to a repository this provider is forked
+          from
+        type: string
+      is_blocked:
+        type: boolean
+      popularity:
+        description: >-
+          Popularity indicates how popular the underlying repository is in the
+          VCS system
+        format: int64
+        type: integer
+      upstream_fork_count:
+        description: >-
+          UpstreamForkCount contains the number of forks of the upstream
+          repository
+        format: int64
+        type: integer
+      upstream_popularity:
+        description: >-
+          UpstreamPopularity contains the popularity of the original repository
+          this repository is forked of
+        format: int64
+        type: integer
+      versions:
+        items:
+          $ref: '#/definitions/ModuleVersionDescriptor'
+        type: array
+    required:
+      - addr
+      - description
+      - versions
+      - is_blocked
+      - popularity
+      - fork_count
+    type: object
+  ModuleAddr:
+    description: ModuleAddr describes a module address enriched with data for the API
+    properties:
+      display:
+        description: >-
+          Contains the display version of the addr presentable to the end user.
+          This may be capitalized.
+        type: string
+      name:
+        description: Contains the name of the addr
+        type: string
+      namespace:
+        description: Contains the namespace of the addr
+        type: string
+      target:
+        description: Contains the target system of the addr
+        type: string
+    required:
+      - display
+      - namespace
+      - name
+      - target
+    type: object
+  ModuleDependency:
+    properties:
+      name:
+        type: string
+      source:
+        type: string
+      version_constraint:
+        type: string
+    required:
+      - name
+      - version_constraint
+      - source
+    title: >-
+      ModuleDependency describes a module call as a dependency as the UI expects
+      it
+    type: object
+  ModuleExample:
+    description: >-
+      Example describes a single example for a Documentation. You can query the
+      files and the readme using the corresponding API
+    properties:
+      edit_link:
+        type: string
+      outputs:
+        additionalProperties:
+          $ref: '#/definitions/Output'
+        type: object
+      readme:
+        description: Readme indicates that the submodule has a readme available
+        type: boolean
+      schema_error:
+        description: >-
+          SchemaError contains an error message to show why the schema is not
+          available. This should be shown to the user as a warning message
+        type: string
+      variables:
+        additionalProperties:
+          $ref: '#/definitions/Variable'
+        type: object
+    required:
+      - readme
+      - variables
+      - outputs
+      - schema_error
+    type: object
+  ModuleList:
+    properties:
+      modules:
+        items:
+          $ref: '#/definitions/Module'
+        type: array
+    required:
+      - modules
+    type: object
+  ModuleVersion:
+    properties:
+      dependencies:
+        items:
+          $ref: '#/definitions/ModuleDependency'
+        type: array
+      edit_link:
+        type: string
+      examples:
+        additionalProperties:
+          $ref: '#/definitions/ModuleExample'
+        description: Examples lists all examples for this version
+        type: object
+      id:
+        $ref: '#/definitions/ModuleVersionNumber'
+      incompatible_license:
+        description: >-
+          IncompatibleLicense indicates that there are no licenses or there is
+          one or more license that are not approved
+        type: boolean
+      licenses:
+        $ref: '#/definitions/LicenseList'
+      link:
+        description: Link holds the link to the repository browse URL
+        type: string
+      outputs:
+        additionalProperties:
+          $ref: '#/definitions/Output'
+        type: object
+      providers:
+        items:
+          $ref: '#/definitions/ProviderDependency'
+        type: array
+      published:
+        format: date-time
+        type: string
+      readme:
+        description: Readme indicates that the submodule has a readme available
+        type: boolean
+      resources:
+        items:
+          $ref: '#/definitions/Resource'
+        type: array
+      schema_error:
+        description: >-
+          SchemaError contains an error message to show why the schema is not
+          available. This should be shown to the user as a warning message
+        type: string
+      submodules:
+        additionalProperties:
+          $ref: '#/definitions/Submodule'
+        description: Submodules lists all submodules of this version
+        type: object
+      variables:
+        additionalProperties:
+          $ref: '#/definitions/Variable'
+        type: object
+      vcs_repository:
+        description: >-
+          VCSRepository holds the URL to the versioning system for this
+          repository
+        type: string
+    required:
+      - id
+      - published
+      - readme
+      - variables
+      - outputs
+      - schema_error
+      - providers
+      - dependencies
+      - resources
+      - vcs_repository
+      - licenses
+      - incompatible_license
+      - examples
+      - submodules
+    type: object
+  ModuleVersionDescriptor:
+    properties:
+      id:
+        $ref: '#/definitions/ModuleVersionNumber'
+      published:
+        format: date-time
+        type: string
+    required:
+      - id
+      - published
+    title: ModuleVersionDescriptor describes a single version
+    type: object
+  ModuleVersionNumber:
+    description: >-
+      VersionNumber describes the semver version number. Note that in contrast
+      to provider versions module versions do not have a compulsory "v" prefix
+    type: string
+  Output:
+    properties:
+      description:
+        type: string
+      sensitive:
+        type: boolean
+    required:
+      - sensitive
+      - description
+    title: Output describes a module output as the UI expects it
+    type: object
+  Provider:
+    properties:
+      addr:
+        $ref: '#/definitions/ProviderAddr'
+      blocked_reason:
+        type: string
+      canonical_addr:
+        $ref: '#/definitions/ProviderAddr'
+      description:
+        description: >-
+          Description is the extracted description for the provider. This may be
+          empty
+        type: string
+      fork_count:
+        description: ForkCount indicates how many forks this provider has
+        format: int64
+        type: integer
+      fork_of:
+        $ref: '#/definitions/ProviderAddr'
+      fork_of_link:
+        description: >-
+          ForkOfLink may contain a link to a repository this provider is forked
+          from
+        type: string
+      is_blocked:
+        type: boolean
+      link:
+        description: >-
+          Link contains the link to the repository this provider was built from.
+          Note that this may not match the Addr field since the repository may
+          be different
+        type: string
+      popularity:
+        description: >-
+          Popularity indicates how popular the underlying repository is in the
+          VCS system
+        format: int64
+        type: integer
+      reverse_aliases:
+        description: >-
+          ReverseAliases contains a list of providers that are aliases of the
+          current one. This field is the inverse of CanonicalAddr
+        items:
+          $ref: '#/definitions/ProviderAddr'
+        type: array
+      upstream_fork_count:
+        description: >-
+          UpstreamForkCount contains the number of forks of the upstream
+          repository
+        format: int64
+        type: integer
+      upstream_popularity:
+        description: >-
+          UpstreamPopularity contains the popularity of the original repository
+          this repository is forked of
+        format: int64
+        type: integer
+      versions:
+        description: Versions holds the list of versions this provider supports
+        items:
+          $ref: '#/definitions/ProviderVersionDescriptor'
+        type: array
+      warnings:
+        description: >-
+          Warnings contains a list of warning strings issued to the OpenTofu
+          client when fetching the provider info
+        items:
+          type: string
+        type: array
+    required:
+      - addr
+      - description
+      - popularity
+      - fork_count
+      - versions
+      - is_blocked
+    title: Provider is a single provider with all its versions
+    type: object
+  ProviderAddr:
+    properties:
+      display:
+        description: >-
+          Display contains the user-readable display variant of this addr. This
+          may be capitalized
+        type: string
+      name:
+        description: Name contains the lower-case name part of the addr
+        type: string
+      namespace:
+        description: Namespace contains the lower-case namespace part of the addr
+        type: string
+    required:
+      - display
+      - namespace
+      - name
+    title: >-
+      ProviderAddr is an enriched model of provider.Addr with display properties
+      for the frontend
+    type: object
+  ProviderDependency:
+    properties:
+      alias:
+        type: string
+      full_name:
+        type: string
+      name:
+        type: string
+      version_constraint:
+        type: string
+    required:
+      - alias
+      - name
+      - full_name
+      - version_constraint
+    title: ProviderDependency describes a provider dependency of a module
+    type: object
+  ProviderDocItem:
+    properties:
+      description:
+        type: string
+      edit_link:
+        type: string
+      name:
+        $ref: '#/definitions/DocItemName'
+      subcategory:
+        type: string
+      title:
+        type: string
+    title: ProviderDocItem describes a single documentation item
+    type: object
+  ProviderDocs:
+    properties:
+      datasources:
+        items:
+          $ref: '#/definitions/ProviderDocItem'
+        type: array
+      functions:
+        items:
+          $ref: '#/definitions/ProviderDocItem'
+        type: array
+      guides:
+        items:
+          $ref: '#/definitions/ProviderDocItem'
+        type: array
+      index:
+        $ref: '#/definitions/ProviderDocItem'
+      resources:
+        items:
+          $ref: '#/definitions/ProviderDocItem'
+        type: array
+    required:
+      - resources
+      - datasources
+      - functions
+      - guides
+    title: ProviderDocs describes either a provider or a CDKTF language
+    type: object
+  ProviderList:
+    properties:
+      providers:
+        description: Providers holds the list of providers
+        items:
+          $ref: '#/definitions/Provider'
+        type: array
+    required:
+      - providers
+    title: ProviderList is a list of providers
+    type: object
+  ProviderVersion:
+    properties:
+      cdktf_docs:
+        additionalProperties:
+          $ref: '#/definitions/ProviderDocs'
+        type: object
+      docs:
+        $ref: '#/definitions/ProviderDocs'
+      id:
+        $ref: '#/definitions/ProviderVersionNumber'
+      incompatible_license:
+        description: >-
+          IncompatibleLicense indicates that there are no licenses or there is
+          one or more license that are not approved
+        type: boolean
+      license:
+        $ref: '#/definitions/LicenseList'
+      link:
+        type: string
+      published:
+        format: date-time
+        type: string
+    required:
+      - id
+      - published
+      - docs
+      - cdktf_docs
+      - license
+      - incompatible_license
+    title: ProviderVersion describes a single provider version
+    type: object
+  ProviderVersionDescriptor:
+    properties:
+      id:
+        $ref: '#/definitions/ProviderVersionNumber'
+      published:
+        format: date-time
+        type: string
+    required:
+      - id
+      - published
+    title: ProviderVersionDescriptor describes a provider version
+    type: object
+  ProviderVersionNumber:
+    title: VersionNumber describes the semver version number
+    type: string
+  Resource:
+    properties:
+      address:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+      - address
+      - type
+      - name
+    title: Resource describes a resource a module uses as the UI expects it
+    type: object
+  SearchResultItem:
+    properties:
+      addr:
+        description: The address of the module or provider
+        type: string
+      description:
+        description: A brief description of the result item
+        type: string
+      id:
+        description: The unique identifier for the result item
+        type: string
+      last_updated:
+        description: The last updated timestamp for the result item
+        type: string
+      link_variables:
+        additionalProperties:
+          type: string
+        description: A map of variables used to generate the link for the result item
+        type: object
+      rank:
+        description: The rank of the result in the search results
+        format: int32
+        type: integer
+      term_match_count:
+        description: The number of times the search term matched in this result
+        type: string
+      title:
+        description: The title of the result item
+        type: string
+      type:
+        description: 'The type of the result item (e.g., module, provider, datasource etc)'
+        type: string
+      version:
+        description: The version of the module or provider
+        type: string
+    required:
+      - id
+      - last_updated
+      - type
+      - addr
+      - version
+      - title
+      - description
+      - link_variables
+      - term_match_count
+      - rank
+    title: SearchResultItem describes a single search result item
+    type: object
+  Submodule:
+    properties:
+      dependencies:
+        items:
+          $ref: '#/definitions/ModuleDependency'
+        type: array
+      edit_link:
+        type: string
+      outputs:
+        additionalProperties:
+          $ref: '#/definitions/Output'
+        type: object
+      providers:
+        items:
+          $ref: '#/definitions/ProviderDependency'
+        type: array
+      readme:
+        description: Readme indicates that the submodule has a readme available
+        type: boolean
+      resources:
+        items:
+          $ref: '#/definitions/Resource'
+        type: array
+      schema_error:
+        description: >-
+          SchemaError contains an error message to show why the schema is not
+          available. This should be shown to the user as a warning message
+        type: string
+      variables:
+        additionalProperties:
+          $ref: '#/definitions/Variable'
+        type: object
+    required:
+      - readme
+      - variables
+      - outputs
+      - schema_error
+      - providers
+      - dependencies
+      - resources
+    title: Submodule describes a submodule within a module
+    type: object
+  TopProviderItem:
+    properties:
+      addr:
+        description: The address of the provider
+        type: string
+      popularity:
+        description: >-
+          The popularity score of the provider based on repository stars or
+          similar metrics
+        format: int64
+        type: integer
+      version:
+        description: The version of the provider
+        type: string
+    required:
+      - addr
+      - version
+      - popularity
+    title: TopProviderItem describes a provider in the top providers list
+    type: object
+  Variable:
+    properties:
+      default: {}
+      description:
+        type: string
+      required:
+        type: boolean
+      sensitive:
+        type: boolean
+      type:
+        type: string
+    required:
+      - type
+      - default
+      - description
+      - sensitive
+      - required
+    title: Variable describes a variable as the UI expects it
+    type: object
+x-components: {}
+

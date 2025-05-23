@@ -1,13 +1,11 @@
 // Package server OpenTofu Registry Docs API
 //
-// The API to fetch documentation index and documentation files from the OpenTofu registry.
-//
-//	Version: 1.0.0-beta
-//	License: MPL-2.0
-//	Host: api.opentofu.org
-//	Schemes: https
-//
-// swagger:meta
+// @title OpenTofu Registry Docs API
+// @description The API to fetch documentation index and documentation files from the OpenTofu registry.
+// @version 1.0.0-beta
+// @license.name MPL-2.0
+// @servers.url https://api.opentofu.org
+// @servers.description OpenTofu Registry API server
 package server
 
 import (
@@ -19,6 +17,9 @@ import (
 
 //go:embed openapi.yml
 var openapiYaml []byte
+
+//go:embed swagger.yml
+var swaggerYaml []byte
 
 //go:embed index.html
 var indexHTML []byte
@@ -38,6 +39,9 @@ type writer struct {
 }
 
 func (w writer) Write(ctx context.Context) error {
+	if err := w.storage.WriteFile(ctx, "swagger.yml", openapiYaml); err != nil {
+		return err
+	}
 	if err := w.storage.WriteFile(ctx, "openapi.yml", openapiYaml); err != nil {
 		return err
 	}
