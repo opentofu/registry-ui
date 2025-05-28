@@ -68,7 +68,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
       - name: Install dependencies
-        run: pnpm ci
+        run: pnpm install --frozen-lockfile
       - name: Run ESLint
         run: pnpm run eslint
       - name: Run Prettier Check
