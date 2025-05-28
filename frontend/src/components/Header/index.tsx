@@ -5,7 +5,7 @@ import { x } from "../../icons/x";
 import { slack } from "../../icons/slack";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Search } from "../Search";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 
 export function Header() {
   // if we're on the home page, dont show the search bar
@@ -16,12 +16,12 @@ export function Header() {
 
   return (
     <header className="flex h-20 items-center border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-blue-950">
-      <div className="mx-auto flex w-full max-w-screen-3xl items-end px-5">
+      <div className="mx-auto flex w-full max-w-(--breakpoint-3xl) items-end px-5">
         <h1>
           <Link
             to="/"
             aria-label="OpenTofu Registry"
-            className="flex items-end hover:text-brand-500"
+            className="hover:text-brand-500 flex items-end"
           >
             <HeaderLogo />
             <span className="text-2xl tracking-wide">Registry</span>

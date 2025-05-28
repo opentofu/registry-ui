@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router";
 
 interface LanguageProps {
   name: string;

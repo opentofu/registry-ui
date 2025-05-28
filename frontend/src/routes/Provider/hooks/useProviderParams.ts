@@ -1,4 +1,4 @@
-import { useLoaderData, useParams, useSearchParams } from "react-router-dom";
+import { useLoaderData, useParams, useSearchParams } from "react-router";
 import { ProviderRouteContext } from "../types";
 
 export function useProviderParams() {

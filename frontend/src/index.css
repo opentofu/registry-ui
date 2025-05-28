@@ -1,6 +1,69 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --breakpoint-3xl: 1920px;
+
+  --font-sans: 'DM Sans', system-ui;
+
+  --spacing-em: 1em;
+  --spacing-rem: 1rem;
+
+  --color-brand-50: #fffbe8;
+  --color-brand-100: #fff8d1;
+  --color-brand-150: #fff4ba;
+  --color-brand-200: #fff0a3;
+  --color-brand-300: #ffe974;
+  --color-brand-400: #ffe146;
+  --color-brand-500: #ffda18;
+  --color-brand-600: #f0cd14;
+  --color-brand-650: #e6b600;
+  --color-brand-700: #b29911;
+  --color-brand-800: #66570a;
+  --color-brand-850: #4d4107;
+  --color-brand-900: #332c05;
+
+  --color-gray-50: #f9f9f9;
+  --color-gray-100: #e7e9ec;
+  --color-gray-150: #dadee3;
+  --color-gray-200: #ced3da;
+  --color-gray-300: #b6bcc7;
+  --color-gray-400: #9da6b5;
+  --color-gray-500: #8590a2;
+  --color-gray-600: #6a7382;
+  --color-gray-700: #505661;
+  --color-gray-800: #353a41;
+  --color-gray-850: #282b31;
+  --color-gray-900: #1b1d20;
+  --color-gray-950: #0d0e10;
+
+  --color-blue-500: #4392ff;
+  --color-blue-850: #14345f;
+  --color-blue-900: #14253d;
+  --color-blue-950: #0c192b;
+
+  --color-purple-300: #be8bff;
+  --color-purple-700: #5c25a1;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 @layer base {
   .dark {

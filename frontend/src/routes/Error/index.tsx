@@ -1,4 +1,4 @@
-import { useRouteError } from "react-router-dom";
+import { useRouteError } from "react-router";
 import { Header } from "@/components/Header";
 import { Paragraph } from "@/components/Paragraph";
 import PatternBg from "@/components/PatternBg";
