@@ -1,6 +1,6 @@
 module github.com/opentofu/registry-ui
 
-go 1.22.1
+go 1.24.3
 
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.7.5

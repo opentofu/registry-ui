@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
+	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/go-enry/go-license-detector/v4/licensedb"
@@ -13,80 +16,6 @@ import (
 
 type Detector interface {
 	Detect(ctx context.Context, repository fs.ReadDirFS, detectOptions ...DetectOpt) (List, error)
-}
-
-// List is a list of licenses found in a repository.
-type List []License
-
-func (l List) HasCompatible() bool {
-	for _, license := range l {
-		if license.IsCompatible {
-			return true
-		}
-	}
-	return false
-}
-
-func (l List) HasIncompatible() bool {
-	for _, license := range l {
-		if !license.IsCompatible {
-			return true
-		}
-	}
-	return false
-}
-
-func (l List) IsRedistributable() bool {
-	// We check for incompatible licenses to avoid mistaking a license in a subdirectory for the main license
-	// of the project.
-	return len(l) > 0 && !l.HasIncompatible()
-}
-
-func (l List) Explain() string {
-	if l.IsRedistributable() {
-		licenses := map[string]struct{}{}
-		for _, license := range l {
-			licenses[license.SPDX] = struct{}{}
-		}
-		var licenseList []string
-		for license := range licenses {
-			licenseList = append(licenseList, license)
-		}
-		return "This project is redistributable because it contains the following licenses: " + strings.Join(licenseList, ", ")
-	}
-	if len(l) == 0 {
-		return "This project is not redistributable because it contains no licenses."
-	}
-	incompatibleLicenses := map[string]struct{}{}
-	compatibleLicenses := map[string]struct{}{}
-	for _, license := range l {
-		if !license.IsCompatible {
-			incompatibleLicenses[license.SPDX] = struct{}{}
-		} else {
-			compatibleLicenses[license.SPDX] = struct{}{}
-		}
-	}
-	var incompatibleLicenseList []string
-	for license := range incompatibleLicenses {
-		incompatibleLicenseList = append(incompatibleLicenseList, license)
-	}
-	var compatibleLicenseList []string
-	for license := range compatibleLicenses {
-		compatibleLicenseList = append(compatibleLicenseList, license)
-	}
-	if len(compatibleLicenses) > 0 {
-		return "This project is not redistributable because it contains the following incompatible licenses: " + strings.Join(incompatibleLicenseList, ",") + ". It also contains the following compatible licenses: " + strings.Join(compatibleLicenseList, ", ")
-	}
-	return "This project is not redistributable because it contains the following incompatible licenses: " + strings.Join(incompatibleLicenseList, ",")
-
-}
-
-func (l List) String() string {
-	str := make([]string, len(l))
-	for i, license := range l {
-		str[i] = license.SPDX
-	}
-	return strings.Join(str, ", ")
 }
 
 // License describes a license found in a repository. Note: the license detection is best effort. When displaying the
@@ -231,23 +160,82 @@ func (d detector) Detect(_ context.Context, repository fs.ReadDirFS, detectOptio
 		}
 		return nil, fmt.Errorf("error detecting licenses: %w", err)
 	}
-	var result []License
+
+	filesWithLicenses := make(map[string][]License)
+
 	for license, match := range licenses {
+		// Skip deprecated licenses (this is license names, not filenames)
 		if strings.HasPrefix(license, "deprecated_") {
 			continue
 		}
-		if match.Confidence >= d.config.ConfidenceThreshold {
-			_, isCompatible := d.licenseMap[strings.ToLower(license)]
-			l := License{
-				SPDX:         license,
-				Confidence:   match.Confidence,
-				IsCompatible: isCompatible,
-				File:         match.File,
+
+		_, isCompatible := d.licenseMap[strings.ToLower(license)]
+
+		for file, confidence := range match.Files {
+			if confidence >= d.config.ConfidenceThreshold {
+				filesWithLicenses[file] = append(filesWithLicenses[file], License{
+					SPDX:         license,
+					Confidence:   confidence,
+					IsCompatible: isCompatible,
+					File:         file,
+				})
 			}
+		}
+	}
+
+	var licenseFiles []string
+	for file := range filesWithLicenses {
+		if shouldIgnore, reason := shouldIgnoreLicenseFile(file); shouldIgnore {
+			log.Printf("Ignoring license file: %s (reason: %s)", file, reason)
+			delete(filesWithLicenses, file)
+			continue
+		}
+		licenseFiles = append(licenseFiles, file)
+
+		// Sort licenses within each file by confidence
+		slices.SortFunc(filesWithLicenses[file], func(a, b License) int {
+			if a.Confidence > b.Confidence {
+				return -1
+			}
+			if a.Confidence < b.Confidence {
+				return 1
+			}
+			return strings.Compare(strings.ToLower(a.SPDX), strings.ToLower(b.SPDX))
+		})
+	}
+
+	// Sort license files: docs first, then path depth, then alphabetical
+	slices.SortFunc(licenseFiles, func(a, b string) int {
+		aIsDoc := isDocumentationDirectory(a)
+		bIsDoc := isDocumentationDirectory(b)
+
+		if aIsDoc != bIsDoc {
+			if aIsDoc {
+				return -1
+			}
+			return 1
+		}
+
+		aDepth := pathDepth(a)
+		bDepth := pathDepth(b)
+		if aDepth != bDepth {
+			return aDepth - bDepth
+		}
+
+		return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+	})
+
+	var result []License
+
+	// Iterate through sorted list of potential license files
+	for _, file := range licenseFiles {
+		for _, l := range filesWithLicenses[file] {
 			if err := detectCfg.LinkFetcher(&l); err != nil {
 				return nil, err
 			}
-			if match.Confidence >= d.config.ConfidenceOverrideThreshold {
+
+			// Exit early (keeping in mind the sort order above)
+			if l.Confidence >= d.config.ConfidenceOverrideThreshold {
 				return []License{
 					l,
 				}, nil
@@ -256,4 +244,50 @@ func (d detector) Detect(_ context.Context, repository fs.ReadDirFS, detectOptio
 		}
 	}
 	return result, nil
+}
+
+func shouldIgnoreLicenseFile(filePath string) (bool, string) {
+	fileName := filepath.Base(filePath)
+	dirPath := filepath.Dir(filePath)
+
+	// Ignore specific filenames
+	ignoredFiles := []string{
+		"THIRD_PARTY_LICENSES.txt", "THIRD_PARTY_LICENSE", "3RD_PARTY_LICENSES",
+		"PATENTS", "NOTICE",
+	}
+	for _, ignored := range ignoredFiles {
+		if strings.EqualFold(fileName, ignored) {
+			return true, "ignored filename"
+		}
+	}
+
+	ignoredDirs := []string{"vendor", "node_modules"}
+	for _, dir := range ignoredDirs {
+		if strings.Contains(dirPath, dir+"/") || strings.HasPrefix(dirPath, dir) {
+			return true, "dependency directory"
+		}
+	}
+
+	if strings.Contains(filePath, "examples/") || strings.Contains(filePath, "test") {
+		return true, "examples/test directory"
+	}
+
+	return false, ""
+}
+
+func isDocumentationDirectory(filePath string) bool {
+	docDirs := []string{"docs/", "doc/", "website/docs/", "documentation/"}
+	for _, dir := range docDirs {
+		if strings.HasPrefix(filePath, dir) {
+			return true
+		}
+	}
+	return false
+}
+
+func pathDepth(filePath string) int {
+	if filePath == "." || filePath == "" {
+		return 0
+	}
+	return strings.Count(filePath, "/")
 }
