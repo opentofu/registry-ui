@@ -20,8 +20,9 @@ import (
 	"github.com/opentofu/libregistry/metadata"
 	"github.com/opentofu/libregistry/types/module"
 	"github.com/opentofu/libregistry/vcs"
-	"github.com/opentofu/registry-ui/internal/blocklist"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/opentofu/registry-ui/internal/blocklist"
 
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/license"
@@ -617,14 +618,19 @@ func (g generator) extractReadme(ctx context.Context, moduleAddr ModuleAddr, ver
 }
 
 func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver ModuleVersionDescriptor, m *ModuleVersion, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string) error {
+	g.log.Info(ctx, "Extracting submodules for module %s version %s...", addr, ver.ID)
 	// Note: we extract the fact that a submodule exists even if the license is not OK because we just index the fact
 	// that the submodule exists. However, we do not index the contents of the submodule.
 
 	const directoryPrefix = "modules"
-	// Check if the modules directory is actually a file.
-	if _, err := workingCopy.Open(directoryPrefix); err == nil {
-		// This is a file, ignore it.
-		return nil
+	// We only want to handle situations where the file is a directory, so we check if the directory exists.
+	// and if it's a file, we skip it.
+	if fileInfo, err := workingCopy.Open(directoryPrefix); err == nil {
+		defer fileInfo.Close()
+		if stat, err := fileInfo.Stat(); err == nil && !stat.IsDir() {
+			// it's not a directory, so we skip it.
+			return nil
+		}
 	}
 	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
@@ -672,13 +678,18 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 }
 
 func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, ver ModuleVersionDescriptor, m *ModuleVersion, workingCopy vcs.WorkingCopy, licenseOK bool, blocked bool, blockedReason string) error {
+	g.log.Info(ctx, "Extracting examples for module %s version %s...", moduleAddr, ver.ID)
 	// Note: we extract the fact that an example exists even if the license is not OK because we just index the fact
 	// that the submodule exists. However, we do not index the contents of the submodule.
 	const directoryPrefix = "examples"
-	// Check if the examples directory is actually a file.
-	if _, err := workingCopy.Open(directoryPrefix); err == nil {
-		// This is a file, ignore it.
-		return nil
+	// We only want to handle situations where the file is a directory, so we check if the directory exists.
+	// and if it's a file, we skip it.
+	if fileInfo, err := workingCopy.Open(directoryPrefix); err == nil {
+		defer fileInfo.Close()
+		if stat, err := fileInfo.Stat(); err == nil && !stat.IsDir() {
+			// it's not a directory, so we skip it.
+			return nil
+		}
 	}
 	entries, err := workingCopy.ReadDir(directoryPrefix)
 	if err != nil {
@@ -689,6 +700,7 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 	}
 	for _, entry := range entries {
 		if !entry.IsDir() {
+			g.log.Info(ctx, "Skipping non-directory entry %s in examples for module %s version %s", entry.Name(), moduleAddr, ver.ID)
 			continue
 		}
 		name := entry.Name()
