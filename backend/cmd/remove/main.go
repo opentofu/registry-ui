@@ -153,7 +153,13 @@ func main() {
 	providerData, err := providerStorage.GetProvider(ctx, providerAddr)
 	if err != nil {
 		mainLogger.Error(ctx, "Provider %s not found in registry: %v", providerAddr, err)
-		os.Exit(1)
+		// if the provider does not exist, it may still exist in the search index, so we try to remove it from there too
+		if err := searchAPI.RemoveItem(ctx, searchtypes.IndexID("providers/"+providerAddr.String())); err != nil {
+			mainLogger.Error(ctx, "Failed to remove provider from search index: %v", err)
+			os.Exit(0)
+		}
+		mainLogger.Info(ctx, "Provider %s does not exist in the registry, nothing to remove", providerAddr)
+		os.Exit(0)
 	}
 
 	var removeMessage string
@@ -227,7 +233,12 @@ func main() {
 			mainLogger.Error(ctx, "Failed to remove provider: %v", err)
 			os.Exit(1)
 		}
-		mainLogger.Info(ctx, "Successfully removed provider %s (%d versions)", providerAddr, len(versionsToRemove))
+		mainLogger.Info(ctx, "Successfully removed provider %s (%d versions) docs", providerAddr, len(versionsToRemove))
+
+		if err := searchAPI.RemoveItem(ctx, searchtypes.IndexID("providers/"+providerAddr.String())); err != nil {
+			mainLogger.Error(ctx, "Failed to remove provider from search index: %v", err)
+			os.Exit(1)
+		}
 	}
 
 	// Commit the changes
