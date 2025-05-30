@@ -1,0 +1,112 @@
+name: Remove Provider from Registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: 'Provider to remove (format: namespace/name)'
+        required: true
+        type: string
+      version:
+        description: 'Specific version to remove (leave empty to remove all versions)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run - only show what would be removed'
+        required: false
+        type: boolean
+        default: true
+      environment:
+        description: 'Environment to remove from'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  remove-provider:
+    name: Remove Provider
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'backend/go.mod'
+          cache-dependency-path: 'backend/go.sum'
+
+      - name: Validate provider format
+        run: |
+          if [[ ! "${{ inputs.provider }}" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+            echo "Error: Invalid provider format. Expected: namespace/name"
+            exit 1
+          fi
+
+      - name: Build remove command
+        working-directory: backend
+        run: go build -o remove ./cmd/remove/
+
+      - name: Remove provider (Dry Run)
+        if: inputs.dry_run == true
+        working-directory: backend
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ENDPOINT_URL_S3: ${{ secrets.AWS_ENDPOINT_URL_S3 }}
+        run: |
+          echo "🔍 Running in DRY RUN mode"
+          ./remove \
+            --force \
+            --dry-run \
+            --s3-bucket "${{ secrets.S3_BUCKET }}" \
+            --s3-region "${{ vars.AWS_REGION }}" \
+            ${{ inputs.version && format('--version {0}', inputs.version) || '' }} \
+            provider "${{ inputs.provider }}"
+
+      - name: Remove provider (Actual)
+        if: inputs.dry_run == false
+        working-directory: backend
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ENDPOINT_URL_S3: ${{ secrets.AWS_ENDPOINT_URL_S3 }}
+        run: |
+          echo "⚠️  Removing provider ${{ inputs.provider }}"
+          ./remove \
+            --force \
+            --s3-bucket "${{ secrets.S3_BUCKET }}" \
+            --s3-region "${{ vars.AWS_REGION }}" \
+            ${{ inputs.version && format('--version {0}', inputs.version) || '' }} \
+            provider "${{ inputs.provider }}"
+
+      - name: Update search index
+        if: inputs.dry_run == false
+        working-directory: search/pg-indexer
+        env:
+          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
+        run: |
+          echo "📊 Updating search index..."
+          go run ./
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Remove Provider Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Provider:** ${{ inputs.provider }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ inputs.version || 'All versions' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run:** ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "✅ Dry run completed - no changes were made" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Provider removed successfully" >> $GITHUB_STEP_SUMMARY
+          fi

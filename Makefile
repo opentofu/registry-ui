@@ -4,6 +4,12 @@
 generate-registry:
 	@cd "$(CURDIR)/backend" && go generate ./... && go run ./cmd/generate/ --licenses-file ../licenses.json --destination-dir /tmp/registry --namespace opentofu --name ad
 
+# remove-provider removes a provider from the registry
+# Example: make remove-provider PROVIDER=hashicorp/aws
+# Example with flags: make remove-provider PROVIDER=hashicorp/aws REMOVE_FLAGS="--dry-run --version v1.0.0"
+remove-provider:
+	@cd "$(CURDIR)/backend" && go run ./cmd/remove/ $(REMOVE_FLAGS) provider $(PROVIDER)
+
 # load-registry feed the data from /tmp/registry into the local R2 bucket (search/worker/.wrangler/state/r2) folder
 load-registry:
 	@cd "$(CURDIR)/search/worker" && npm run feed-data
