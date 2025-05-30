@@ -15,7 +15,7 @@ on:
         description: 'Dry run - only show what would be removed'
         required: false
         type: boolean
-        default: false
+        default: true
       environment:
         description: 'Environment to remove from'
         required: true
