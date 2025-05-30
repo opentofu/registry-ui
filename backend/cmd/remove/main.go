@@ -21,6 +21,7 @@ import (
 	"github.com/opentofu/registry-ui/internal/indexstorage/filesystemstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/s3storage"
 	"github.com/opentofu/registry-ui/internal/providerindex/providerindexstorage"
+	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 	"github.com/opentofu/registry-ui/internal/search"
 	"github.com/opentofu/registry-ui/internal/search/searchstorage/indexstoragesearch"
 	"github.com/opentofu/registry-ui/internal/search/searchtypes"
@@ -227,8 +228,13 @@ func main() {
 		}
 	}
 
-	// Remove from provider storage when we dont specify a version
+	// Check if we need to remove the provider entirely
+	shouldRemoveFromList := false
+	
 	if version == "" {
+		// Removing all versions - definitely remove from list
+		shouldRemoveFromList = true
+		
 		if err := providerStorage.DeleteProvider(ctx, providerAddr); err != nil {
 			mainLogger.Error(ctx, "Failed to remove provider: %v", err)
 			os.Exit(1)
@@ -239,6 +245,54 @@ func main() {
 			mainLogger.Error(ctx, "Failed to remove provider from search index: %v", err)
 			os.Exit(1)
 		}
+	} else {
+		// Check if this was the last version
+		remainingProvider, err := providerStorage.GetProvider(ctx, providerAddr)
+		if err != nil {
+			mainLogger.Error(ctx, "Failed to check remaining versions: %v", err)
+			os.Exit(1)
+		}
+		
+		if len(remainingProvider.Versions) == 0 {
+			// This was the last version, remove the provider entirely
+			shouldRemoveFromList = true
+			mainLogger.Info(ctx, "Removed last version of provider %s, removing provider entirely", providerAddr)
+			
+			if err := providerStorage.DeleteProvider(ctx, providerAddr); err != nil {
+				mainLogger.Error(ctx, "Failed to remove provider: %v", err)
+				os.Exit(1)
+			}
+			
+			if err := searchAPI.RemoveItem(ctx, searchtypes.IndexID("providers/"+providerAddr.String())); err != nil {
+				mainLogger.Error(ctx, "Failed to remove provider from search index: %v", err)
+				os.Exit(1)
+			}
+		}
+	}
+	
+	// Update the provider list if we removed the entire provider
+	if shouldRemoveFromList {
+		mainLogger.Info(ctx, "Updating provider list...")
+		providerList, err := providerStorage.GetProviderList(ctx)
+		if err != nil {
+			mainLogger.Error(ctx, "Failed to get provider list: %v", err)
+			os.Exit(1)
+		}
+
+		// Remove the provider from the list
+		updatedProviders := []*providertypes.Provider{}
+		for _, p := range providerList.Providers {
+			if p.Addr.String() != providerAddr.String() {
+				updatedProviders = append(updatedProviders, p)
+			}
+		}
+		providerList.Providers = updatedProviders
+
+		if err := providerStorage.StoreProviderList(ctx, providerList); err != nil {
+			mainLogger.Error(ctx, "Failed to update provider list: %v", err)
+			os.Exit(1)
+		}
+		mainLogger.Info(ctx, "Updated provider list, removed %s", providerAddr)
 	}
 
 	// Commit the changes
