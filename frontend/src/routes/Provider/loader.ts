@@ -1,6 +1,6 @@
 import { queryClient } from "@/query";
 import { getProviderVersionDataQuery } from "./query";
-import { defer, LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { ProviderRouteContext } from "./types";
 
 export const providerLoader: LoaderFunction = async ({ params }, context) => {
@@ -12,7 +12,7 @@ export const providerLoader: LoaderFunction = async ({ params }, context) => {
     ),
   );
 
-  return defer({
+  return {
     versionData,
-  });
+  };
 };

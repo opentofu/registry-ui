@@ -1,4 +1,4 @@
-import { defer, LoaderFunction } from "react-router-dom";
+import { LoaderFunction } from "react-router";
 import { getProviderDocsQuery } from "../query";
 import { queryClient } from "@/query";
 import { ProviderRouteContext } from "../types";
@@ -21,7 +21,7 @@ export const providerOverviewLoader: LoaderFunction = (
     ),
   );
 
-  return defer({
+  return {
     docs,
-  });
+  };
 };

@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router";
 import { Home } from "./routes/Home";
 import { Modules } from "./routes/Modules";
 import { Providers } from "./routes/Providers";
@@ -62,10 +62,23 @@ export const router = createBrowserRouter(
         },
         {
           id: "docs",
-          path: "/docs/*",
+          path: "/docs",
           element: <Docs />,
           loader: docsLoader,
         },
+        {
+          id: "docs-section",
+          path: "/docs/:section",
+          element: <Docs />,
+          loader: docsLoader,
+        },
+        {
+          id: "docs-subsection",
+          path: "/docs/:section/:subsection",
+          element: <Docs />,
+          loader: docsLoader,
+        },
+
         {
           id: "providers",
           path: "/providers",

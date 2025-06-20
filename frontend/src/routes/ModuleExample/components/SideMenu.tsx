@@ -3,7 +3,7 @@ import { TreeView } from "@/components/TreeView";
 import { chevron } from "@/icons/chevron";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import clsx from "clsx";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { ModuleTabLink } from "./TabLink";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "@/routes/Module/query";
@@ -47,7 +47,7 @@ export function ModuleExampleSideMenu() {
                 relative="path"
                 className={({ isActive }) =>
                   clsx(
-                    "px-2 py-1 text-inherit data-[focus]:bg-black/10 dark:data-[focus]:bg-white/10",
+                    "px-2 py-1 text-inherit data-focus:bg-black/10 dark:data-focus:bg-white/10",
                     isActive && "bg-black/15 dark:bg-white/15",
                   )
                 }
