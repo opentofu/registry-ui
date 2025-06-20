@@ -1,10 +1,13 @@
 import { Header } from "../Header";
+import PatternBg from "../PatternBg";
 
 export function PageSkeleton() {
   return (
     <>
+      <PatternBg />
+      <div className="fixed inset-0 -z-10 bg-white/50 dark:bg-blue-950/50" />
       <Header />
-      <div className="flex size-full grow items-center justify-center">
+      <div className="flex size-full grow items-center justify-center pt-24">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

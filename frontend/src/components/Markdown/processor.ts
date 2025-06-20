@@ -5,10 +5,12 @@ import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
+import remarkGithubAlerts from "remark-github-alerts";
 import rehypeReact, { Options } from "rehype-react";
-import rehypeSanitize from "rehype-sanitize";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeRaw from "rehype-raw";
 import { unified } from "unified";
+import { rehypeCodeListAnchors } from "./plugins/rehypeCodeListAnchors";
 
 import { MarkdownH1 } from "./H1";
 import { MarkdownP } from "./P";
@@ -50,15 +52,27 @@ const rehypeReactOptions: Options = {
   },
 };
 
+const sanitizeSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    li: [...(defaultSchema.attributes?.li || []), 'id'],
+    a: [...(defaultSchema.attributes?.a || []), 'href', 'className'],
+    span: [...(defaultSchema.attributes?.span || []), 'id', 'className'],
+  },
+};
+
 export const processor = unified()
   .use(remarkParse)
   .use(remarkFrontmatter)
   .use(remarkGfm)
+  .use(remarkGithubAlerts)
   .use(remarkRehype, {
     // This is okay to use dangerous html because we are sanitizing later on in the pipeline
     allowDangerousHtml: true,
   })
   .use(rehypeRaw)
-  .use(rehypeSanitize)
+  .use(rehypeSanitize, sanitizeSchema)
   .use(rehypeSlug)
+  .use(rehypeCodeListAnchors)
   .use(rehypeReact, rehypeReactOptions);

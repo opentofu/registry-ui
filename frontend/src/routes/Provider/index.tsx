@@ -29,6 +29,7 @@ import { ProviderMetaTags } from "./components/MetaTags";
 export function Provider() {
   return (
     <SidebarLayout
+      showBreadcrumbs
       before={
         <SidebarPanel>
           <Suspense fallback={<ProviderDocsMenuSkeleton />}>

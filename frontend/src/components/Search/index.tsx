@@ -171,7 +171,10 @@ export function Search({
 
   useEffect(() => {
     const handleSlash = (event: KeyboardEvent) => {
-      if (event.key === "/" && event.target !== inputRef.current) {
+      const target = event.target as HTMLElement;
+      const isInputOrTextarea = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      
+      if (event.key === "/" && !isInputOrTextarea && target !== inputRef.current) {
         event.preventDefault();
         inputRef.current?.focus();
       }

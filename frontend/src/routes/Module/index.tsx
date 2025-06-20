@@ -24,6 +24,7 @@ import {
 export function Module() {
   return (
     <SidebarLayout
+      showBreadcrumbs
       before={
         <SidebarPanel>
           <Suspense fallback={<ModuleSideMenuSkeleton />}>

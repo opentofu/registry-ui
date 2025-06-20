@@ -7,7 +7,7 @@ interface TreeViewProps {
 }
 
 export function TreeView({ children, className }: TreeViewProps) {
-  return <ul className={clsx("flex flex-col", className)}>{children}</ul>;
+  return <ul className={clsx("flex flex-col space-y-0.5", className)}>{children}</ul>;
 }
 
 interface TreeViewItemProps {
@@ -25,8 +25,7 @@ export function TreeViewItem({
     <li
       className={clsx(
         "relative flex flex-col",
-        nested &&
-          "border-l border-gray-300 content-none before:absolute before:-left-px before:-top-[2px] before:h-6 before:w-2 before:border-b before:border-l before:border-gray-300 last:border-transparent dark:border-gray-700 dark:before:border-gray-700 dark:last:border-transparent",
+        nested && "ml-6",
         className,
       )}
     >
