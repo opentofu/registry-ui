@@ -1,11 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModuleVersionDataQuery } from "../query";
 import { useModuleParams } from "../hooks/useModuleParams";
-
-import {
-  RepoSidebarBlock,
-  RepoSidebarBlockSkeleton,
-} from "@/components/RepoSidebarBlock";
 import { LicenseSidebarBlock } from "@/components/LicenseSidebarBlock";
 
 export function ModuleMetadataSidebarBlock() {
@@ -15,19 +10,9 @@ export function ModuleMetadataSidebarBlock() {
     getModuleVersionDataQuery(namespace, name, target, version),
   );
 
-  return (
-    <>
-      <LicenseSidebarBlock license={data.licenses} />
-      <RepoSidebarBlock link={data.link} />
-    </>
-  );
+  return <LicenseSidebarBlock license={data.licenses} />;
 }
 
 export function ModuleMetadataSidebarBlockSkeleton() {
-  return (
-    <>
-      <LicenseSidebarBlock />
-      <RepoSidebarBlockSkeleton />
-    </>
-  );
+  return <LicenseSidebarBlock />;
 }
