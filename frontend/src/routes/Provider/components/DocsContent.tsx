@@ -35,7 +35,7 @@ export function ProviderDocsContent() {
         const id = location.hash.slice(1);
         const element = document.getElementById(id);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           
           // Add flash animation after scroll
           element.style.transition = 'background-color 0.3s ease-in-out';
