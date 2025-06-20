@@ -57,7 +57,7 @@ const sanitizeSchema = {
     ...defaultSchema.attributes,
     img: [...(defaultSchema.attributes?.img || []), 'align', 'width', 'height'],
     div: [...(defaultSchema.attributes?.div || []), 'className', 'class'],
-    p: [...(defaultSchema.attributes?.p || []), 'className', 'class'],
+    p: [...(defaultSchema.attributes?.p || []), 'className', 'class', 'align'],
     svg: [...(defaultSchema.attributes?.svg || []), 'className', 'class', 'viewBox', 'fill', 'height', 'width', 'style'],
     path: [...(defaultSchema.attributes?.path || []), 'd', 'fillRule', 'clipRule']
   },

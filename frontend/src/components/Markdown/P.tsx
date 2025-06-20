@@ -48,7 +48,11 @@ function getAdmonitionMatch(children: ReactNode) {
   return null;
 }
 
-export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
+interface MarkdownPProps extends HTMLAttributes<HTMLParagraphElement> {
+  align?: string;
+}
+
+export function MarkdownP({ children, align }: MarkdownPProps) {
   const admonitionMatch = getAdmonitionMatch(children);
 
   if (admonitionMatch) {
@@ -70,8 +74,10 @@ export function MarkdownP({ children }: HTMLAttributes<HTMLParagraphElement>) {
     );
   }
 
+  const alignClass = align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : align === 'left' ? 'text-left' : '';
+
   return (
-    <Paragraph className="mt-5 leading-7 first:mt-0 [li>&:first-child]:mt-0">
+    <Paragraph className={clsx("mt-5 leading-7 first:mt-0 [li>&:first-child]:mt-0", alignClass)}>
       {children}
     </Paragraph>
   );
