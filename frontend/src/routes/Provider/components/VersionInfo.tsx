@@ -1,6 +1,4 @@
-import { OldVersionBanner } from "@/components/OldVersionBanner";
 import { LanguagePicker } from "@/components/LanguagePicker";
-import { VersionInfo, VersionInfoSkeleton } from "@/components/VersionInfo";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getProviderDataQuery, getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
@@ -44,18 +42,39 @@ export function ProviderVersionInfo() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <VersionInfo currentVersion={version} latestVersion={latestVersion} />
-        {languages.length > 0 && <LanguagePicker languages={languages} />}
-      </div>
-      {version !== latestVersion && (
-        <OldVersionBanner latestVersionLink={latestVersionLink} />
+    <div className="flex items-center justify-between">
+      {version !== latestVersion ? (
+        <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-blue-700 dark:text-blue-300">
+              Viewing version {version}
+            </span>
+            <span className="text-blue-400 dark:text-blue-600">•</span>
+            <a 
+              href={latestVersionLink}
+              className="text-sm font-medium text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+            >
+              Switch to latest ({latestVersion})
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-800">
+          <span className="text-sm text-green-700 dark:text-green-300">
+            ✓ Latest version
+          </span>
+        </div>
       )}
+      {languages.length > 0 && <LanguagePicker languages={languages} />}
     </div>
   );
 }
 
 export function ProviderVersionInfoSkeleton() {
-  return <VersionInfoSkeleton />;
+  return (
+    <div className="flex items-center justify-between">
+      <span className="h-10 w-64 animate-pulse bg-gray-500/25 rounded-lg" />
+      <span className="h-10 w-48 animate-pulse bg-gray-500/25 rounded" />
+    </div>
+  );
 }

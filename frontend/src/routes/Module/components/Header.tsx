@@ -34,7 +34,6 @@ export function ModuleHeader() {
 
   return (
     <Wrapper>
-      <Breadcrumbs />
       <div className="mb-5 flex flex-col gap-5">
         <PageTitle>
           {data.addr.namespace}/{data.addr.name}
@@ -58,7 +57,6 @@ export function ModuleHeader() {
 export function ModuleHeaderSkeleton() {
   return (
     <Wrapper>
-      <BreadcrumbsSkeleton />
       <span className="flex h-em w-72 animate-pulse bg-gray-500/25 text-5xl" />
       <span className="mb-6 mt-6 flex h-em w-[450px] animate-pulse bg-gray-500/25" />
 

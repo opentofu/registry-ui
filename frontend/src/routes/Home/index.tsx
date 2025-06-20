@@ -11,12 +11,12 @@ export function Home() {
       <MetaTags />
       <PatternBg />
       <Header />
-      <main className="container m-auto flex flex-col items-center text-center">
+      <main className="container m-auto flex flex-col items-center text-center pt-24">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 340 368"
-          className="-mt-24 size-24"
+          className="size-24"
         >
           <path
             fill="#0D1A2B"

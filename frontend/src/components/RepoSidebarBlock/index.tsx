@@ -12,7 +12,7 @@ function getLinkLabel(url: string) {
 
         return (
           <>
-            <Icon path={github} className="mt-1.5 size-em shrink-0" />
+            <Icon path={github} className="size-5 shrink-0" />
             <span>
               {pathParts[1]}/{pathParts[2]}
             </span>
@@ -37,14 +37,17 @@ export function RepoSidebarBlock(props: BlockProps) {
       {props.link ? (
         <a
           href={props.link}
-          className="inline-flex gap-2 underline"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150 text-sm font-medium text-gray-700 dark:text-gray-300 group"
           target="_blank"
           rel="noreferrer noopener"
         >
-          {getLinkLabel(props.link)}
+          <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+            {getLinkLabel(props.link)}
+          </span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">↗</span>
         </a>
       ) : (
-        <span className="flex h-em w-32 animate-pulse bg-gray-500/25" />
+        <span className="flex h-10 w-full animate-pulse bg-gray-500/25 rounded-md" />
       )}
     </SidebarBlock>
   );

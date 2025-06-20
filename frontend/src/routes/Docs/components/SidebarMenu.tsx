@@ -91,7 +91,7 @@ function DocsTreeViewItem({
 
 export function DocsSidebarMenu() {
   return (
-    <TreeView className="mr-4 mt-4">
+    <TreeView className="mt-4">
       {sidebar.map((item) => (
         <DocsTreeViewItem key={item.title} item={item} isOpenByDefault />
       ))}

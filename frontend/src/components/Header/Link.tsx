@@ -16,8 +16,8 @@ export function HeaderLink({ label, to, isActive }: LinkProps) {
     <Link
       to={to}
       className={clsx(
-        "font-semibold",
-        isActiveMatch && "underline underline-offset-2",
+        "font-semibold transition-colors text-gray-900 hover:text-brand-500 dark:text-gray-50 dark:hover:text-brand-500",
+        isActiveMatch && "underline underline-offset-4",
       )}
     >
       {label}
