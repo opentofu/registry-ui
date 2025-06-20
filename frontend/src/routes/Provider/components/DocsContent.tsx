@@ -9,9 +9,12 @@ import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderDoc } from "../utils/getProviderDoc";
 import { EditLink } from "@/components/EditLink";
 import { reworkRelativePaths } from "./docsProcessor";
+import { useEffect } from "react";
+import { useLocation } from "react-router";
 
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
+  const location = useLocation();
 
   const { data: docs, error } = useQuery({
     ...getProviderDocsQuery(namespace, provider, version, type, doc, lang),
@@ -23,6 +26,20 @@ export function ProviderDocsContent() {
   );
 
   const editLink = getProviderDoc(versionData, type, doc, lang)?.edit_link;
+
+  // Handle hash scrolling after content loads
+  useEffect(() => {
+    if (docs && location.hash) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        const id = location.hash.slice(1);
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [docs, location.hash]);
 
   if (error) {
     if (

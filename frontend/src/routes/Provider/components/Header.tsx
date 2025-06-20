@@ -2,7 +2,7 @@ import { DateTime } from "@/components/DateTime";
 import { ReactNode } from "react";
 import { getProviderDataQuery, getProviderVersionDataQuery } from "../query";
 import { useProviderParams } from "../hooks/useProviderParams";
-import { useSuspenseQuery, useSuspenseQueries } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { Icon } from "@/components/Icon";
 import { github } from "@/icons/github";
 

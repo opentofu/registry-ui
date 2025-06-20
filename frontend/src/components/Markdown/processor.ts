@@ -10,6 +10,7 @@ import rehypeReact, { Options } from "rehype-react";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeRaw from "rehype-raw";
 import { unified } from "unified";
+import { rehypeCodeListAnchors } from "./plugins/rehypeCodeListAnchors";
 
 import { MarkdownH1 } from "./H1";
 import { MarkdownP } from "./P";
@@ -59,7 +60,11 @@ const sanitizeSchema = {
     div: [...(defaultSchema.attributes?.div || []), 'className', 'class'],
     p: [...(defaultSchema.attributes?.p || []), 'className', 'class', 'align'],
     svg: [...(defaultSchema.attributes?.svg || []), 'className', 'class', 'viewBox', 'fill', 'height', 'width', 'style'],
-    path: [...(defaultSchema.attributes?.path || []), 'd', 'fillRule', 'clipRule']
+    path: [...(defaultSchema.attributes?.path || []), 'd', 'fillRule', 'clipRule'],
+
+    li: [...(defaultSchema.attributes?.li || []), 'id'],
+    a: [...(defaultSchema.attributes?.a || []), 'href', 'className'],
+    span: [...(defaultSchema.attributes?.span || []), 'id', 'className'],
   },
   tagNames: [...(defaultSchema.tagNames || []), 'svg', 'path']
 };
@@ -76,4 +81,5 @@ export const processor = unified()
   .use(rehypeRaw)
   .use(rehypeSanitize, sanitizeSchema)
   .use(rehypeSlug)
+  .use(rehypeCodeListAnchors)
   .use(rehypeReact, rehypeReactOptions);
