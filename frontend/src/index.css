@@ -1,4 +1,12 @@
 @import 'tailwindcss';
+@import 'remark-github-alerts/styles/github-base.css';
+@import 'remark-github-alerts/styles/github-colors-light.css';
+@import 'remark-github-alerts/styles/github-colors-dark-class.css';
+
+/* Add margin-top to GitHub alerts */
+.markdown-alert {
+  @apply mt-2;
+}
 
 @custom-variant dark (&:is(.dark *));
 
