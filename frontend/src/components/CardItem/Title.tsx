@@ -6,11 +6,12 @@ interface CardItemTitleProps {
   linkProps: {
     to: string;
   };
+  className?: string;
 }
 
-export function CardItemTitle({ children, linkProps }: CardItemTitleProps) {
+export function CardItemTitle({ children, linkProps, className }: CardItemTitleProps) {
   return (
-    <h3>
+    <h3 className={className}>
       <Link {...linkProps} className="text-xl font-semibold">
         <span aria-hidden className="absolute inset-0"></span>
         {children}
