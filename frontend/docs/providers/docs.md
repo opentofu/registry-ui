@@ -17,6 +17,8 @@ Additionally, if you would like to support CDKTF, you can create the following d
 - `/docs/cdktf/[python|typescript|csharp|java|go]/data-sources/<data-source>.md`
 - `/docs/cdktf/[python|typescript|csharp|java|go]/functions/<function>.md`
 
+### Metadata
+
 You can include the following header (front matter) in your markdown files:
 
 ```yaml
@@ -27,4 +29,16 @@ description: Description of the page
 ---
 ```
 
-Once you have written your documentation, you can [proceed to publish your provider](/docs/providers/publishing).
+While you can put any metadata in the header, the following fields are used by the OpenTofu registry UI.
+
+#### page_title
+
+Title of the registry UI webpage (and some meta tags).
+
+### description
+
+Description, used in html meta tags in the registry UI.
+
+### subcategory
+
+Subcategory can be used to group resources, which is reflected in the UI sidebar. It adds categories in addition to the default `Resources`, `Datasources`, etc.
