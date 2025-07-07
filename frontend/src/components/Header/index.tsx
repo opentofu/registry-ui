@@ -15,21 +15,21 @@ export function Header() {
   const shouldShowSearch = !isHome;
 
   return (
-    <header className="absolute top-12 left-0 right-0 z-50 flex h-20 items-center">
-      <div className="flex items-center justify-between container mx-auto p-4 navbar">
+    <header className="absolute top-12 left-0 right-0 z-50 flex h-20 items-end">
+      <div className="flex items-end justify-between container mx-auto p-4 navbar">
         <div className="flex items-end gap-6">
           <h1>
             <Link
               to="/"
               aria-label="OpenTofu Registry"
-              className="flex items-end transition-colors text-gray-900 hover:text-brand-500 dark:text-gray-50 dark:hover:text-brand-500"
+              className="flex items-center transition-colors text-gray-900 hover:text-brand-500 dark:text-gray-50 dark:hover:text-brand-500"
             >
               <HeaderLogo />
               <span className="text-2xl tracking-wide">Registry</span>
             </Link>
           </h1>
 
-          <nav className="flex items-end gap-6 pb-0.5">
+          <nav className="flex items-end gap-6">
             <HeaderLink to="/" label="Home" isActive={(id) => id === "home"} />
             <HeaderLink
               to="/providers"
@@ -49,7 +49,7 @@ export function Header() {
           </nav>
         </div>
 
-        <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-6">
           {shouldShowSearch && <Search />}
           <a
             href="https://x.com/opentofuorg"
