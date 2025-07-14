@@ -11,6 +11,7 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeRaw from "rehype-raw";
 import { unified } from "unified";
 import { rehypeCodeListAnchors } from "./plugins/rehypeCodeListAnchors";
+import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
 
 import { MarkdownH1 } from "./H1";
 import { MarkdownP } from "./P";
@@ -81,5 +82,6 @@ export const processor = unified()
   .use(rehypeRaw)
   .use(rehypeSanitize, sanitizeSchema)
   .use(rehypeSlug)
+  .use(rehypeExtractToc)
   .use(rehypeCodeListAnchors)
   .use(rehypeReact, rehypeReactOptions);

@@ -11,11 +11,9 @@ import PatternBg from "@/components/PatternBg";
 import { Link } from "react-router";
 import { home } from "@/icons/home";
 import { chevron } from "@/icons/chevron";
-
-interface SearchExperienceProps {
-  onSearchStateChange: (isActive: boolean) => void;
-  fullView?: boolean;
-}
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Paragraph } from "@/components/Paragraph";
 
 interface GroupedResults {
   providers: definitions["SearchResultItem"][];
@@ -25,8 +23,9 @@ interface GroupedResults {
   functions: definitions["SearchResultItem"][];
 }
 
-export function SearchExperience({ onSearchStateChange, fullView = false }: SearchExperienceProps) {
+export function SearchExperience() {
   const [query, setQuery] = useState("");
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedResult, setSelectedResult] = useState<definitions["SearchResultItem"] | null>(null);
   const debouncedQuery = useDebouncedValue(query, 250);
@@ -64,12 +63,6 @@ export function SearchExperience({ onSearchStateChange, fullView = false }: Sear
   }, [data]);
 
   useEffect(() => {
-    if (!fullView) {
-      onSearchStateChange(false);
-    }
-  }, [fullView, onSearchStateChange]);
-
-  useEffect(() => {
     // Auto-select first result when results change
     if (flatResults.length > 0 && selectedIndex === 0) {
       setSelectedResult(flatResults[0]);
@@ -87,11 +80,9 @@ export function SearchExperience({ onSearchStateChange, fullView = false }: Sear
       }
     };
 
-    if (!fullView) {
-      document.addEventListener("keydown", handleSlash);
-      return () => document.removeEventListener("keydown", handleSlash);
-    }
-  }, [fullView]);
+    document.addEventListener("keydown", handleSlash);
+    return () => document.removeEventListener("keydown", handleSlash);
+  }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -120,11 +111,11 @@ export function SearchExperience({ onSearchStateChange, fullView = false }: Sear
         }
         return newIndex;
       });
-    } else if (e.key === "Escape" && fullView) {
+    } else if (e.key === "Escape" && isSearchActive) {
       setQuery("");
-      onSearchStateChange(false);
+      setIsSearchActive(false);
     }
-  }, [flatResults, fullView, onSearchStateChange]);
+  }, [flatResults, isSearchActive]);
 
   const handleResultClick = (result: definitions["SearchResultItem"]) => {
     const index = flatResults.findIndex(r => r.id === result.id);
@@ -132,52 +123,113 @@ export function SearchExperience({ onSearchStateChange, fullView = false }: Sear
     setSelectedResult(result);
   };
 
+  const handleSearchInput = (value: string) => {
+    setQuery(value);
+    if (value.length > 0 && !isSearchActive) {
+      setIsSearchActive(true);
+    }
+  };
+
   const isLoading = isFetching || query !== debouncedQuery;
 
-  if (!fullView) {
-    // Simple search bar for landing page
-    return (
-      <div className="w-full max-w-xl">
-        <div className="relative">
-          <Icon
-            path={searchIcon}
-            className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400"
-          />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (e.target.value.length > 0) {
-                onSearchStateChange(true);
-              }
-            }}
-            onFocus={() => {
-              if (query.length > 0) {
-                onSearchStateChange(true);
-              }
-            }}
-            placeholder="Search providers, resources, or modules (Press / to focus)"
-            className="w-full h-14 pl-12 pr-4 text-base bg-white border border-gray-200 rounded-xl shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400"
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Full split-view search experience with Provider-style layout
   return (
     <>
       <PatternBg />
-      <div className="fixed inset-0 -z-10 bg-white/50 dark:bg-blue-950/50" />
-      <div className="mx-auto flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24">
+      <div className={clsx(
+        "fixed inset-0 -z-10",
+        isSearchActive ? "bg-white/50 dark:bg-blue-950/50" : ""
+      )} />
+      <Header />
+      
+      {/* Landing Page Content - Hidden when search is active */}
+      <main className={clsx(
+        "min-h-screen",
+        isSearchActive ? "hidden" : "block"
+      )}>
+        <div className="container m-auto flex flex-col items-center text-center pt-24">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 340 368"
+            className="size-24"
+          >
+            <path
+              fill="#0D1A2B"
+              fillRule="evenodd"
+              d="M182.26 3.88a25.74 25.74 0 0 0-24.8 0L30.4 73.73l-.31.17-16.74 9.2A25.74 25.74 0 0 0 0 105.66v157.1c0 9.39 5.12 18.03 13.34 22.56l128.28 70.5.5.27 15.34 8.43a25.74 25.74 0 0 0 24.8 0l15.39-8.45.45-.25 128.28-70.5a25.74 25.74 0 0 0 13.34-22.56v-157.1c0-9.4-5.11-18.04-13.34-22.56l-16.67-9.16-.37-.21L182.26 3.88Zm8.17 180.32 118.9-65.35.37-.2 1.42-.79a5.94 5.94 0 0 1 8.8 5.2v122.29a5.94 5.94 0 0 1-8.8 5.2l-1.1-.6-.68-.39-118.91-65.36ZM30.08 118.68l.31.17L149.3 184.2 30.4 249.56l-.67.38-1.12.61a5.94 5.94 0 0 1-8.8-5.2V123.07a5.94 5.94 0 0 1 8.8-5.2l1.47.8Zm269.9-27.5L188.56 29.95a5.94 5.94 0 0 0-8.8 5.2v132.31l120.21-66.07a5.94 5.94 0 0 0 0-10.2Zm-260.2 10.23 120.18 66.05V34.98a5.94 5.94 0 0 0-8.8-5.03L39.78 91.17a5.94 5.94 0 0 0 0 10.24Zm.15 175.92c-4-2.2-4.1-7.85-.31-10.23l120.34-66.15v132.49a5.94 5.94 0 0 1-8.56 5.16L39.93 277.33Zm139.83 55.93v-132.3l120.36 66.15a5.94 5.94 0 0 1-.32 10.22l-111.46 61.26a5.94 5.94 0 0 1-8.58-5.15v-.18Z"
+              clipRule="evenodd"
+            />
+            <path
+              fill="#E7C200"
+              d="M167 21.23a5.94 5.94 0 0 1 5.72 0L299.8 91.07a5.94 5.94 0 0 1 0 10.42l-127.08 69.84a5.94 5.94 0 0 1-5.72 0L39.93 101.5a5.94 5.94 0 0 1 0-10.42L167 21.23Z"
+            />
+            <path
+              fill="#FFDA18"
+              d="M19.8 123.06a5.94 5.94 0 0 1 8.8-5.2l128.28 70.5a5.94 5.94 0 0 1 3.08 5.2v139.7a5.94 5.94 0 0 1-8.8 5.2l-128.28-70.5a5.94 5.94 0 0 1-3.08-5.2v-139.7Z"
+            />
+            <path
+              fill="#fff"
+              d="M311.12 117.86a5.94 5.94 0 0 1 8.8 5.2v139.7a5.94 5.94 0 0 1-3.08 5.2l-128.28 70.5a5.94 5.94 0 0 1-8.8-5.2v-139.7a5.94 5.94 0 0 1 3.08-5.2l128.28-70.5Z"
+            />
+            <path
+              fill="#0D1A2B"
+              d="m73.68 232.66-.02.2-30.06-15.82v-.2c.7-9.35 8-13.4 16.3-9.03 8.3 4.37 14.48 15.5 13.78 24.85ZM121 259.98l-.02.2-30.07-15.82.02-.2c.7-9.35 7.99-13.4 16.3-9.03 8.3 4.37 14.46 15.5 13.77 24.85Z"
+            />
+          </svg>
+          <h2 className="mt-5 max-w-4xl text-balance text-5xl lg:text-6xl font-bold leading-tight">
+            Documentation for OpenTofu Providers and Modules
+          </h2>
+          <Paragraph className="mb-7 mt-5 text-balance">
+            This technology preview contains documentation for a select few
+            providers, namespaces, and modules in the OpenTofu registry.
+            <br />
+            <strong>Note:</strong> the data in this interface may not be up to
+            date during the beta phase.
+          </Paragraph>
+          
+          {/* Search Bar for Landing Page */}
+          <div className="w-full max-w-xl">
+            <div className="relative">
+              <Icon
+                path={searchIcon}
+                className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400"
+              />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                onFocus={() => {
+                  if (query.length > 0) {
+                    setIsSearchActive(true);
+                  }
+                }}
+                placeholder="Search providers, resources, or modules (Press / to focus)"
+                className="w-full h-14 pl-12 pr-4 text-base bg-white border border-gray-200 rounded-xl shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Search Experience - Shown when search is active */}
+      <div className={clsx(
+        "mx-auto flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24",
+        isSearchActive 
+          ? "block" 
+          : "hidden"
+      )}>
         <div className="h-10 bg-gray-200 dark:bg-blue-950 border border-gray-300 dark:border-gray-700 border-b-0 flex items-center px-3 rounded-t">
           <nav className="flex h-10 items-center space-x-2" aria-label="Breadcrumbs">
             <Link
               to="/"
               className="text-gray-700 dark:text-gray-300"
               aria-label="Home"
+              onClick={(e) => {
+                e.preventDefault();
+                setQuery("");
+                setIsSearchActive(false);
+              }}
             >
               <Icon path={home} className="size-5" />
             </Link>
@@ -203,19 +255,18 @@ export function SearchExperience({ onSearchStateChange, fullView = false }: Sear
                   className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400"
                 />
                 <input
-                  ref={inputRef}
                   type="text"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => handleSearchInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search documentation..."
                   className="w-full h-9 pl-9 pr-9 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-gray-200"
-                  autoFocus
+                  autoFocus={isSearchActive}
                 />
                 <button
                   onClick={() => {
                     setQuery("");
-                    onSearchStateChange(false);
+                    setIsSearchActive(false);
                   }}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
@@ -365,6 +416,8 @@ export function SearchExperience({ onSearchStateChange, fullView = false }: Sear
           </main>
         </div>
       </div>
+
+      {!isSearchActive && <Footer />}
     </>
   );
 }
@@ -382,7 +435,7 @@ function ResultItem({ result, isSelected, onClick }: ResultItemProps) {
       data-result-item
       onClick={onClick}
       className={clsx(
-        "w-full flex items-start gap-3 px-3 py-2 text-left text-sm rounded-md transition-all duration-150",
+        "w-full flex items-start gap-3 px-3 py-2 text-left text-sm rounded-md",
         isSelected 
           ? "bg-brand-500/10 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400" 
           : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
