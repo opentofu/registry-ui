@@ -18,6 +18,7 @@ export function Docs() {
           <DocsSidebarMenu />
         </SidebarPanel>
       }
+      showBreadcrumbs={true}
     >
       <MetaTags title={docs.data.title} description={docs.data.description} />
       <div

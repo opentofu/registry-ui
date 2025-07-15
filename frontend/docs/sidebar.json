@@ -6,6 +6,7 @@
   },
   {
     "title": "For users",
+    "slug": "users",
     "items": [
       {
         "title": "Overview",
@@ -26,6 +27,7 @@
   },
   {
     "title": "For provider authors",
+    "slug": "providers",
     "items": [
       {
         "title": "Overview",
@@ -56,6 +58,7 @@
   },
   {
     "title": "For module authors",
+    "slug": "modules",
     "items": [
       {
         "title": "Overview",

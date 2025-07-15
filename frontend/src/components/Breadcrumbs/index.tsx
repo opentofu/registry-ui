@@ -15,6 +15,8 @@ export function Breadcrumbs({ className }: BreadcrumbsProps) {
     UIMatch<unknown, { crumb: (data: unknown) => Crumb }>
   >;
 
+  console.log("Breadcrumbs matches:", matches);
+
   const crumbs = matches
     .filter((match) => Boolean(match.handle?.crumb))
     .map((match) => match.handle.crumb(match.data))
