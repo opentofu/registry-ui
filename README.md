@@ -1,4 +1,6 @@
 # OpenTofu Registry
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopentofu%2Fregistry-ui.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopentofu%2Fregistry-ui?ref=badge_shield)
+
 
 This repository contains the code that powers the [OpenTofu Registry](https://registry.opentofu.org) and its API at [api.opentofu.org](https://api.opentofu.org).
 
@@ -29,3 +31,7 @@ See the `documentation/` folder for detailed technical documentation on each com
 ## Contributing
 
 Please see the [contribution guide](CONTRIBUTING.md) for details on how to work with this codebase.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopentofu%2Fregistry-ui.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopentofu%2Fregistry-ui?ref=badge_large)
