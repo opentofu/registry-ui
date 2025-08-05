@@ -24,11 +24,20 @@ type DocProcessor = (
   version?: string,
 ) => string;
 
-// stripExtension is used to remove the .md or .html extension from a path
+export const extensionsToStrip = [
+  ".html.markdown",
+  ".html.md",
+  ".html",
+  ".markdown.html",
+  ".markdown",
+  ".md.html",
+  ".md",
+];
+
+// stripExtension is used to remove extensions from a path
 // but keep the anchor link if it exists
 export const stripExtension: DocProcessor = (path: string): string => {
-  const toStrip = [".md", ".html"];
-  return toStrip.reduce((acc, ext) => {
+  return extensionsToStrip.reduce((acc, ext) => {
     const regex = new RegExp(`(${ext})(#.*)?$`);
     return acc.replace(regex, "$2");
   }, path);

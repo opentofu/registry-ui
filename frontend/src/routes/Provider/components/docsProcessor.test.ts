@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  extensionsToStrip,
   stripExtension,
   shortToLongPath,
   reworkRelativePaths,
@@ -7,25 +8,21 @@ import {
 } from "./docsProcessor";
 
 describe("stripExtension", () => {
-  test("should strip .md extension", () => {
-    expect(stripExtension("/docs/overview.md")).toBe("/docs/overview");
-  });
-
-  test("should strip .html extension", () => {
-    expect(stripExtension("/docs/overview.html")).toBe("/docs/overview");
+  extensionsToStrip.forEach((extension) => {
+    test(`should strip ${extension} extensions`, () => {
+      expect(stripExtension(`/docs/overview${extension}`)).toBe(
+        "/docs/overview",
+      );
+    });
+    test(`should handle paths with ${extension} extensions and anchor links`, () => {
+      expect(stripExtension(`/docs/overview${extension}#section`)).toBe(
+        "/docs/overview#section",
+      );
+    });
   });
 
   test("should not affect paths without extensions", () => {
     expect(stripExtension("/docs/overview")).toBe("/docs/overview");
-  });
-
-  test("should handle paths with anchor links", () => {
-    expect(stripExtension("/docs/overview.md#section")).toBe(
-      "/docs/overview#section",
-    );
-    expect(stripExtension("/docs/overview.html#section")).toBe(
-      "/docs/overview#section",
-    );
   });
 });
 
