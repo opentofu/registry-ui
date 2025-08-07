@@ -1,16 +1,35 @@
-import { HeaderLogo } from "./Logo";
-import { HeaderLink } from "./Link";
-import { Icon } from "../Icon";
-import { x } from "../../icons/x";
-import { slack } from "../../icons/slack";
-import { ThemeSwitcher } from "./ThemeSwitcher";
-import { Search } from "../Search";
 import { Link, useLocation } from "react-router";
+import { useEffect, useRef } from "react";
+
+import { HeaderLink } from "./Link";
+import { HeaderLogo } from "./Logo";
+import { Icon } from "../Icon";
+import { Search } from "../Search";
+import { ThemeSwitcher } from "./ThemeSwitcher";
+import { slack } from "../../icons/slack";
+import { x } from "../../icons/x";
 
 export function Header() {
   // if we're on the home page, dont show the search bar
   const location = useLocation();
   const isHome = location.pathname === "/";
+
+  // Scroll to an anchor after a page is loaded
+  const lastHash = useRef('');
+  useEffect(() => {
+    if (location.hash) {
+      lastHash.current = location.hash.slice(1);  // Get the hash from the URL
+    }
+
+    if (lastHash.current && document.getElementById(lastHash.current)) {
+      setTimeout(() => {
+        document
+          .getElementById(lastHash.current)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        lastHash.current = "";
+      }, 100);
+    }
+  }, [location]);
 
   const shouldShowSearch = !isHome;
 
