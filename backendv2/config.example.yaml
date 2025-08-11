@@ -1,0 +1,62 @@
+bucket:
+  name: "registry-backend-v2"
+  accessKeyID: "your-access-key-id"
+  secretAccessKey: "your-secret-access-key"
+  region: "auto"
+  endpoint: "https://your-cloudflare-r2-endpoint.com"
+
+telemetry:
+  enabled: false
+  exporter: "otlp"
+  endpoint: "localhost:4318"
+  serviceName: "opentofu-registry-backend"
+  insecure: true
+
+db:
+  connectionString: "postgresql://......"
+
+workdir: "/tmp/opentofu-registry-backend"
+registryPath: "/tmp/opentofu-registry-backend/registry"
+
+concurrency:
+  provider: 10
+  version: 1
+  upload: 100
+
+license:
+  confidenceThreshold: 0.85
+  confidenceOverrideThreshold: 0.98
+  compatibleLicenses:
+    - AFL-1.1
+    - AFL-1.2
+    - AFL-2.0
+    - AFL-2.1
+    - AFL-3.0
+    - Apache-1.1
+    - Apache-2.0
+    - Artistic-1.0
+    - Artistic-1.0-Perl
+    - Artistic-1.0-cl8
+    - Artistic-2.0
+    - 0BSD
+    - BSD-1-Clause
+    - BSD-2-Clause
+    - BSD-2-Clause-Patent
+    - BSD-3-Clause
+    - BSD-3-Clause-LBNL
+    - CDDL-1.0
+    - EPL-1.0
+    - EPL-2.0
+    - ICU
+    - ISC
+    - MIT
+    - MIT-0
+    - MIT-Modern-Variant
+    - MIT-feh
+    - MPL-1.0
+    - MPL-1.1
+    - MPL-2.0
+    - MPL-2.0-no-copyleft-exception
+    - Unlicense
+    - Xnet
+    - Zlib
