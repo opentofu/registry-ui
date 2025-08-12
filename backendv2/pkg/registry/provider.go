@@ -14,6 +14,7 @@ type Provider struct {
 	Description string   `json:"description,omitempty"`
 	Link        string   `json:"link,omitempty"`
 	Versions    []string `json:"versions,omitempty"`
+	Warnings    []string `json:"warnings,omitempty"`
 }
 
 type ProviderVersion struct {
@@ -36,6 +37,7 @@ type Platform struct {
 }
 
 type providerJSON struct {
+	Warnings []string `json:"warnings"`
 	Versions []struct {
 		Version      string   `json:"version"`
 		Protocols    []string `json:"protocols"`
@@ -156,6 +158,7 @@ func (r *Registry) GetProvider(namespace, name string) (*Provider, error) {
 		Namespace: namespace,
 		Name:      name,
 		Link:      fmt.Sprintf("https://github.com/%s/terraform-provider-%s", namespace, name),
+		Warnings:  data.Warnings,
 	}
 
 	for _, v := range data.Versions {

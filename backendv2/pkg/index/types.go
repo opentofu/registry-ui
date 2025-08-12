@@ -1,45 +1,47 @@
 package index
 
-import (
-	"time"
+import "time"
 
-	"github.com/opentofu/registry-ui/pkg/license"
-)
-
-// IndexResponse contains the results of indexing a provider
-type IndexResponse struct {
-	TotalVersions     int
-	ProcessedVersions int
-	SkippedVersions   int
-	FailedVersions    int
-	Results           []VersionResult
+type ProviderAddr struct {
+	Display   string `json:"display"`
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
 }
 
-// VersionResult contains the result of processing a single version
-type VersionResult struct {
-	Version         string
-	Licenses        license.List
-	Redistributable bool
-	LicensesStr     string
-	Explanation     string
-	Error           error
-	Duration        time.Duration
+type ProviderVersionDescriptor struct {
+	ID        string    `json:"id"`
+	Published time.Time `json:"published"`
 }
 
-// MultiProviderIndexResponse contains the results of indexing multiple providers
-type MultiProviderIndexResponse struct {
-	TotalProviders     int
-	ProcessedProviders int
-	SkippedProviders   int
-	FailedProviders    int
-	ProviderResults    []ProviderIndexResult
+type ProviderIndexData struct {
+	Addr           ProviderAddr                `json:"addr"`
+	Description    string                      `json:"description"`
+	Stars          int64                       `json:"popularity"`
+	ForkCount      int64                       `json:"fork_count"`
+	Versions       []ProviderVersionDescriptor `json:"versions"`
+	IsBlocked      bool                        `json:"is_blocked"`
+	CanonicalAddr  *ProviderAddr               `json:"canonical_addr,omitempty"`
+	ForkOf         *ProviderAddr               `json:"fork_of,omitempty"`
+	Link           string                      `json:"link,omitempty"`
+	ReverseAliases []ProviderAddr              `json:"reverse_aliases,omitempty"`
+	Warnings       []string                    `json:"warnings,omitempty"`
 }
 
-// ProviderIndexResult contains the result of indexing a single provider
-type ProviderIndexResult struct {
-	Namespace string
-	Name      string
-	Response  *IndexResponse
-	Error     error
-	Duration  time.Duration
+type DatabaseProviderData struct {
+	Namespace      string
+	Name           string
+	Warnings       []string
+	RepoOwner      string
+	RepoName       string
+	Stars          int64
+	ForkCount      int64
+	Description    string
+	IsFork         bool
+	ParentOwner    string
+	ParentName     string
+	Versions       []string
+	VersionDates   []time.Time
+	ReverseAliases []ProviderAddr
+	CanonicalAddr  *ProviderAddr
+	ForkOf         *ProviderAddr
 }

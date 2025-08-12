@@ -516,7 +516,7 @@ func (s *IndexService) ensureProviderWithAliasInDB(ctx context.Context, original
 }
 
 // processProvidersInParallel processes multiple providers in parallel with configured concurrency
-func (s *IndexService) processProvidersInParallel(ctx context.Context, providers []registry.Provider, version string) (*MultiProviderIndexResponse, error) {
+func (s *IndexService) processProvidersInParallel(ctx context.Context, reg *registry.Registry, providers []registry.Provider, version string) (*MultiProviderIndexResponse, error) {
 	ctx, span := s.tracer.Start(ctx, "processProvidersInParallel")
 	defer span.End()
 
@@ -542,8 +542,8 @@ func (s *IndexService) processProvidersInParallel(ctx context.Context, providers
 	for i, provider := range providers {
 		i, provider := i, provider // capture loop variables
 		g.Go(func() error {
-			// Process this provider
-			result := s.processProviderSync(gctx, provider.Namespace, provider.Name, version)
+			// Process this provider with pre-prepared registry
+			result := s.processProviderSyncWithRegistry(gctx, reg, provider.Namespace, provider.Name, version)
 
 			// Thread-safe write to results slice and progress tracking
 			mu.Lock()
@@ -596,10 +596,10 @@ func (s *IndexService) processProvidersInParallel(ctx context.Context, providers
 	return response, nil
 }
 
-// processProviderSync processes a single provider (wraps IndexProviderVersion with timing and error handling)
-func (s *IndexService) processProviderSync(ctx context.Context, namespace, name, version string) ProviderIndexResult {
+// processProviderSyncWithRegistry processes a single provider using a pre-prepared registry
+func (s *IndexService) processProviderSyncWithRegistry(ctx context.Context, reg *registry.Registry, namespace, name, version string) ProviderIndexResult {
 	start := time.Now()
-	ctx, span := s.tracer.Start(ctx, "processProviderSync")
+	ctx, span := s.tracer.Start(ctx, "processProviderSyncWithRegistry")
 	defer span.End()
 
 	span.SetAttributes(
@@ -619,8 +619,8 @@ func (s *IndexService) processProviderSync(ctx context.Context, namespace, name,
 		Duration:  0,
 	}
 
-	// Call the main IndexProviderVersion function
-	response, err := s.IndexProviderVersion(ctx, namespace, name, version)
+	// Call the internal method with pre-prepared registry
+	response, err := s.indexProviderVersionWithRegistry(ctx, reg, namespace, name, version)
 	if err != nil {
 		span.RecordError(err)
 		slog.ErrorContext(ctx, "Failed to index provider",

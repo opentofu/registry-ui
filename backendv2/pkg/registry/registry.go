@@ -32,8 +32,17 @@ func New(path string) (*Registry, error) {
 }
 
 func (r *Registry) Clone(ctx context.Context) error {
+	// If .git directory exists, assume it's already cloned
 	if _, err := os.Stat(filepath.Join(r.path, ".git")); err == nil {
 		return nil
+	}
+
+	// If directory exists but no .git, remove it and start fresh
+	if _, err := os.Stat(r.path); err == nil {
+		// Directory exists but no valid .git, remove it completely
+		if err := os.RemoveAll(r.path); err != nil {
+			return fmt.Errorf("failed to remove existing directory: %w", err)
+		}
 	}
 
 	parentDir := filepath.Dir(r.path)
@@ -55,9 +64,28 @@ func (r *Registry) Update(ctx context.Context) error {
 		return r.Clone(ctx)
 	}
 
+	// Reset to clean state first
+	resetCmd := exec.CommandContext(ctx, "git", "-C", r.path, "reset", "--hard", "HEAD")
+	if err := resetCmd.Run(); err != nil {
+		// If reset fails, remove and re-clone
+		os.RemoveAll(r.path)
+		return r.Clone(ctx)
+	}
+
+	// Ensure we're on main branch
+	checkoutCmd := exec.CommandContext(ctx, "git", "-C", r.path, "checkout", "main")
+	if err := checkoutCmd.Run(); err != nil {
+		// If checkout fails, remove and re-clone
+		os.RemoveAll(r.path)
+		return r.Clone(ctx)
+	}
+
+	// Now pull latest changes
 	cmd := exec.CommandContext(ctx, "git", "-C", r.path, "pull", "--ff-only")
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to update repository: %w\n%s", err, output)
+	if err := cmd.Run(); err != nil {
+		// If pull fails, remove and re-clone
+		os.RemoveAll(r.path)
+		return r.Clone(ctx)
 	}
 
 	return nil

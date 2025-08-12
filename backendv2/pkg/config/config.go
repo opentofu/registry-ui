@@ -22,6 +22,7 @@ type BackendConfig struct {
 	DB          DBConfig          `koanf:"db"`
 	License     LicenseConfig     `koanf:"license"`
 	Concurrency ConcurrencyConfig `koanf:"concurrency"`
+	GitHub      GitHubConfig      `koanf:"github"`
 
 	WorkDir      string `koanf:"workDir"`
 	RegistryPath string `koanf:"registryPath"`
@@ -64,6 +65,11 @@ func (c *BackendConfig) validate() error {
 	if err := c.Concurrency.Validate(); err != nil {
 		return err
 	}
+
+	if err := c.GitHub.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

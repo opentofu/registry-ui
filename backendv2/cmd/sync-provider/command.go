@@ -81,7 +81,7 @@ func run(ctx context.Context, cmd *cli.Command, cfg *config.BackendConfig) error
 	}
 
 	scraper := docscraper.New(cfg, s3Client, pool)
-	indexService := index.NewIndexService(cfg, pool, scraper)
+	indexService := index.NewIndexService(cfg, pool, scraper, s3Client)
 
 	_, err = indexService.IndexProviderVersion(ctx, namespace, name, specificVersion)
 	if err != nil {

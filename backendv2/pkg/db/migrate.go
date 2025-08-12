@@ -317,6 +317,35 @@ DROP INDEX IF EXISTS idx_provider_documents_type;
 DROP INDEX IF EXISTS idx_provider_documents_provider;
 DROP TABLE provider_documents;`,
 	},
+	{
+		ID:          10,
+		Name:        "add_repository_metadata_fields",
+		Description: "Add popularity and description fields to repositories table",
+		Up: `
+ALTER TABLE repositories 
+ADD COLUMN popularity INTEGER DEFAULT 0,
+ADD COLUMN description TEXT;
+
+CREATE INDEX idx_repositories_popularity ON repositories(popularity DESC);`,
+		Down: `
+DROP INDEX IF EXISTS idx_repositories_popularity;
+ALTER TABLE repositories 
+DROP COLUMN description,
+DROP COLUMN popularity;`,
+		},
+	{
+		ID:          11,
+		Name:        "rename_popularity_to_stars",
+		Description: "Rename popularity column to stars in repositories table",
+		Up: `
+ALTER TABLE repositories RENAME COLUMN popularity TO stars;
+DROP INDEX IF EXISTS idx_repositories_popularity;
+CREATE INDEX idx_repositories_stars ON repositories(stars DESC);`,
+		Down: `
+DROP INDEX IF EXISTS idx_repositories_stars;
+ALTER TABLE repositories RENAME COLUMN stars TO popularity;
+CREATE INDEX idx_repositories_popularity ON repositories(popularity DESC);`,
+	},
 }
 
 func NewMigrateCommand(config config.DBConfig) *cli.Command {

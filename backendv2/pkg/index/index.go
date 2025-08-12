@@ -6,12 +6,34 @@ import (
 	"log/slog"
 
 	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/opentofu/registry-ui/pkg/registry"
 )
 
 // IndexProviderVersion is the main entry point for indexing provider versions
 // It processes a specific provider and optionally a specific version
 func (s *IndexService) IndexProviderVersion(ctx context.Context, namespace, name, version string) (*IndexResponse, error) {
 	ctx, span := s.tracer.Start(ctx, "index.IndexProviderVersion")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("provider.namespace", namespace),
+		attribute.String("provider.name", name),
+	)
+
+	// Prepare registry
+	reg, err := s.prepareRegistry(ctx)
+	if err != nil {
+		span.RecordError(err)
+		return nil, err
+	}
+
+	return s.indexProviderVersionWithRegistry(ctx, reg, namespace, name, version)
+}
+
+// indexProviderVersionWithRegistry is the internal implementation that accepts a pre-prepared registry
+func (s *IndexService) indexProviderVersionWithRegistry(ctx context.Context, reg *registry.Registry, namespace, name, version string) (*IndexResponse, error) {
+	ctx, span := s.tracer.Start(ctx, "index.indexProviderVersionWithRegistry")
 	defer span.End()
 
 	span.SetAttributes(
@@ -48,13 +70,6 @@ func (s *IndexService) IndexProviderVersion(ctx context.Context, namespace, name
 	} else {
 		slog.InfoContext(ctx, "Indexing all provider versions",
 			"requested", fmt.Sprintf("%s/%s", originalNamespace, originalName))
-	}
-
-	// Prepare registry
-	reg, err := s.prepareRegistry(ctx)
-	if err != nil {
-		span.RecordError(err)
-		return nil, err
 	}
 
 	// Check provider exists in registry and get versions (use canonical address for registry lookup)
@@ -137,6 +152,19 @@ func (s *IndexService) IndexProviderVersion(ctx context.Context, namespace, name
 		"skipped", response.SkippedVersions,
 		"failed", response.FailedVersions)
 
+	// Generate provider index if we processed any versions
+	if response.ProcessedVersions > 0 {
+		if err := s.GenerateProviderIndex(ctx, originalNamespace, originalName); err != nil {
+			// Log error but don't fail the overall operation
+			slog.WarnContext(ctx, "Failed to generate provider index",
+				"provider", fmt.Sprintf("%s/%s", originalNamespace, originalName),
+				"error", err)
+		} else {
+			slog.InfoContext(ctx, "Successfully generated provider index",
+				"provider", fmt.Sprintf("%s/%s", originalNamespace, originalName))
+		}
+	}
+
 	return response, nil
 }
 
@@ -180,5 +208,5 @@ func (s *IndexService) IndexMultipleProviders(ctx context.Context, filter, versi
 	slog.InfoContext(ctx, "Found providers to index", "count", len(providers), "filter", filter)
 
 	// Process providers in parallel with configured concurrency
-	return s.processProvidersInParallel(ctx, providers, version)
+	return s.processProvidersInParallel(ctx, reg, providers, version)
 }
