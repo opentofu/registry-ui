@@ -184,7 +184,7 @@ func (s *IndexService) analyzeVersions(ctx context.Context, namespace, name stri
 }
 
 // storeVersionInDatabase handles all database operations for a successfully processed version
-func (s *IndexService) storeVersionInDatabase(ctx context.Context, tx pgx.Tx, namespace, name, version string, licenses license.List) error {
+func (s *IndexService) storeVersionInDatabase(ctx context.Context, tx pgx.Tx, namespace, name, version string, licenses license.List, tagDate time.Time) error {
 	ctx, span := s.tracer.Start(ctx, "storeVersionInDatabase")
 	defer span.End()
 
@@ -199,14 +199,15 @@ func (s *IndexService) storeVersionInDatabase(ctx context.Context, tx pgx.Tx, na
 
 	// Store provider version
 	versionQuery := `
-		INSERT INTO provider_versions (provider_namespace, provider_name, version, license_accepted)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO provider_versions (provider_namespace, provider_name, version, license_accepted, tag_created_at)
+		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (provider_namespace, provider_name, version)
 		DO UPDATE SET 
 			license_accepted = EXCLUDED.license_accepted,
+			tag_created_at = EXCLUDED.tag_created_at,
 			updated_at = NOW()
 	`
-	if _, err := tx.Exec(ctx, versionQuery, namespace, name, version, licenseAccepted); err != nil {
+	if _, err := tx.Exec(ctx, versionQuery, namespace, name, version, licenseAccepted, tagDate); err != nil {
 		span.RecordError(err)
 		slog.ErrorContext(ctx, "Failed to store provider version in database",
 			"version", version, "error", err)
@@ -316,6 +317,18 @@ func (s *IndexService) processVersionSync(ctx context.Context, provider *provide
 	slog.DebugContext(ctx, "Completed license detection for version",
 		"version", version, "licenses", result.LicensesStr, "redistributable", result.Redistributable)
 
+	// Get tag creation date for this version
+	tagDate, err := provider.GetTagCreationDate(ctx, version)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to get tag date for version", "version", version, "error", err)
+		span.RecordError(err)
+		result.Error = err
+		result.Duration = time.Since(start)
+		return result
+	}
+
+	slog.DebugContext(ctx, "Retrieved tag date for version", "version", version, "tag_date", tagDate)
+
 	if result.Redistributable && result.Error == nil {
 		// Begin transaction for this version's database operations
 		tx, err := s.pool.Begin(ctx)
@@ -328,7 +341,7 @@ func (s *IndexService) processVersionSync(ctx context.Context, provider *provide
 		defer tx.Rollback(ctx) // Safe to call on committed transactions
 
 		// Store provider version in database (required for foreign key)
-		if err := s.storeVersionInDatabase(ctx, tx, namespace, name, version, result.Licenses); err != nil {
+		if err := s.storeVersionInDatabase(ctx, tx, namespace, name, version, result.Licenses, *tagDate); err != nil {
 			span.RecordError(err)
 			result.Error = err
 			result.Duration = time.Since(start)
@@ -339,8 +352,7 @@ func (s *IndexService) processVersionSync(ctx context.Context, provider *provide
 		span.SetAttributes(attribute.Bool("docs.scraping", true))
 		if err := s.scraper.ScrapeAndStore(ctx, namespace, name, version, directory, result.Licenses, tx); err != nil {
 			span.RecordError(err)
-			slog.ErrorContext(ctx, "Failed to scrape documentation",
-				"version", version, "error", err)
+			slog.ErrorContext(ctx, "Failed to scrape documentation", "version", version, "error", err)
 			result.Error = fmt.Errorf("failed to scrape documentation for version %s: %w", version, err)
 			result.Duration = time.Since(start)
 			return result

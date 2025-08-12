@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -28,6 +29,19 @@ func NewProvider(cfg *config.BackendConfig, namespace, name string) *Provider {
 		namespace: namespace,
 		name:      name,
 	}
+}
+
+// GetTagCreationDate returns the creation date of a git tag for this provider
+func (p *Provider) GetTagCreationDate(ctx context.Context, version string) (*time.Time, error) {
+	repoURL := fmt.Sprintf("https://github.com/%s/terraform-provider-%s", p.namespace, p.name)
+	localPath := filepath.Join(p.config.WorkDir, "providers", p.namespace, p.name)
+
+	repo, err := git.GetRepo(repoURL, localPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get repository: %w", err)
+	}
+
+	return repo.GetTagDate(ctx, version)
 }
 
 // WorktreeManager handles worktree lifecycle for a specific tag

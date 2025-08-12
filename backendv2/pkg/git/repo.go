@@ -8,7 +8,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -313,4 +315,59 @@ func (r *Repo) Cleanup(ctx context.Context) error {
 
 	slog.InfoContext(ctx, "Successfully cleaned up repository", "url", r.URL, "path", r.LocalPath)
 	return nil
+}
+
+// GetTagDate returns the creation date of a git tag
+func (r *Repo) GetTagDate(ctx context.Context, tag string) (*time.Time, error) {
+	tracer := otel.Tracer("opentofu-registry-backend")
+	ctx, span := tracer.Start(ctx, "git.get_tag_date")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("git.url", r.URL),
+		attribute.String("git.tag", tag),
+	)
+
+	// Check if repository directory exists
+	if _, err := os.Stat(filepath.Join(r.LocalPath, ".git")); os.IsNotExist(err) {
+		err := fmt.Errorf("repository directory does not exist at %s", r.LocalPath)
+		span.RecordError(err)
+		return nil, err
+	}
+
+	slog.DebugContext(ctx, "Getting tag creation date", "url", r.URL, "tag", tag)
+
+	// Use git log to get tag date
+	cmd := exec.CommandContext(ctx, "git", "log", "--format=%ai", "-1", tag)
+	cmd.Dir = r.LocalPath
+
+	output, err := cmd.Output()
+	if err != nil {
+		// Try with 'v' prefix if not found
+		if !strings.HasPrefix(tag, "v") {
+			slog.DebugContext(ctx, "Tag not found, trying with 'v' prefix", "tag", tag)
+			return r.GetTagDate(ctx, "v"+tag)
+		}
+		span.RecordError(err)
+		slog.WarnContext(ctx, "Failed to get tag date", "url", r.URL, "tag", tag, "error", err)
+		return nil, fmt.Errorf("failed to get tag date for %s: %w", tag, err)
+	}
+
+	dateStr := strings.TrimSpace(string(output))
+	if dateStr == "" {
+		err := fmt.Errorf("empty date output for tag %s", tag)
+		span.RecordError(err)
+		return nil, err
+	}
+
+	// Parse the git date format (RFC2822 style)
+	tagDate, err := time.Parse("2006-01-02 15:04:05 -0700", dateStr)
+	if err != nil {
+		span.RecordError(err)
+		slog.ErrorContext(ctx, "Failed to parse tag date", "url", r.URL, "tag", tag, "date_str", dateStr, "error", err)
+		return nil, fmt.Errorf("failed to parse tag date: %w", err)
+	}
+
+	slog.DebugContext(ctx, "Successfully retrieved tag date", "url", r.URL, "tag", tag, "date", tagDate)
+	return &tagDate, nil
 }
