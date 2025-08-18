@@ -66,6 +66,7 @@
     "unplugin-macros": "^0.17.0",
     "vfile-matter": "^5.0.1",
     "vite": "^6.3.5",
+    "vite-plugin-svgr": "^4.3.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {

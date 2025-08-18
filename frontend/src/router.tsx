@@ -84,10 +84,7 @@ export const router = createBrowserRouter(
               handle: {
                 middleware: docsMiddleware,
                 crumb: ({ data }: { data: DocsRouteContext }) =>
-                {
-                  console.log(data);
-                  return createCrumb(`/docs/${data.section}`, data.sectionBreadcrumbLabel);
-                }
+                  createCrumb(`/docs/${data.section}`, data.sectionBreadcrumbLabel)
               },
               children: [
                 {

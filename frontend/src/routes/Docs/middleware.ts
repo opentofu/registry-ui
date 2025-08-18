@@ -11,8 +11,6 @@ export type DocsRouteContext = {
 };
 
 const getBreadcrumbLabel = (section?: string, subsection?: string): string | undefined => {
-  console.log("getBreadcrumbLabel", section, subsection);
-
   // find the section first
   if (!section) {
     return "Docs";
@@ -22,15 +20,12 @@ const getBreadcrumbLabel = (section?: string, subsection?: string): string | und
   if (!sectionItem) {
     return section;
   }
-
-  console.log("sectionItem", sectionItem);
   
   if (!subsection) {
     return sectionItem.title || section;
   }
   const slug = `${section}/${subsection}`;
   const subsectionItem = sectionItem.items?.find((item) => item.slug === slug);
-  console.log("subsectionItem", subsectionItem);
   if (subsectionItem) {
     return subsectionItem.title || subsection;
   }

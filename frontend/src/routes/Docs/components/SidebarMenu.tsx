@@ -62,9 +62,7 @@ function DocsTreeViewItem({
   } else {
     button = (
       <TabLink
-        to={{
-          pathname: `/docs/${item.slug}`,
-        }}
+        to={`/docs/${item.slug}`}
         label={item.title}
       />
     );
