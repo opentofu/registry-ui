@@ -1,13 +1,13 @@
-import { TreeView, TreeViewItem } from "../TreeView";
-import { useMemo, useState } from "react";
+import { definitions } from "@/api";
 import clsx from "clsx";
+import { useMemo, useState } from "react";
+import { NavLink } from "react-router";
+import { chevron } from "@/icons/chevron";
+import { expand } from "@/icons/expand";
 import { DateTime } from "../DateTime";
 import { Icon } from "../Icon";
-import { NavLink } from "react-router";
 import { SidebarBlock } from "../SidebarBlock";
-import { chevron } from "../../icons/chevron";
-import { definitions } from "@/api";
-import { expand } from "../../icons/expand";
+import { TreeView, TreeViewItem } from "../TreeView";
 import { groupVersions } from "./utils";
 
 interface SimpleTreeNode {
@@ -49,13 +49,18 @@ function VersionTreeViewItemHandle({
       <button
         className={clsx(
           "inline-flex items-center gap-2 text-sm font-medium transition-colors duration-150",
-          isActive ? "text-brand-700 dark:text-brand-400" : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
+          isActive
+            ? "text-brand-700 dark:text-brand-400"
+            : "text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white",
         )}
         onClick={() => onClick()}
       >
         <Icon
           path={chevron}
-          className={clsx("size-3.5 transition-transform duration-200", isOpen && "rotate-90")}
+          className={clsx(
+            "size-3.5 transition-transform duration-200",
+            isOpen && "rotate-90",
+          )}
         />
         {label}
       </button>
@@ -68,7 +73,7 @@ function VersionTreeViewItemHandle({
           "text-sm transition-colors duration-150",
           isActive
             ? "text-brand-700 dark:text-brand-400 font-medium"
-            : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:underline underline-offset-2"
+            : "text-gray-700 underline-offset-2 hover:text-gray-900 hover:underline dark:text-gray-300 dark:hover:text-white",
         )}
         state={{ fromVersion: true }}
       >
@@ -80,7 +85,7 @@ function VersionTreeViewItemHandle({
   return (
     <span
       className={clsx(
-        "flex w-full items-center justify-between py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150",
+        "flex w-full items-center justify-between rounded-md px-3 py-2 transition-all duration-150 hover:bg-gray-100 dark:hover:bg-gray-800",
         isActive && "bg-brand-500/10 dark:bg-brand-500/20",
         className,
       )}
@@ -113,7 +118,7 @@ function VersionTreeViewNestedItems({
   }, [activeIndex, children, visibleCount]);
 
   return (
-    <TreeView className="ml-4 mt-1">
+    <TreeView className="mt-1 ml-4">
       {visibleChildren.map((node, index) => (
         <TreeViewItem nested key={index}>
           <VersionTreeViewItemHandle
@@ -130,7 +135,7 @@ function VersionTreeViewNestedItems({
         <TreeViewItem nested>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-150 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
           >
             <Icon path={expand} className="size-4" />
             {expanded ? "Show less" : "Show more"}
@@ -189,26 +194,30 @@ export function VersionsSidebarBlock({
     <SidebarBlock title="Versions">
       <div className="space-y-4">
         <div>
-          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Latest</h4>
+          <h4 className="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            Latest
+          </h4>
           <a
             href={versionLink("latest")}
             className={clsx(
-              "flex items-center justify-between p-3 rounded-md transition-all duration-150",
+              "flex items-center justify-between rounded-md p-3 transition-all duration-150",
               currentVersion === latestVersion.id
                 ? "bg-brand-500/10 dark:bg-brand-500/20"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
           >
             <div className="flex items-center gap-2">
-              <span className={clsx(
-                "text-sm font-medium",
-                currentVersion === latestVersion.id
-                  ? "text-brand-700 dark:text-brand-400"
-                  : "text-gray-700 dark:text-gray-300"
-              )}>
+              <span
+                className={clsx(
+                  "text-sm font-medium",
+                  currentVersion === latestVersion.id
+                    ? "text-brand-700 dark:text-brand-400"
+                    : "text-gray-700 dark:text-gray-300",
+                )}
+              >
                 {latestVersion.id}
               </span>
-              <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-medium">
+              <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 Latest
               </span>
             </div>
@@ -217,10 +226,12 @@ export function VersionsSidebarBlock({
             </span>
           </a>
         </div>
-        
+
         {groupedVersions.length > 0 && (
           <div>
-            <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Older versions</h4>
+            <h4 className="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              Older versions
+            </h4>
             <TreeView>
               {groupedVersions.map((node) => (
                 <VersionTreeViewItem key={node.label} node={node} />
