@@ -19,7 +19,8 @@ export function ModuleSideMenu() {
   const hasSchemaError = !!data.schema_error;
 
   return (
-    <TreeView className="mr-4 mt-4">
+    <div className="p-4">
+      <TreeView>
       <ModuleTabLink to="." end>
         Readme
       </ModuleTabLink>
@@ -47,13 +48,14 @@ export function ModuleSideMenu() {
       >
         Resources
       </ModuleTabLink>
-    </TreeView>
+      </TreeView>
+    </div>
   );
 }
 
 export function ModuleSideMenuSkeleton() {
   return (
-    <div className="mr-4 mt-4 flex animate-pulse flex-col gap-5">
+    <div className="p-4 flex animate-pulse flex-col gap-5">
       <span className="flex h-em w-48 bg-gray-500/25" />
       <span className="flex h-em w-52 bg-gray-500/25" />
       <span className="flex h-em w-36 bg-gray-500/25" />

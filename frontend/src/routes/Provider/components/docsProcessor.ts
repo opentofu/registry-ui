@@ -11,7 +11,7 @@
   - /docs/overview.md#section -> /docs/overview#section
   - /docs/overview.html#section -> /docs/overview#section
 
-  directory structure changes:
+  directory structure changes:ro
   - docs/providers/<providername> -> /provider/<namespace>/<providername>/<version>/docs/
   - docs/providers/<providername>/r/<resource> -> /provider/<namespace>/<providername>/<version>/docs/resources/<resource>
   - docs/providers/<providername>/d/<data> -> /provider/<namespace>/<providername>/<version>/docs/datasources/<data>
