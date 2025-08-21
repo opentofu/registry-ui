@@ -36,9 +36,11 @@ function TabLink({ to, label, active }: TabLinkProps) {
         }
       }}
       className={clsx(
-        "flex break-all px-3 py-2 text-left text-sm rounded-md transition-all duration-150",
-        active && "bg-brand-500/10 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400 font-medium",
-        !active && "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white",
+        "flex rounded-md px-3 py-2 text-left text-sm break-all transition-all duration-150",
+        active &&
+        "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200 font-medium",
+        !active &&
+        "text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white",
         isPending && "opacity-50 transition-opacity delay-75",
       )}
     >
@@ -70,12 +72,15 @@ function DocsTreeViewItem({
   if (filteredItems) {
     button = (
       <button
-        className="flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white rounded-md transition-all duration-150"
+        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-all duration-150 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
         onClick={() => setOpen(!open)}
       >
         <Icon
           path={chevron}
-          className={clsx("size-3.5 shrink-0 transition-transform duration-200", open && "rotate-90")}
+          className={clsx(
+            "size-3.5 shrink-0 transition-transform duration-200",
+            open && "rotate-90",
+          )}
         />
         <span className="font-medium">{item.label}</span>
       </button>
@@ -126,7 +131,7 @@ export function ProviderDocsMenu() {
       <input
         type="text"
         placeholder="Filter documentation..."
-        className="mb-4 px-3 py-2 h-10 w-full appearance-none rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm text-inherit placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all duration-150"
+        className="focus:border-brand-500 focus:ring-brand-500/20 mb-4 h-10 w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-inherit transition-all duration-150 placeholder:text-gray-500 focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-gray-800/50 dark:placeholder:text-gray-400"
         value={deferredSearchFilter}
         onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
       />
@@ -141,23 +146,23 @@ export function ProviderDocsMenu() {
       {filterInput}
       <TreeView>
         <TreeViewItem>
-        <TabLink
-          to={{
-            pathname: `.`,
-            search: lang ? `?lang=${lang}` : "",
-          }}
-          label="Overview"
-          active={!type && !doc}
-        />
-      </TreeViewItem>
-      {filteredItems.map((doc) => (
-        <DocsTreeViewItem
-          key={doc.name}
-          item={doc}
-          isOpenByDefault={doc.open}
-          searchFilter={searchFilter}
-        />
-      ))}
+          <TabLink
+            to={{
+              pathname: `.`,
+              search: lang ? `?lang=${lang}` : "",
+            }}
+            label="Overview"
+            active={!type && !doc}
+          />
+        </TreeViewItem>
+        {filteredItems.map((doc) => (
+          <DocsTreeViewItem
+            key={doc.name}
+            item={doc}
+            isOpenByDefault={doc.open}
+            searchFilter={searchFilter}
+          />
+        ))}
       </TreeView>
     </div>
   );
@@ -165,12 +170,12 @@ export function ProviderDocsMenu() {
 
 export function ProviderDocsMenuSkeleton() {
   return (
-    <div className="p-4 flex animate-pulse flex-col gap-5">
-      <span className="flex h-em w-48 bg-gray-500/25" />
-      <span className="flex h-em w-52 bg-gray-500/25" />
-      <span className="flex h-em w-36 bg-gray-500/25" />
-      <span className="flex h-em w-64 bg-gray-500/25" />
-      <span className="flex h-em w-56 bg-gray-500/25" />
+    <div className="flex animate-pulse flex-col gap-5 p-4">
+      <span className="h-em flex w-48 bg-gray-500/25" />
+      <span className="h-em flex w-52 bg-gray-500/25" />
+      <span className="h-em flex w-36 bg-gray-500/25" />
+      <span className="h-em flex w-64 bg-gray-500/25" />
+      <span className="h-em flex w-56 bg-gray-500/25" />
     </div>
   );
 }

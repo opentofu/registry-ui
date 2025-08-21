@@ -50,7 +50,7 @@ function VersionTreeViewItemHandle({
         className={clsx(
           "inline-flex items-center gap-2 text-sm font-medium transition-colors duration-150",
           isActive
-            ? "text-brand-700 dark:text-brand-400"
+            ? "text-brand-800 dark:text-brand-200"
             : "text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white",
         )}
         onClick={() => onClick()}
@@ -72,7 +72,7 @@ function VersionTreeViewItemHandle({
         className={clsx(
           "text-sm transition-colors duration-150",
           isActive
-            ? "text-brand-700 dark:text-brand-400 font-medium"
+            ? "text-brand-800 dark:text-brand-200 font-medium"
             : "text-gray-700 underline-offset-2 hover:text-gray-900 hover:underline dark:text-gray-300 dark:hover:text-white",
         )}
         state={{ fromVersion: true }}
@@ -86,7 +86,7 @@ function VersionTreeViewItemHandle({
     <span
       className={clsx(
         "flex w-full items-center justify-between rounded-md px-3 py-2 transition-all duration-150 hover:bg-gray-100 dark:hover:bg-gray-800",
-        isActive && "bg-brand-500/10 dark:bg-brand-500/20",
+        isActive && "bg-brand-300/40 dark:bg-brand-300/40",
         className,
       )}
     >
@@ -171,8 +171,8 @@ interface VersionsSidebarBlockProps {
     | definitions["ModuleVersionDescriptor"]
   >;
   latestVersion:
-    | definitions["ProviderVersionDescriptor"]
-    | definitions["ModuleVersionDescriptor"];
+  | definitions["ProviderVersionDescriptor"]
+  | definitions["ModuleVersionDescriptor"];
   currentVersion: string;
   versionLink: (version: string) => string;
 }
@@ -202,7 +202,7 @@ export function VersionsSidebarBlock({
             className={clsx(
               "flex items-center justify-between rounded-md p-3 transition-all duration-150",
               currentVersion === latestVersion.id
-                ? "bg-brand-500/10 dark:bg-brand-500/20"
+                ? "bg-brand-300/40 dark:bg-brand-300/40"
                 : "hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
           >
@@ -211,7 +211,7 @@ export function VersionsSidebarBlock({
                 className={clsx(
                   "text-sm font-medium",
                   currentVersion === latestVersion.id
-                    ? "text-brand-700 dark:text-brand-400"
+                    ? "text-brand-800 dark:text-brand-200"
                     : "text-gray-700 dark:text-gray-300",
                 )}
               >
