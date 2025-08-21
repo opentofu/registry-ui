@@ -18,11 +18,11 @@ export function SidebarLayout({ children, before, after, showBreadcrumbs = false
       <div className="fixed inset-0 -z-10 bg-white/50 dark:bg-blue-950/50" />
       <Header />
       <div className="mx-auto flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24">
-        <div className="h-10 bg-gray-200 dark:bg-blue-950 border border-gray-300 dark:border-gray-700 border-b-0 flex items-center px-3 rounded-t font-mono text-sm text-gray-600 dark:text-gray-400">
+        <div className="h-10 bg-gray-200 dark:bg-blue-950 border border-gray-300 dark:border-gray-700 border-b-0 flex items-center px-3 rounded-t">
           {showBreadcrumbs ? (
             <Breadcrumbs className="h-10 flex-1" />
           ) : (
-            <span className="text-xs">◆ opentofu-registry</span>
+            <span className="font-mono text-sm text-gray-600 dark:text-gray-400">◆ opentofu-registry</span>
           )}
         </div>
         <div className="flex flex-1 divide-x divide-gray-200 dark:divide-gray-800 border border-gray-300 dark:border-gray-700">
