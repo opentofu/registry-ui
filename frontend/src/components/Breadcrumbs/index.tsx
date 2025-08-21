@@ -15,8 +15,6 @@ export function Breadcrumbs({ className }: BreadcrumbsProps) {
     UIMatch<unknown, { crumb: (data: unknown) => Crumb }>
   >;
 
-  console.log("Breadcrumbs matches:", matches);
-
   const crumbs = matches
     .filter((match) => Boolean(match.handle?.crumb))
     .map((match) => match.handle.crumb(match.data))
@@ -34,6 +32,7 @@ export function Breadcrumbs({ className }: BreadcrumbsProps) {
       >
         <Icon path={home} className="size-6" />
       </Link>
+
       {crumbs.map((crumb) => (
         <Fragment key={crumb.to}>
           <span>
@@ -58,7 +57,7 @@ export function Breadcrumbs({ className }: BreadcrumbsProps) {
 export function BreadcrumbsSkeleton() {
   return (
     <nav className="flex h-16 items-center">
-      <div className="flex h-em w-80 animate-pulse bg-gray-500/25" />
+      <div className="h-em flex w-80 animate-pulse bg-gray-500/25" />
     </nav>
   );
 }
