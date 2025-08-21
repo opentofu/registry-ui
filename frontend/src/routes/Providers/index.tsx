@@ -25,7 +25,9 @@ export function Providers() {
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <PageTitle className="mb-3">{title}</PageTitle>
-            <Paragraph className="text-gray-600 dark:text-gray-300">{description}</Paragraph>
+            <Paragraph className="text-gray-600 dark:text-gray-300">
+              {description}
+            </Paragraph>
           </div>
           <Button
             target="_blank"
@@ -41,6 +43,7 @@ export function Providers() {
         <div className="relative">
           <input
             type="text"
+            aria-label="Query"
             placeholder="Search providers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -50,10 +53,10 @@ export function Providers() {
                 e.stopPropagation();
               }
             }}
-            className="w-full px-4 py-3 pl-12 pr-4 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400"
+            className="focus:ring-brand-500 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-4 pl-12 text-sm focus:border-transparent focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-blue-900 dark:text-gray-200 dark:placeholder-gray-400"
           />
           <svg
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+            className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
