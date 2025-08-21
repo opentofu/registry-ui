@@ -131,7 +131,7 @@ export function ProviderDocsMenu() {
       <input
         type="text"
         placeholder="Filter documentation..."
-        className="focus:border-brand-500 focus:ring-brand-500/20 mb-4 h-10 w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-inherit transition-all duration-150 placeholder:text-gray-500 focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-gray-800/50 dark:placeholder:text-gray-400"
+        className="focus:border-brand-500 focus:ring-brand-500 mb-4 h-10 w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-inherit transition-all duration-150 placeholder:text-gray-500 focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-gray-800/50 dark:placeholder:text-gray-400"
         value={deferredSearchFilter}
         onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
       />
