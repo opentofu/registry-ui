@@ -9,7 +9,6 @@ import {
   ModuleProvisionInstructionsSidebarBlock,
   ModuleProvisionInstructionsSidebarBlockSkeleton,
 } from "./components/ProvisionInstructionsSidebarBlock";
-import { ModuleMetadataSidebarBlock } from "./components/MetadataSidebarBlock";
 import { ModuleExamplesSidebarBlock } from "./components/ExamplesSidebarBlock";
 import { ModuleSubmodulesSidebarBlock } from "./components/SubmodulesSidebarBlock";
 import {
@@ -44,7 +43,6 @@ export function Module() {
             <ModuleProvisionInstructionsSidebarBlock />
             <ModuleExamplesSidebarBlock />
             <ModuleSubmodulesSidebarBlock />
-            <ModuleMetadataSidebarBlock />
           </Suspense>
         </SidebarPanel>
       }

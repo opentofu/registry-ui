@@ -6,6 +6,7 @@ import { useSuspenseQueries } from "@tanstack/react-query";
 import { getModuleDataQuery, getModuleVersionDataQuery } from "../query";
 import { Icon } from "@/components/Icon";
 import { github } from "@/icons/github";
+import { LicenseInfo } from "@/components/LicenseInfo";
 
 interface WrapperProps {
   children: ReactNode;
@@ -119,6 +120,12 @@ export function ModuleHeader() {
               </a>
             </div>
           )}
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">License</span>
+            <div className="mt-1">
+              <LicenseInfo license={versionData.licenses} />
+            </div>
+          </div>
         </div>
       </div>
     </Wrapper>
@@ -156,6 +163,10 @@ export function ModuleHeaderSkeleton() {
           <div>
             <span className="flex h-4 w-12 animate-pulse bg-gray-500/25 rounded" />
             <span className="mt-1 flex h-5 w-16 animate-pulse bg-gray-500/25 rounded" />
+          </div>
+          <div>
+            <span className="flex h-4 w-12 animate-pulse bg-gray-500/25 rounded" />
+            <span className="mt-1 flex h-5 w-20 animate-pulse bg-gray-500/25 rounded" />
           </div>
         </div>
       </div>

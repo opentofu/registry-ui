@@ -20,10 +20,6 @@ import {
   ProviderInstructionSidebarBlock,
   ProviderInstructionSidebarBlockSkeleton,
 } from "./components/InstructionSidebarBlock";
-import {
-  ProviderMetadataSidebarBlock,
-  ProviderMetadataSidebarBlockSkeleton,
-} from "./components/MetadataSidebarBlock";
 import { ProviderMetaTags } from "./components/MetaTags";
 import { DocsProvider } from "./contexts/DocsContext";
 import {
@@ -53,7 +49,6 @@ export function Provider() {
                 <>
                   <ProviderVersionsSidebarBlockSkeleton />
                   <ProviderInstructionSidebarBlockSkeleton />
-                  <ProviderMetadataSidebarBlockSkeleton />
                 </>
               }
             >
@@ -64,7 +59,6 @@ export function Provider() {
                 <TableOfContents />
               </Suspense>
             )}
-              <ProviderMetadataSidebarBlock />
             </Suspense>
           </SidebarPanel>
         }

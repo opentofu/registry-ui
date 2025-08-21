@@ -5,6 +5,7 @@ import { useProviderParams } from "../hooks/useProviderParams";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { Icon } from "@/components/Icon";
 import { github } from "@/icons/github";
+import { LicenseInfo } from "@/components/LicenseInfo";
 
 interface WrapperProps {
   children: ReactNode;
@@ -113,6 +114,12 @@ export function ProviderHeader() {
               </a>
             </div>
           )}
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">License</span>
+            <div className="mt-1">
+              <LicenseInfo license={versionData.license} />
+            </div>
+          </div>
         </div>
       </div>
     </Wrapper>
@@ -150,6 +157,10 @@ export function ProviderHeaderSkeleton() {
           <div>
             <span className="flex h-4 w-12 animate-pulse bg-gray-500/25 rounded" />
             <span className="mt-1 flex h-5 w-16 animate-pulse bg-gray-500/25 rounded" />
+          </div>
+          <div>
+            <span className="flex h-4 w-12 animate-pulse bg-gray-500/25 rounded" />
+            <span className="mt-1 flex h-5 w-20 animate-pulse bg-gray-500/25 rounded" />
           </div>
         </div>
       </div>
