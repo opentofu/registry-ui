@@ -1,6 +1,5 @@
 import { useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import clsx from "clsx";
 
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -16,7 +15,6 @@ import { useSearchState, GroupedResults } from "./hooks/useSearchState";
 import { useSearchKeyboard } from "./hooks/useSearchKeyboard";
 
 export function SearchExperience() {
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const resultsContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Initialize search state
@@ -96,13 +94,14 @@ export function SearchExperience() {
         target instanceof HTMLInputElement ||
         target instanceof HTMLTextAreaElement;
 
-      if (
-        event.key === "/" &&
-        !isInputOrTextarea
-      ) {
+      if (event.key === "/" && !isInputOrTextarea) {
         event.preventDefault();
         // Find the search input and focus it
-        const searchInput = document.querySelector('input[aria-label="Search"]') as HTMLInputElement;
+        // This is needed because the search at the top of the page is not shown
+        // for landing, only on every other page
+        const searchInput = document.querySelector(
+          'input[aria-label="Search"]',
+        ) as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
           // Clear any existing selection when focusing search
@@ -126,7 +125,6 @@ export function SearchExperience() {
       <div className="fixed inset-0 -z-10 bg-white/50 dark:bg-blue-950/50" />
       <Header />
 
-      {/* Always show search interface */}
       <div className="mx-auto flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24">
         <SearchBreadcrumbs onHomeClick={handleHomeClick} />
         <div className="flex flex-1 divide-x divide-gray-200 border border-b-0 border-t-0 border-gray-300 dark:divide-gray-800 dark:border-gray-700">
@@ -144,7 +142,6 @@ export function SearchExperience() {
             searchData={searchData}
           />
 
-          {/* Right Side - Content based on state */}
           <main className="min-w-0 flex-1 bg-gray-100 dark:bg-blue-900">
             <div className="mt-8">
               {query && selectedResult ? (
@@ -156,8 +153,8 @@ export function SearchExperience() {
                       {isLoading
                         ? "Searching..."
                         : flatResults.length > 0
-                        ? "Select a result to preview documentation"
-                        : "No results found"}
+                          ? "Select a result to preview documentation"
+                          : "No results found"}
                     </p>
                   </div>
                 </div>
@@ -168,14 +165,26 @@ export function SearchExperience() {
           </main>
         </div>
 
-        {/* Keyboard shortcuts status line */}
         <div className="flex h-8 items-center rounded-b border border-t-0 border-gray-300 bg-gray-200 px-3 dark:border-gray-700 dark:bg-blue-950">
           <div className="w-full text-center">
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Use <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">↑↓</kbd> to navigate • 
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">Enter</kbd> to open • 
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">ESC</kbd> to clear • 
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">/</kbd> to focus search
+              Use{" "}
+              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                ↑↓
+              </kbd>{" "}
+              to navigate •
+              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">
+                Enter
+              </kbd>{" "}
+              to open •
+              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">
+                ESC
+              </kbd>{" "}
+              to clear •
+              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">
+                /
+              </kbd>{" "}
+              to focus search
             </p>
           </div>
         </div>
