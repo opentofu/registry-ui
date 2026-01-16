@@ -35,7 +35,7 @@ type ModuleCall struct {
 }
 
 type Variable struct {
-	Type        string `json:"type,omitempty"`
+	Type        any    `json:"type,omitempty"`
 	Default     any    `json:"default,omitempty"`
 	Description string `json:"description,omitempty"`
 	Sensitive   bool   `json:"sensitive,omitempty"`

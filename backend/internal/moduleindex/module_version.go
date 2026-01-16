@@ -60,7 +60,7 @@ type ProviderDependency struct {
 
 // Variable describes a variable as the UI expects it.
 type Variable struct {
-	Type        string `json:"type"`
+	Type        any    `json:"type"`
 	Default     any    `json:"default"`
 	Description string `json:"description"`
 	Sensitive   bool   `json:"sensitive"`
