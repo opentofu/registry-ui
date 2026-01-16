@@ -332,7 +332,7 @@ func (b backend) generate(ctx context.Context, cfg GenerateConfig) error {
 				Namespace:    cfg.Namespace,
 				Name:         cfg.Name,
 				TargetSystem: cfg.TargetSystem,
-			}); err != nil {
+			}, moduleindex.WithForce(cfg.ForceRegenerate), moduleindex.WithForceRepoDataUpdate(cfg.ForceRepoDataUpdate)); err != nil {
 				return fmt.Errorf("failed to generate modules (%w)", err)
 			}
 		} else if cfg.Name != "" {
