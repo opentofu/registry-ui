@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/opentofu/libregistry/logger"
-	"github.com/opentofu/registry-ui/internal/moduleindex/moduleschema"
 	"github.com/opentofu/tofudl"
 	"github.com/opentofu/tofudl/mockmirror"
+
+	"github.com/opentofu/registry-ui/internal/moduleindex/moduleschema"
 )
 
 func getTofuDL(t *testing.T) tofudl.Downloader {
@@ -129,37 +130,103 @@ func TestComplexTypes(t *testing.T) {
 		t.Fatalf("Failed to extract metadata (%v)", err)
 	}
 
-	// Verify simple types are still strings
+	// Verify simple_string is a string type
 	if _, ok := metadata.RootModule.Variables["simple_string"]; !ok {
 		t.Fatalf("simple_string variable not found")
 	}
-	if metadata.RootModule.Variables["simple_string"].Type != "string" {
-		t.Errorf("simple_string type = %v, want string", metadata.RootModule.Variables["simple_string"].Type)
+	simpleStringType := metadata.RootModule.Variables["simple_string"].Type
+	if simpleStringType.FriendlyName() != "string" {
+		t.Errorf("simple_string type = %v, want string", simpleStringType.FriendlyName())
 	}
 
 	if _, ok := metadata.RootModule.Variables["list_of_strings"]; !ok {
 		t.Fatalf("list_of_strings variable not found")
 	}
 	listType := metadata.RootModule.Variables["list_of_strings"].Type
-	if _, isSlice := listType.([]any); !isSlice {
-		// If it's still a string, that's also acceptable (depends on tofu version)
-		if _, isString := listType.(string); !isString {
-			t.Errorf("list_of_strings type = %T, want []any or string", listType)
-		}
+	if !listType.IsListType() {
+		t.Errorf("list_of_strings type should be a list type, got: %v", listType.FriendlyName())
 	}
 
 	if _, ok := metadata.RootModule.Variables["map_of_objects"]; !ok {
 		t.Fatalf("map_of_objects variable not found")
 	}
 	mapType := metadata.RootModule.Variables["map_of_objects"].Type
-	if mapType == nil {
-		t.Errorf("map_of_objects type should not be nil")
+	if !mapType.IsMapType() {
+		t.Errorf("map_of_objects should be a map type, got: %v", mapType.FriendlyName())
 	}
 
 	if _, ok := metadata.RootModule.Variables["list_of_objects"]; !ok {
 		t.Fatalf("list_of_objects variable not found")
 	}
+}
 
-	t.Logf("list_of_objects type: %T", metadata.RootModule.Variables["list_of_objects"].Type)
-	t.Logf("map_of_objects type: %T", metadata.RootModule.Variables["map_of_objects"].Type)
+// TestComplexTypesJSONMarshaling verifies that complex types can be marshaled back to JSON correctly.
+// This means that the UI in search.opentofu.org will receive the types as their JSON representation.
+func TestComplexTypesJSONMarshaling(t *testing.T) {
+	tofuPath := t.TempDir() + "/tofu"
+	if runtime.GOOS == "windows" {
+		tofuPath += ".exe"
+	}
+
+	extractor, err := moduleschema.NewExternalTofuExtractor(
+		moduleschema.ExternalTofuExtractorConfig{
+			TofuPath: tofuPath,
+		},
+		logger.NewTestLogger(t),
+		getTofuDL(t),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create tofu extractor (%v)", err)
+	}
+
+	metadata, err := extractor.Extract(context.Background(), "./testdata/complex_types")
+	if err != nil {
+		t.Fatalf("Failed to extract metadata (%v)", err)
+	}
+
+	tests := []struct {
+		varName      string
+		expectedJSON string
+	}{
+		{
+			varName:      "simple_string",
+			expectedJSON: `"string"`,
+		},
+		{
+			varName:      "list_of_strings",
+			expectedJSON: `["list","string"]`,
+		},
+		{
+			varName:      "map_of_objects",
+			expectedJSON: `["map",["object",{"filesystem":"string","size":"number"},["filesystem"]]]`,
+		},
+		{
+			varName:      "list_of_objects",
+			expectedJSON: `["list",["object",{"protocol":"string","range":"string","rule_type":"string"}]]`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.varName, func(t *testing.T) {
+			variable, ok := metadata.RootModule.Variables[tt.varName]
+			if !ok {
+				t.Fatalf("Variable %s not found", tt.varName)
+			}
+
+			// Marshal the type back to JSON (same as generator.go does)
+			jsonBytes, err := variable.Type.MarshalJSON()
+			if err != nil {
+				t.Fatalf("Failed to marshal type for %s: %v", tt.varName, err)
+			}
+
+			jsonStr := string(jsonBytes)
+			t.Logf("%s type JSON: %s", tt.varName, jsonStr)
+
+			// Verify exact match
+			if jsonStr != tt.expectedJSON {
+				t.Errorf("JSON mismatch for %s:\nGot:      %s\nExpected: %s",
+					tt.varName, jsonStr, tt.expectedJSON)
+			}
+		})
+	}
 }

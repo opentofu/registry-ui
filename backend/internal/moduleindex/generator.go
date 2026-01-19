@@ -11,7 +11,6 @@ import (
 	"os"
 	"path"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -759,7 +758,7 @@ func (g generator) extractModuleSchema(ctx context.Context, directory string, d 
 
 	rootModuleSchema := moduleSchema.RootModule
 
-	g.extractModuleVariables(rootModuleSchema, &d.BaseDetails)
+	g.extractModuleVariables(ctx, rootModuleSchema, &d.BaseDetails)
 	g.extractModuleOutputs(rootModuleSchema, &d.BaseDetails)
 	g.extractModuleDependencies(rootModuleSchema, d)
 	g.extractProviderDependencies(moduleSchema, d)
@@ -784,7 +783,7 @@ func (g generator) extractExampleSchema(ctx context.Context, directory string, e
 
 	rootModuleSchema := moduleSchema.RootModule
 
-	g.extractModuleVariables(rootModuleSchema, &e.BaseDetails)
+	g.extractModuleVariables(ctx, rootModuleSchema, &e.BaseDetails)
 	g.extractModuleOutputs(rootModuleSchema, &e.BaseDetails)
 
 	return nil
@@ -807,101 +806,19 @@ func (g generator) extractModuleOutputs(moduleSchema moduleschema.ModuleSchema, 
 	}
 }
 
-// formatVariableType converts a variable type from OpenTofu's JSON format to HCL-style string.
-// OpenTofu outputs complex types as arrays like ["map", ["object", {"field": "string"}]]
-// This function converts them to human-readable format like "map(object({field = string}))"
-func formatVariableType(t any) string {
-	if t == nil {
-		return ""
-	}
-	if s, ok := t.(string); ok {
-		return s
-	}
-	arr, ok := t.([]any)
-	if !ok || len(arr) == 0 {
-		return ""
-	}
-
-	typeName, ok := arr[0].(string)
-	if !ok {
-		return ""
-	}
-
-	switch typeName {
-	case "list", "set", "map":
-		if len(arr) > 1 {
-			return typeName + "(" + formatVariableType(arr[1]) + ")"
-		}
-		return typeName
-	case "object":
-		if len(arr) > 1 {
-			fields, ok := arr[1].(map[string]any)
-			if !ok {
-				return "object"
-			}
-			// Get optional fields if present (third element in array)
-			var optionalFields []string
-			if len(arr) > 2 {
-				if optArr, ok := arr[2].([]any); ok {
-					for _, f := range optArr {
-						if fname, ok := f.(string); ok {
-							optionalFields = append(optionalFields, fname)
-						}
-					}
-				}
-			}
-			return "object({" + formatObjectFields(fields, optionalFields) + "})"
-		}
-		return "object"
-	case "tuple":
-		if len(arr) > 1 {
-			elements, ok := arr[1].([]any)
-			if !ok {
-				return "tuple"
-			}
-			var parts []string
-			for _, elem := range elements {
-				parts = append(parts, formatVariableType(elem))
-			}
-			return "tuple([" + strings.Join(parts, ", ") + "])"
-		}
-		return "tuple"
-	default:
-		return typeName
-	}
-}
-
-// formatObjectFields formats object fields as "field1 = type1, field2 = type2"
-func formatObjectFields(fields map[string]any, optionalFields []string) string {
-	names := make([]string, 0, len(fields))
-	for name := range fields {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-
-	isOptional := func(name string) bool {
-		return slices.Contains(optionalFields, name)
-	}
-
-	var parts []string
-	for _, name := range names {
-		fieldType := formatVariableType(fields[name])
-		if isOptional(name) {
-			parts = append(parts, name+" = optional("+fieldType+")")
-		} else {
-			parts = append(parts, name+" = "+fieldType)
-		}
-	}
-	return strings.Join(parts, ", ")
-}
-
-func (g generator) extractModuleVariables(moduleSchema moduleschema.ModuleSchema, d *BaseDetails) {
+func (g generator) extractModuleVariables(ctx context.Context, moduleSchema moduleschema.ModuleSchema, d *BaseDetails) {
 	for variableName, variable := range moduleSchema.Variables {
 		if _, ok := d.Variables[variableName]; ok {
 			continue
 		}
+		// Marshal the cty.Type back to JSON to preserve the same format
+		typeJSON, err := variable.Type.MarshalJSON()
+		if err != nil {
+			g.log.Warn(context.Background(), "Failed to marshal type for variable %s: %v", variableName, err)
+			continue
+		}
 		d.Variables[variableName] = Variable{
-			Type:        formatVariableType(variable.Type),
+			Type:        typeJSON,
 			Default:     variable.Default,
 			Description: variable.Description,
 			Sensitive:   variable.Sensitive,

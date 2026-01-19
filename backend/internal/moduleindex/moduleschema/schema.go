@@ -1,5 +1,9 @@
 package moduleschema
 
+import (
+	"github.com/zclconf/go-cty/cty"
+)
+
 type Schema struct {
 	ProviderConfig map[string]ProviderConfigSchema `json:"provider_config,omitempty"`
 	RootModule     ModuleSchema                    `json:"root_module"`
@@ -35,11 +39,11 @@ type ModuleCall struct {
 }
 
 type Variable struct {
-	Type        any    `json:"type,omitempty"`
-	Default     any    `json:"default,omitempty"`
-	Description string `json:"description,omitempty"`
-	Sensitive   bool   `json:"sensitive,omitempty"`
-	Required    bool   `json:"required,omitempty"`
+	Type        cty.Type `json:"type,omitempty"`
+	Default     any      `json:"default,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Sensitive   bool     `json:"sensitive,omitempty"`
+	Required    bool     `json:"required,omitempty"`
 }
 
 type Output struct {

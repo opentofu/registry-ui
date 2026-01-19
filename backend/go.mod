@@ -10,6 +10,7 @@ require (
 	github.com/opentofu/libregistry v0.0.0-20250303133315-b7639d715847
 	github.com/opentofu/tofudl v0.0.0-20240730151408-3bd8529dae09
 	github.com/opentofu/tofutestutils v0.0.0-20240821111804-5fcfb797e0a7
+	github.com/zclconf/go-cty v1.13.1
 	golang.org/x/sync v0.10.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -21,6 +22,7 @@ require (
 	github.com/Microsoft/hcsshim v0.11.5 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f // indirect
+	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect
