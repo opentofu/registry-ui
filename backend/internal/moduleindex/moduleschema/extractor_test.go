@@ -9,6 +9,7 @@ import (
 	"github.com/opentofu/libregistry/logger"
 	"github.com/opentofu/tofudl"
 	"github.com/opentofu/tofudl/mockmirror"
+	"github.com/zclconf/go-cty/cty"
 
 	"github.com/opentofu/registry-ui/internal/moduleindex/moduleschema"
 )
@@ -130,33 +131,46 @@ func TestComplexTypes(t *testing.T) {
 		t.Fatalf("Failed to extract metadata (%v)", err)
 	}
 
-	// Verify simple_string is a string type
-	if _, ok := metadata.RootModule.Variables["simple_string"]; !ok {
-		t.Fatalf("simple_string variable not found")
-	}
-	simpleStringType := metadata.RootModule.Variables["simple_string"].Type
-	if simpleStringType.FriendlyName() != "string" {
-		t.Errorf("simple_string type = %v, want string", simpleStringType.FriendlyName())
+	tests := []struct {
+		varName  string
+		expected cty.Type
+	}{
+		{
+			varName:  "simple_string",
+			expected: cty.String,
+		},
+		{
+			varName:  "list_of_strings",
+			expected: cty.List(cty.String),
+		},
+		{
+			varName: "map_of_objects",
+			expected: cty.Map(cty.ObjectWithOptionalAttrs(map[string]cty.Type{
+				"filesystem": cty.String,
+				"size":       cty.Number,
+			}, []string{"filesystem"})),
+		},
+		{
+			varName: "list_of_objects",
+			expected: cty.List(cty.Object(map[string]cty.Type{
+				"protocol":  cty.String,
+				"range":     cty.String,
+				"rule_type": cty.String,
+			})),
+		},
 	}
 
-	if _, ok := metadata.RootModule.Variables["list_of_strings"]; !ok {
-		t.Fatalf("list_of_strings variable not found")
-	}
-	listType := metadata.RootModule.Variables["list_of_strings"].Type
-	if !listType.IsListType() {
-		t.Errorf("list_of_strings type should be a list type, got: %v", listType.FriendlyName())
-	}
+	for _, tt := range tests {
+		t.Run(tt.varName, func(t *testing.T) {
+			variable, ok := metadata.RootModule.Variables[tt.varName]
+			if !ok {
+				t.Fatalf("Variable %s not found", tt.varName)
+			}
 
-	if _, ok := metadata.RootModule.Variables["map_of_objects"]; !ok {
-		t.Fatalf("map_of_objects variable not found")
-	}
-	mapType := metadata.RootModule.Variables["map_of_objects"].Type
-	if !mapType.IsMapType() {
-		t.Errorf("map_of_objects should be a map type, got: %v", mapType.FriendlyName())
-	}
-
-	if _, ok := metadata.RootModule.Variables["list_of_objects"]; !ok {
-		t.Fatalf("list_of_objects variable not found")
+			if !variable.Type.Equals(tt.expected) {
+				t.Errorf("Type mismatch for %s: got %v, want %v", tt.varName, variable.Type, tt.expected)
+			}
+		})
 	}
 }
 
