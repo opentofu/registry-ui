@@ -811,14 +811,8 @@ func (g generator) extractModuleVariables(ctx context.Context, moduleSchema modu
 		if _, ok := d.Variables[variableName]; ok {
 			continue
 		}
-		// Marshal the cty.Type back to JSON to preserve the same format
-		typeJSON, err := variable.Type.MarshalJSON()
-		if err != nil {
-			g.log.Warn(context.Background(), "Failed to marshal type for variable %s: %v", variableName, err)
-			continue
-		}
 		d.Variables[variableName] = Variable{
-			Type:        typeJSON,
+			Type:        variable.Type,
 			Default:     variable.Default,
 			Description: variable.Description,
 			Sensitive:   variable.Sensitive,

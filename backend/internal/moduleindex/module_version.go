@@ -1,6 +1,8 @@
 package moduleindex
 
 import (
+	"github.com/zclconf/go-cty/cty"
+
 	"github.com/opentofu/registry-ui/internal/license"
 )
 
@@ -60,11 +62,11 @@ type ProviderDependency struct {
 
 // Variable describes a variable as the UI expects it.
 type Variable struct {
-	Type        any    `json:"type"`
-	Default     any    `json:"default"`
-	Description string `json:"description"`
-	Sensitive   bool   `json:"sensitive"`
-	Required    bool   `json:"required"`
+	Type        cty.Type `json:"type"`
+	Default     any      `json:"default"`
+	Description string   `json:"description"`
+	Sensitive   bool     `json:"sensitive"`
+	Required    bool     `json:"required"`
 }
 
 // Output describes a module output as the UI expects it.
