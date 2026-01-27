@@ -757,6 +757,9 @@ func (g generator) extractModuleSchema(ctx context.Context, directory string, d 
 		return err
 	}
 
+	// Clear any previous schema errors on successful extraction
+	d.SchemaError = ""
+
 	rootModuleSchema := moduleSchema.RootModule
 
 	g.extractModuleVariables(ctx, rootModuleSchema, &d.BaseDetails)
@@ -781,6 +784,9 @@ func (g generator) extractExampleSchema(ctx context.Context, directory string, e
 		}
 		return err
 	}
+
+	// Clear any previous schema errors on successful extraction
+	e.SchemaError = ""
 
 	rootModuleSchema := moduleSchema.RootModule
 
