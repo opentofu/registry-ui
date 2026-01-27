@@ -40,7 +40,7 @@ terraform {
   }
 }
 
-variable "github_token {}
+variable "github_token" {}
 
 provider "github" {
   token = var.github_token
