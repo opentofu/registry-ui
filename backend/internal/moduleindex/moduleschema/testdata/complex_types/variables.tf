@@ -5,6 +5,31 @@ variable "simple_string" {
   description = "A simple string variable"
 }
 
+variable "inferred_type_from_default" {
+  description = "A variable with no explicit type (type inferred from default)"
+  default     = "ALL"
+}
+
+variable "inferred_number" {
+  description = "Number type inferred from default"
+  default     = 42
+}
+
+variable "inferred_bool" {
+  description = "Bool type inferred from default"
+  default     = true
+}
+
+variable "inferred_list" {
+  description = "List with no explicit type (should use dynamic)"
+  default     = ["a", "b", "c"]
+}
+
+variable "inferred_map" {
+  description = "Map with no explicit type (should use dynamic)"
+  default     = { key = "value" }
+}
+
 variable "simple_number" {
   type        = number
   description = "A simple number variable"

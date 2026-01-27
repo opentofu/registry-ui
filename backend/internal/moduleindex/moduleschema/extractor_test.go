@@ -244,3 +244,49 @@ func TestComplexTypesJSONMarshaling(t *testing.T) {
 		})
 	}
 }
+
+// TestInferredTypeVariable tests that variables without explicit type declarations (type inferred from default)
+// are properly handled. OpenTofu's metadata dump omits the "type" field for such variables, resulting in cty.NilType.
+// This was causing panics in production (coalfire-cf/organization/aws v1.1.9).
+// https://github.com/opentofu/registry-ui/actions/runs/21405798331/job/61629184889
+func TestInferredTypeVariable(t *testing.T) {
+	tofuPath := t.TempDir() + "/tofu"
+	if runtime.GOOS == "windows" {
+		tofuPath += ".exe"
+	}
+
+	extractor, err := moduleschema.NewExternalTofuExtractor(
+		moduleschema.ExternalTofuExtractorConfig{
+			TofuPath: tofuPath,
+		},
+		logger.NewTestLogger(t),
+		getTofuDL(t),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create tofu extractor (%v)", err)
+	}
+
+	metadata, err := extractor.Extract(context.Background(), "./testdata/complex_types")
+	if err != nil {
+		t.Fatalf("Failed to extract metadata (%v)", err)
+	}
+
+	// Verify that the variable with inferred type has cty.NilType in the raw metadata
+	variable, ok := metadata.RootModule.Variables["inferred_type_from_default"]
+	if !ok {
+		t.Fatalf("Variable 'inferred_type_from_default' not found in metadata")
+	}
+
+	if variable.Type != cty.NilType {
+		t.Errorf("Expected cty.NilType for inferred type variable in raw metadata, got %v", variable.Type)
+	}
+
+	// Verify the default value is present (used for type inference in generator)
+	if variable.Default == nil {
+		t.Error("Expected default value to be present for type inference")
+	} else if str, ok := variable.Default.(string); !ok || str != "ALL" {
+		t.Errorf("Expected default value 'ALL', got %v", variable.Default)
+	}
+
+	t.Logf("Successfully extracted metadata with cty.NilType variable (will be inferred to cty.String by generator)")
+}

@@ -20,6 +20,7 @@ import (
 	"github.com/opentofu/libregistry/metadata"
 	"github.com/opentofu/libregistry/types/module"
 	"github.com/opentofu/libregistry/vcs"
+	"github.com/zclconf/go-cty/cty"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/opentofu/registry-ui/internal/blocklist"
@@ -811,8 +812,21 @@ func (g generator) extractModuleVariables(ctx context.Context, moduleSchema modu
 		if _, ok := d.Variables[variableName]; ok {
 			continue
 		}
+		varType := variable.Type
+		// If type is unknown (cty.NilType), try to infer it from the default value
+		// This happens when Terraform/OpenTofu modules don't have an explicit type declaration
+		if variable.Type == cty.NilType {
+			if variable.Default != nil {
+				varType = inferTypeFromDefault(variable.Default)
+				g.log.Info(ctx, "Variable %s has no explicit type, inferred %s from default value", variableName, varType.FriendlyName())
+			} else {
+				// No type and no default - use dynamic type
+				varType = cty.DynamicPseudoType
+				g.log.Warn(ctx, "Variable %s has no type or default, using dynamic type", variableName)
+			}
+		}
 		d.Variables[variableName] = Variable{
-			Type:        variable.Type,
+			Type:        varType,
 			Default:     variable.Default,
 			Description: variable.Description,
 			Sensitive:   variable.Sensitive,
@@ -823,6 +837,32 @@ func (g generator) extractModuleVariables(ctx context.Context, moduleSchema modu
 		if _, ok := moduleSchema.Variables[variableName]; !ok {
 			delete(d.Variables, variableName)
 		}
+	}
+}
+
+// inferTypeFromDefault attempts to infer a cty.Type from a default value.
+// The default value comes from JSON unmarshaling, so it will be one of:
+// string, float64, bool, []any, map[string]any, or nil
+//
+// We only infer simple scalar types (string, number, bool) as these are safe and accurate.
+// For complex types (lists, maps, objects), we return cty.DynamicPseudoType because:
+// - JSON loses type precision (set becomes array, complex objects become generic maps)
+// - Empty collections could be many different types
+// - Better to be honest about unknown types than to guess incorrectly
+func inferTypeFromDefault(defaultValue any) cty.Type {
+	switch defaultValue.(type) {
+	case string:
+		return cty.String
+	case float64:
+		return cty.Number
+	case bool:
+		return cty.Bool
+	case []any, map[string]any:
+		// Complex types - use dynamic to avoid incorrect guesses
+		return cty.DynamicPseudoType
+	default:
+		// Unknown type, use dynamic
+		return cty.DynamicPseudoType
 	}
 }
 
