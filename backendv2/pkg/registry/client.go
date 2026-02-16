@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.opentelemetry.io/otel/attribute"
-
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
@@ -150,12 +148,7 @@ func matchPattern(pattern, value string) bool {
 	return pattern == value
 }
 
-func readJSONFile(ctx context.Context, path string, dest any) error {
-	_, span := telemetry.Tracer().Start(ctx, "registry.read-json-file")
-	defer span.End()
-
-	span.SetAttributes(attribute.String("file.path", path))
-
+func readJSONFile(_ context.Context, path string, dest any) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err

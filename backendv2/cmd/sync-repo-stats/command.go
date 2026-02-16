@@ -9,6 +9,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/provider/storage"
@@ -41,7 +42,7 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
-	ctx, span := telemetry.Tracer().Start(ctx, "sync-repo-stats")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.sync_repo_stats")
 	defer span.End()
 
 	// Get command flags
@@ -55,6 +56,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	pool, err := cfg.DB.GetPool(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 	defer pool.Close()
@@ -66,6 +68,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	provider, err := storage.GetProvider(ctx, pool, namespace, name)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to get provider: %w", err)
 	}
 
@@ -84,6 +87,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	metadata, err := githubClient.GetRepositoryMetadata(ctx, provider.RepoOrganisation, provider.RepoName)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to fetch repository metadata for %s/%s: %w",
 			provider.RepoOrganisation, provider.RepoName, err)
 	}
@@ -92,6 +96,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	err = repository.StoreRepositoryStats(ctx, pool, metadata)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to store repository stats: %w", err)
 	}
 
@@ -99,6 +104,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	err = repository.UpdateRepositoryMetadata(ctx, pool, metadata)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to update repository metadata: %w", err)
 	}
 

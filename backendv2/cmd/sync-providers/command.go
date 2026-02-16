@@ -46,7 +46,7 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
-	ctx, span := telemetry.Tracer().Start(ctx, "sync-providers")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.sync_providers")
 	defer span.End()
 
 	// Generate batch job ID for correlating all provider traces

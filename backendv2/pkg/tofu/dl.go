@@ -60,7 +60,7 @@ func copyFile(src, dst string) error {
 //     which is required for module indexing.
 //   - It lets us ship fixes to OpenTofu quickly without maintaining a separate branch.
 func DownloadLatestNightly(ctx context.Context, destination string) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "DownloadLatestNightly")
+	ctx, span := telemetry.Tracer().Start(ctx, "tofu.download_latest_nightly")
 	defer span.End()
 
 	slog.DebugContext(ctx, "Downloading latest nightly build of Tofu", "destination", destination, "latestURL", latestURL)

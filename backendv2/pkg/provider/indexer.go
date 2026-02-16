@@ -27,7 +27,7 @@ import (
 // IndexVersion indexes a specific version of a provider
 // provider parameter must be provided by the caller to avoid redundant file reads
 func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Provider, version string) (response *IndexResponse, err error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "provider.IndexVersion")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider.index_version")
 	defer func() {
 		if err != nil {
 			span.SetStatus(codes.Error, err.Error())
@@ -237,7 +237,7 @@ func (p *ProviderReader) IndexAllVersions(ctx context.Context, namespace, name s
 		panic("registryProvider cannot be nil")
 	}
 
-	ctx, span := telemetry.Tracer().Start(ctx, "provider.IndexAllVersions")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider.index_all_versions")
 	defer span.End()
 
 	span.SetAttributes(
@@ -377,7 +377,7 @@ func (p *ProviderReader) IndexAllVersions(ctx context.Context, namespace, name s
 	for _, version := range versionsToProcess {
 		g.Go(func() error {
 			// Create a new span for this version processing
-			versionCtx, versionSpan := telemetry.Tracer().Start(gctx, "provider.IndexAllVersions.version")
+			versionCtx, versionSpan := telemetry.Tracer().Start(gctx, "provider.index_all_versions.version")
 			defer versionSpan.End()
 
 			versionSpan.SetAttributes(

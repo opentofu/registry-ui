@@ -8,6 +8,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/provider"
@@ -48,7 +49,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	name := cmd.String("name")
 	version := cmd.String("version")
 
-	ctx, span := telemetry.Tracer().Start(ctx, "get-provider-license")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.get_provider_license")
 	defer span.End()
 	span.SetAttributes(
 		attribute.String("provider.namespace", namespace),
@@ -63,6 +64,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	providerReader, err := provider.NewProviderReader(cfg)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "Failed to create provider reader", "error", err)
 		return fmt.Errorf("failed to create provider reader: %w", err)
 	}
@@ -71,6 +73,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	workDir, cleanup, err := providerReader.CheckoutVersionForScraping(ctx, namespace, name, version)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "Failed to checkout version", "error", err)
 		return fmt.Errorf("failed to checkout version: %w", err)
 	}
@@ -82,6 +85,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	licenses, err := providerReader.DetectLicensesInDirectory(ctx, namespace, name, workDir)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "Failed to detect licenses", "error", err)
 		return fmt.Errorf("failed to detect licenses: %w", err)
 	}

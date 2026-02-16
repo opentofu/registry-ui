@@ -126,7 +126,7 @@ func (s *Scraper) StoreDocs(ctx context.Context, namespace, name, version string
 }
 
 func (s *Scraper) ScrapeDocumentation(ctx context.Context, namespace, name, version, directory string) (map[string]*DocItem, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "docscraper.scrape")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider_docs.scrape")
 	defer span.End()
 
 	span.SetAttributes(
@@ -226,7 +226,7 @@ func (s *Scraper) scrapeDocTypes(ctx context.Context, fsys fs.ReadDirFS, baseDir
 }
 
 func (s *Scraper) saveToBucket(ctx context.Context, namespace, name, version string, docs map[string]*DocItem) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "docscraper.saveToBucket")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider_docs.save_to_bucket")
 	defer span.End()
 
 	span.SetAttributes(
@@ -252,7 +252,7 @@ func (s *Scraper) saveToBucket(ctx context.Context, namespace, name, version str
 }
 
 func (s *Scraper) GenerateAndStoreIndex(ctx context.Context, namespace, name, version string, docs map[string]*DocItem, licenses license.List) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "docscraper.generate_index")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider_docs.generate_index")
 	defer span.End()
 
 	span.SetAttributes(

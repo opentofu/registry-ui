@@ -41,7 +41,7 @@ func isRedirect(actualOwner, actualName, requestedOwner, requestedName string) b
 }
 
 func (c *Client) GetRepositoryMetadata(ctx context.Context, owner, name string) (*RepositoryMetadata, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "GetRepositoryMetadata")
+	ctx, span := telemetry.Tracer().Start(ctx, "repository.get_metadata")
 	slog.DebugContext(ctx, "Fetching repository metadata from GitHub", "owner", owner, "name", name)
 	defer span.End()
 
@@ -96,7 +96,7 @@ func (c *Client) GetRepositoryMetadata(ctx context.Context, owner, name string) 
 // GetRepositoryLicense gets the license information for a repository
 func (c *Client) GetRepositoryLicense(ctx context.Context, owner, name string) (string, error) {
 	slog.DebugContext(ctx, "Fetching repository license from GitHub", "owner", owner, "name", name)
-	ctx, span := telemetry.Tracer().Start(ctx, "GetRepositoryLicense")
+	ctx, span := telemetry.Tracer().Start(ctx, "repository.get_license")
 	defer span.End()
 
 	// Get the repository license using GitHub's license detection

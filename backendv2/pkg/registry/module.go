@@ -52,7 +52,7 @@ func (m *Module) GetVersion(version string) *ModuleVersion {
 }
 
 func (r *Client) ListModules(ctx context.Context, filter string) ([]Module, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "list-modules")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.list_modules")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("filter", filter))
@@ -155,7 +155,7 @@ func (r *Client) ListModules(ctx context.Context, filter string) ([]Module, erro
 }
 
 func (r *Client) ListModuleVersions(ctx context.Context, filter string) ([]ModuleVersion, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "list-modules")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.list_module_versions")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("filter", filter))
@@ -180,7 +180,7 @@ func (r *Client) ListModuleVersions(ctx context.Context, filter string) ([]Modul
 }
 
 func (r *Client) GetModule(ctx context.Context, namespace, name, target string) (*Module, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "get-module")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.get_module")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name), attribute.String("target", target))
@@ -224,7 +224,7 @@ func (r *Client) GetModule(ctx context.Context, namespace, name, target string) 
 }
 
 func (r *Client) GetModuleVersion(ctx context.Context, namespace, name, target, version string) (*ModuleVersion, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "get-module-version")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.get_module_version")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name), attribute.String("target", target), attribute.String("version", version))

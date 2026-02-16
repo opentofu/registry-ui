@@ -33,7 +33,7 @@ import (
 // registryModule parameter must be provided by the caller to avoid redundant file reads
 // This will NOT check if the version already exists - caller must ensure this
 func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, version string, registryModule *registry.Module) (response *IndexResponse, err error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "registryModule.IndexVersion")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.index_version")
 	defer func() {
 		if err != nil {
 			span.SetStatus(codes.Error, err.Error())
@@ -266,7 +266,7 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 	name := registryModule.Name
 	target := registryModule.Target
 
-	ctx, span := telemetry.Tracer().Start(ctx, "module.IndexAllVersions")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.index_all_versions")
 	defer span.End()
 
 	span.SetAttributes(
@@ -407,7 +407,7 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 	for _, version := range versionsToProcess {
 		g.Go(func() error {
 			// Create a new span for this version processing
-			versionCtx, versionSpan := telemetry.Tracer().Start(gctx, "module.IndexAllVersions.version")
+			versionCtx, versionSpan := telemetry.Tracer().Start(gctx, "module.index_all_versions.version")
 			defer versionSpan.End()
 
 			versionSpan.SetAttributes(
@@ -559,7 +559,7 @@ type CollectedModuleData struct {
 
 // buildCompleteModuleData builds the complete module structure by collecting and parsing all module data in parallel
 func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, target, version, workDir string, licenses license.List, publishedAt *time.Time) (*CollectedModuleData, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.buildCompleteModuleData")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.build_complete_module_data")
 	defer span.End()
 
 	parser := NewModuleParser(workDir, namespace, name, target, version, publishedAt)
@@ -634,7 +634,7 @@ func structToMap(v any) (map[string]any, error) {
 // runTofuShow executes tofu show -json -module=DIR and returns the parsed JSON
 // Returns (config, stderr, error) - stderr is returned for callers to store in SchemaError if needed
 func (r *Reader) runTofuShow(ctx context.Context, moduleDir string) (*tofu.Config, string, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.runTofuShow")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.run_tofu_show")
 	defer span.End()
 
 	span.SetAttributes(
@@ -692,7 +692,7 @@ func (r *Reader) runTofuShow(ctx context.Context, moduleDir string) (*tofu.Confi
 // collectSubmodulesDataParallel collects submodule data in parallel using tofu show.
 // Returns a map of submodule name to SubmoduleData. This runs tofu show only once per submodule.
 func (r *Reader) collectSubmodulesDataParallel(ctx context.Context, namespace, name, target, version, workDir string) (map[string]SubmoduleData, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.collectSubmodulesDataParallel")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.collect_submodules_data")
 	defer span.End()
 
 	modulesDir := filepath.Join(workDir, "modules")
@@ -774,7 +774,7 @@ func (r *Reader) collectSubmodulesDataParallel(ctx context.Context, namespace, n
 // collectExamplesDataParallel collects example data in parallel using tofu show.
 // Returns a map of example name to ExampleData. This runs tofu show only once per example.
 func (r *Reader) collectExamplesDataParallel(ctx context.Context, namespace, name, target, version, workDir string) (map[string]ExampleData, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.collectExamplesDataParallel")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.collect_examples_data")
 	defer span.End()
 
 	examplesDir := filepath.Join(workDir, "examples")
@@ -856,7 +856,7 @@ func (r *Reader) collectExamplesDataParallel(ctx context.Context, namespace, nam
 // storeSubmodulesWithTx stores pre-collected submodule data to S3 and database.
 // Data should be collected first using collectSubmodulesDataParallel.
 func (r *Reader) storeSubmodulesWithTx(ctx context.Context, tx pgx.Tx, namespace, name, target, version, workDir string, submodules map[string]SubmoduleData) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.storeSubmodulesWithTx")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.store_submodules")
 	defer span.End()
 
 	if len(submodules) == 0 {
@@ -926,7 +926,7 @@ func (r *Reader) storeSubmodulesWithTx(ctx context.Context, tx pgx.Tx, namespace
 // storeExamplesWithTx stores pre-collected example data to S3 and database.
 // Data should be collected first using collectExamplesDataParallel.
 func (r *Reader) storeExamplesWithTx(ctx context.Context, tx pgx.Tx, namespace, name, target, version, workDir string, examples map[string]ExampleData) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.storeExamplesWithTx")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.store_examples")
 	defer span.End()
 
 	if len(examples) == 0 {

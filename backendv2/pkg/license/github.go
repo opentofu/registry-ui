@@ -35,7 +35,7 @@ func generateGitHubLink(repoURL, filePath string) string {
 
 // detectLicenseFromGitHub detects license using GitHub API
 func (d detector) detectLicenseFromGitHub(ctx context.Context, repoURL string) (*License, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "detect-license-from-github")
+	ctx, span := telemetry.Tracer().Start(ctx, "license.detect_from_github")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("repoURL", repoURL))

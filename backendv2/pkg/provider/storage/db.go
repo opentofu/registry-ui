@@ -399,7 +399,7 @@ var DocTypes = map[string]DocTypeConfig{
 
 // StoreProviderDocuments stores all document metadata in the database using bulk inserts
 func StoreProviderDocuments(ctx context.Context, tx pgx.Tx, namespace, name, version string, docs map[string]*DocItem) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "storage.StoreProviderDocuments")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider_storage.store_documents")
 	defer span.End()
 
 	span.SetAttributes(

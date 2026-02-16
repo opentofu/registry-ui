@@ -55,7 +55,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	target := cmd.String("target")
 	version := cmd.String("version")
 
-	ctx, span := telemetry.Tracer().Start(ctx, "get-module-license")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.get_module_license")
 	defer span.End()
 	span.SetAttributes(
 		attribute.String("module.namespace", namespace),

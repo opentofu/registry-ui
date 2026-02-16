@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli/v3"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 	"github.com/opentofu/registry-ui/pkg/tofu"
@@ -24,7 +25,7 @@ func NewCommand() *cli.Command {
 }
 
 func run(ctx context.Context) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "download-tofu-nightly")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.dl_tofu_nightly")
 	defer span.End()
 
 	// remove the file if it already exists
@@ -32,6 +33,8 @@ func run(ctx context.Context) error {
 	if err == nil && !stat.IsDir() {
 		err = os.Remove("./tofu")
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return fmt.Errorf("failed to remove existing tofu file: %w", err)
 		}
 		slog.InfoContext(ctx, "Removed existing tofu file")
@@ -39,6 +42,8 @@ func run(ctx context.Context) error {
 
 	err = tofu.DownloadLatestNightly(ctx, "./tofu")
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to download latest nightly build of Tofu: %w", err)
 	}
 	return nil

@@ -61,7 +61,7 @@ it to be re-processed from scratch during the next sync.`,
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
-	ctx, span := telemetry.Tracer().Start(ctx, "retry-version")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.retry_version")
 	defer span.End()
 
 	resourceType := cmd.String("type")

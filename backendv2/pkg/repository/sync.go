@@ -6,12 +6,19 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
 // SyncRepositoryMetadata fetches and stores complete GitHub metadata for a repository.
 // This includes stats (stars, forks, watchers), metadata (description, language, archived),
 // and fork information (is_fork, parent repository).
 func SyncRepositoryMetadata(ctx context.Context, pool *pgxpool.Pool, githubClient *Client, org, name string) error {
+	ctx, span := telemetry.Tracer().Start(ctx, "repository.sync_metadata")
+	defer span.End()
+	span.SetAttributes(attribute.String("repository", fmt.Sprintf("%s/%s", org, name)))
+
 	if githubClient == nil {
 		return fmt.Errorf("github client is required for repository sync")
 	}

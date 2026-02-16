@@ -147,7 +147,7 @@ func StoreModuleREADME(ctx context.Context, uploader *manager.Uploader, bucketNa
 // uploadToS3 uploads data to S3 with the specified content type and returns the MD5 checksum
 func uploadToS3(ctx context.Context, uploader *manager.Uploader, bucketName, key string, data []byte, contentType string) (string, error) {
 	// TODO: find a centralized way to upload files with decent OTEL in there, for now we'll just keep this method in this package
-	ctx, span := telemetry.Tracer().Start(ctx, "upload-to-s3")
+	ctx, span := telemetry.Tracer().Start(ctx, "module_storage.upload_to_s3")
 	defer span.End()
 
 	hash := md5.Sum(data)

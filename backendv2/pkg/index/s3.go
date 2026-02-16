@@ -46,6 +46,9 @@ func UploadProviderVersionIndex(ctx context.Context, uploader *manager.Uploader,
 
 // UpdateGlobalModuleIndex downloads the global module index, updates it with the new module, and uploads it back
 func UpdateGlobalModuleIndex(ctx context.Context, s3Client *s3.Client, uploader *manager.Uploader, bucketName string, moduleIndex *ModuleVersionIndex) error {
+	ctx, span := telemetry.Tracer().Start(ctx, "index.update_global_modules")
+	defer span.End()
+
 	key := "modules/index.json"
 
 	// 1. Download existing global index from S3
@@ -77,6 +80,9 @@ func UpdateGlobalModuleIndex(ctx context.Context, s3Client *s3.Client, uploader 
 
 // UpdateGlobalProviderIndex downloads the global provider index, updates it with the new provider, and uploads it back
 func UpdateGlobalProviderIndex(ctx context.Context, s3Client *s3.Client, uploader *manager.Uploader, bucketName string, providerIndex *ProviderVersionIndex) error {
+	ctx, span := telemetry.Tracer().Start(ctx, "index.update_global_providers")
+	defer span.End()
+
 	key := "providers/index.json"
 
 	// 1. Download existing global index from S3
@@ -201,7 +207,7 @@ func uploadGlobalProviderIndex(ctx context.Context, uploader *manager.Uploader, 
 // uploadToS3 uploads data to S3 with the specified content type
 func uploadToS3(ctx context.Context, uploader *manager.Uploader, bucketName, key string, data []byte, contentType string) error {
 	// TODO: find a centralized way to upload files with decent OTEL in there, for now we'll just keep this method in this package
-	ctx, span := telemetry.Tracer().Start(ctx, "upload-to-s3")
+	ctx, span := telemetry.Tracer().Start(ctx, "index.upload_to_s3")
 	defer span.End()
 
 	toUpload := &s3.PutObjectInput{

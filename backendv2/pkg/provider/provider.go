@@ -68,7 +68,7 @@ func (p *ProviderReader) ScrapeAllVersions(ctx context.Context, provider *regist
 		panic("registryProvider cannot be nil, this is a developer error")
 	}
 
-	ctx, span := telemetry.Tracer().Start(ctx, "provider.ScrapeAllVersions")
+	ctx, span := telemetry.Tracer().Start(ctx, "provider.scrape_all_versions")
 	defer span.End()
 
 	namespace := provider.Namespace

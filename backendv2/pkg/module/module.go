@@ -80,7 +80,7 @@ func NewModuleReader(ctx context.Context, cfg *config.BackendConfig) (*Reader, e
 
 // ScrapeVersion scrapes a specific version of a module
 func (r *Reader) ScrapeVersion(ctx context.Context, module *registry.Module, version string) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.ScrapeVersion")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.scrape_version")
 	defer span.End()
 
 	namespace := module.Namespace
@@ -102,7 +102,7 @@ func (r *Reader) ScrapeVersion(ctx context.Context, module *registry.Module, ver
 // ScrapeAllVersions scrapes all versions of a module
 // registryModule can be provided to avoid redundant file reads (optional - will fetch if nil)
 func (r *Reader) ScrapeAllVersions(ctx context.Context, module *registry.Module) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.ScrapeAllVersions")
+	ctx, span := telemetry.Tracer().Start(ctx, "module.scrape_all_versions")
 	defer span.End()
 
 	if module == nil {

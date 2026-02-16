@@ -15,7 +15,7 @@ func GenerateModuleVersionIndex(ctx context.Context, db *pgxpool.Pool, namespace
 	repoOrg := namespace
 	repoName := name
 
-	ctx, span := telemetry.Tracer().Start(ctx, "generate-module-version-index")
+	ctx, span := telemetry.Tracer().Start(ctx, "index.generate_module_version")
 	defer span.End()
 
 	// Query repository stats
@@ -86,6 +86,9 @@ func GenerateModuleVersionIndex(ctx context.Context, db *pgxpool.Pool, namespace
 
 // GenerateProviderVersionIndex creates a complete provider version index from database data
 func GenerateProviderVersionIndex(ctx context.Context, db *pgxpool.Pool, namespace, name string) (*ProviderVersionIndex, error) {
+	ctx, span := telemetry.Tracer().Start(ctx, "index.generate_provider_version")
+	defer span.End()
+
 	repoOrg := namespace
 	repoName := fmt.Sprintf("terraform-provider-%s", name)
 
@@ -167,6 +170,9 @@ func GenerateProviderVersionIndex(ctx context.Context, db *pgxpool.Pool, namespa
 
 // RebuildGlobalModuleIndex rebuilds the entire global module index from the database
 func RebuildGlobalModuleIndex(ctx context.Context, db *pgxpool.Pool) (*GlobalModuleIndex, error) {
+	ctx, span := telemetry.Tracer().Start(ctx, "index.rebuild_global_modules")
+	defer span.End()
+
 	// Single query that fetches all module data with JOINs
 	query := `
 		WITH latest_stats AS (
@@ -296,6 +302,9 @@ func RebuildGlobalModuleIndex(ctx context.Context, db *pgxpool.Pool) (*GlobalMod
 
 // RebuildGlobalProviderIndex rebuilds the entire global provider index from the database
 func RebuildGlobalProviderIndex(ctx context.Context, db *pgxpool.Pool) (*GlobalProviderIndex, error) {
+	ctx, span := telemetry.Tracer().Start(ctx, "index.rebuild_global_providers")
+	defer span.End()
+
 	// Single query that fetches all provider data with JOINs
 	query := `
 		WITH latest_stats AS (

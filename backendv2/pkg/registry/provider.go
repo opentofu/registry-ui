@@ -71,7 +71,7 @@ func (p *Provider) GetVersion(version string) *ProviderVersion {
 }
 
 func (r *Client) ListProviders(ctx context.Context, filter string) ([]Provider, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "list-providers")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.list_providers")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("filter", filter))
@@ -151,7 +151,7 @@ func (r *Client) ListProviders(ctx context.Context, filter string) ([]Provider, 
 }
 
 func (r *Client) ListProviderVersions(ctx context.Context, filter string) ([]ProviderVersion, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "list-provider-versions")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.list_provider_versions")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("filter", filter))
@@ -176,7 +176,7 @@ func (r *Client) ListProviderVersions(ctx context.Context, filter string) ([]Pro
 }
 
 func (r *Client) GetProvider(ctx context.Context, namespace, name string) (*Provider, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "get-provider")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.get_provider")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name))
@@ -210,7 +210,7 @@ func (r *Client) GetProvider(ctx context.Context, namespace, name string) (*Prov
 }
 
 func (r *Client) GetProviderVersion(ctx context.Context, namespace, name, version string) (*ProviderVersion, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "get-provider-version")
+	ctx, span := telemetry.Tracer().Start(ctx, "registry.get_provider_version")
 	defer span.End()
 
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name), attribute.String("version", version))

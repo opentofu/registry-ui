@@ -43,7 +43,7 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
-	ctx, span := telemetry.Tracer().Start(ctx, "rebuild-global-indexes")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.rebuild_global_indexes")
 	defer span.End()
 
 	rebuildProviders := cmd.Bool("providers")
@@ -97,7 +97,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 }
 
 func rebuildProviderIndex(ctx context.Context, pool *pgxpool.Pool, uploader *manager.Uploader, bucketName string) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "rebuild-global-indexes.providers")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.rebuild_global_indexes.providers")
 	defer span.End()
 
 	slog.InfoContext(ctx, "Rebuilding global provider index from database")
@@ -128,7 +128,7 @@ func rebuildProviderIndex(ctx context.Context, pool *pgxpool.Pool, uploader *man
 }
 
 func rebuildModuleIndex(ctx context.Context, pool *pgxpool.Pool, uploader *manager.Uploader, bucketName string) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "rebuild-global-indexes.modules")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.rebuild_global_indexes.modules")
 	defer span.End()
 
 	slog.InfoContext(ctx, "Rebuilding global module index from database")

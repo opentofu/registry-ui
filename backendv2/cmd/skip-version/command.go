@@ -70,7 +70,7 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
-	ctx, span := telemetry.Tracer().Start(ctx, "skip-version")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.skip_version")
 	defer span.End()
 
 	resourceType := cmd.String("type")

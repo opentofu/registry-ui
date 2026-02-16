@@ -48,7 +48,7 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
-	ctx, span := telemetry.Tracer().Start(ctx, "sync-provider")
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.sync_provider")
 	defer span.End()
 
 	namespace := cmd.String("namespace")
