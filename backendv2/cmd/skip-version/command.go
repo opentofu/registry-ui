@@ -40,7 +40,7 @@ func NewCommand() *cli.Command {
 			},
 			&cli.StringFlag{
 				Name:     "target",
-				Usage:    "Module target system (e.g., aws) - required for modules only",
+				Usage:    "Target provider/platform from the module address namespace/name/target (e.g., 'aws' in hashicorp/vpc/aws) - required for modules only",
 				Required: false,
 			},
 			&cli.StringFlag{

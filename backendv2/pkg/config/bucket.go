@@ -23,7 +23,7 @@ type BucketConfig struct {
 	AccessKeyID    string `koanf:"accesskeyid"`
 	SecretAccessKey string `koanf:"secretaccesskey"`
 	Region          string `koanf:"region"`
-	Endpoint        string `koanf:"endpoint"` // should always be auto for R2
+	Endpoint        string `koanf:"endpoint"` // S3-compatible endpoint URL, leave empty for AWS S3
 
 	client     *s3.Client
 	httpClient *http.Client
@@ -36,10 +36,6 @@ func (c *BucketConfig) Validate() error {
 	if c.SecretAccessKey == "" {
 		return fmt.Errorf("bucket.secretAccessKey is required")
 	}
-	if c.Endpoint == "" {
-		return fmt.Errorf("bucket.endpoint is required")
-	}
-
 	// Set default region if empty
 	if c.Region == "" {
 		c.Region = "auto"
@@ -94,7 +90,9 @@ func (c *BucketConfig) GetClient(ctx context.Context) (*s3.Client, error) {
 	otelaws.AppendMiddlewares(&cfg.APIOptions)
 
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(c.Endpoint)
+		if c.Endpoint != "" {
+			o.BaseEndpoint = aws.String(c.Endpoint)
+		}
 	})
 
 	c.client = client

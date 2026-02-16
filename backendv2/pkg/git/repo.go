@@ -230,14 +230,10 @@ func (r *Repo) AddWorktree(ctx context.Context, ref, path string) error {
 		r.worktrees.Delete(ref)
 	}
 
-	path = filepath.Clean(path)
-	if !filepath.IsAbs(path) {
-		abs, err := filepath.Abs(path)
-		if err != nil {
-			span.RecordError(err)
-			return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
-		}
-		path = abs
+	path, err := filepath.Abs(path)
+	if err != nil {
+		span.RecordError(err)
+		return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
 	}
 
 	// Remove existing directory if it exists (handles stale worktrees from interrupted runs)
