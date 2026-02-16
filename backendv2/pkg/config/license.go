@@ -3,10 +3,10 @@ package config
 import "fmt"
 
 type LicenseConfig struct {
-	CompatibleLicenses  []string `koanf:"compatibleLicenses"`
-	ConfidenceThreshold float32  `koanf:"confidenceThreshold"`
+	CompatibleLicenses  []string `koanf:"compatiblelicenses"`
+	ConfidenceThreshold float32  `koanf:"confidencethreshold"`
 	// ConfidenceOverrideThreshold is the limit at which a detected license overrides all other detected licenses.
-	ConfidenceOverrideThreshold float32 `koanf:"confidenceOverrideThreshold"`
+	ConfidenceOverrideThreshold float32 `koanf:"confidenceoverridethreshold"`
 }
 
 func (c *LicenseConfig) Validate() error {

@@ -10,7 +10,7 @@ import (
 )
 
 type DBConfig struct {
-	ConnectionString string `koanf:"connectionString"`
+	ConnectionString string `koanf:"connectionstring"`
 	pool             *pgxpool.Pool
 }
 

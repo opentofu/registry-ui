@@ -25,8 +25,8 @@ type BackendConfig struct {
 	Concurrency ConcurrencyConfig `koanf:"concurrency"`
 	GitHub      GitHubConfig      `koanf:"github"`
 
-	WorkDir      string `koanf:"workDir"`
-	RegistryPath string `koanf:"registryPath"`
+	WorkDir      string `koanf:"workdir"`
+	RegistryPath string `koanf:"registrypath"`
 }
 
 func (c *BackendConfig) Validate() error {

@@ -20,8 +20,8 @@ import (
 type BucketConfig struct {
 	BucketName string `koanf:"name"`
 
-	AccessKeyID     string `koanf:"accessKeyID"`
-	SecretAccessKey string `koanf:"secretAccessKey"`
+	AccessKeyID    string `koanf:"accesskeyid"`
+	SecretAccessKey string `koanf:"secretaccesskey"`
 	Region          string `koanf:"region"`
 	Endpoint        string `koanf:"endpoint"` // should always be auto for R2
 

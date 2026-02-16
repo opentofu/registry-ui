@@ -1,27 +1,27 @@
 bucket:
   name: "registry-backend-v2"
   region: "auto"
-  accessKeyID: "accesskey"
-  secretAccessKey: "secretaccesskey"
+  accesskeyid: "accesskey"
+  secretaccesskey: "secretaccesskey"
   endpoint: "endpointurl"
 
 telemetry:
   enabled: true
   exporter: "otlp"
   endpoint: "otlpendpoint"
-  serviceName: "servicename"
+  servicename: "servicename"
   insecure: false
   headers:
     Authorization: "authheader"
 
 db:
-  connectionString: "postgresql://connstring"
+  connectionstring: "postgresql://connstring"
 
 github:
   token: "ghp_abcdefg"
 
 workdir: "/tmp/opentofu-registry-backend"
-registryPath: "/tmp/opentofu-registry-backend/registry"
+registrypath: "/tmp/opentofu-registry-backend/registry"
 
 concurrency:
   module: 5
@@ -32,9 +32,9 @@ concurrency:
   upload: 100
 
 license:
-  confidenceThreshold: 0.85
-  confidenceOverrideThreshold: 0.98
-  compatibleLicenses:
+  confidencethreshold: 0.85
+  confidenceoverridethreshold: 0.98
+  compatiblelicenses:
     - AFL-1.1
     - AFL-1.2
     - AFL-2.0
