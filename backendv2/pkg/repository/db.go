@@ -52,86 +52,50 @@ func UpdateRepositoryMetadata(ctx context.Context, pool *pgxpool.Pool, metadata 
 		name = metadata.Name
 	}
 
-	var query string
-	var args []interface{}
-
+	// Pass parent fields as nullable parameters — they will be nil for non-forks,
+	// and EXCLUDED references handle both cases in a single query.
+	var parentOwner, parentName *string
 	if metadata.IsFork && metadata.ParentOwner != "" && metadata.ParentName != "" {
-		// Upsert with parent information for forks
-		query = `
-			INSERT INTO repositories (
-				organisation, name, description, homepage, language, archived,
-				default_branch, created_at_github, pushed_at, updated_at_github,
-				is_fork, parent_organisation, parent_name
-			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-			ON CONFLICT (organisation, name) DO UPDATE SET
-				description = EXCLUDED.description,
-				homepage = EXCLUDED.homepage,
-				language = EXCLUDED.language,
-				archived = EXCLUDED.archived,
-				default_branch = EXCLUDED.default_branch,
-				created_at_github = EXCLUDED.created_at_github,
-				pushed_at = EXCLUDED.pushed_at,
-				updated_at_github = EXCLUDED.updated_at_github,
-				is_fork = EXCLUDED.is_fork,
-				parent_organisation = EXCLUDED.parent_organisation,
-				parent_name = EXCLUDED.parent_name,
-				updated_at = NOW()`
-
-		args = []any{
-			owner,
-			name,
-			metadata.Description,
-			metadata.Homepage,
-			metadata.Language,
-			metadata.Archived,
-			metadata.DefaultBranch,
-			metadata.CreatedAtGitHub,
-			metadata.PushedAt,
-			metadata.UpdatedAtGitHub,
-			metadata.IsFork,
-			metadata.ParentOwner,
-			metadata.ParentName,
-		}
-	} else {
-		// Upsert without parent information for non-forks
-		query = `
-			INSERT INTO repositories (
-				organisation, name, description, homepage, language, archived,
-				default_branch, created_at_github, pushed_at, updated_at_github,
-				is_fork, parent_organisation, parent_name
-			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL, NULL)
-			ON CONFLICT (organisation, name) DO UPDATE SET
-				description = EXCLUDED.description,
-				homepage = EXCLUDED.homepage,
-				language = EXCLUDED.language,
-				archived = EXCLUDED.archived,
-				default_branch = EXCLUDED.default_branch,
-				created_at_github = EXCLUDED.created_at_github,
-				pushed_at = EXCLUDED.pushed_at,
-				updated_at_github = EXCLUDED.updated_at_github,
-				is_fork = EXCLUDED.is_fork,
-				parent_organisation = NULL,
-				parent_name = NULL,
-				updated_at = NOW()`
-
-		args = []any{
-			owner,
-			name,
-			metadata.Description,
-			metadata.Homepage,
-			metadata.Language,
-			metadata.Archived,
-			metadata.DefaultBranch,
-			metadata.CreatedAtGitHub,
-			metadata.PushedAt,
-			metadata.UpdatedAtGitHub,
-			metadata.IsFork,
-		}
+		parentOwner = &metadata.ParentOwner
+		parentName = &metadata.ParentName
 	}
 
-	_, err := pool.Exec(ctx, query, args...)
+	query := `
+		INSERT INTO repositories (
+			organisation, name, description, homepage, language, archived,
+			default_branch, created_at_github, pushed_at, updated_at_github,
+			is_fork, parent_organisation, parent_name
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		ON CONFLICT (organisation, name) DO UPDATE SET
+			description = EXCLUDED.description,
+			homepage = EXCLUDED.homepage,
+			language = EXCLUDED.language,
+			archived = EXCLUDED.archived,
+			default_branch = EXCLUDED.default_branch,
+			created_at_github = EXCLUDED.created_at_github,
+			pushed_at = EXCLUDED.pushed_at,
+			updated_at_github = EXCLUDED.updated_at_github,
+			is_fork = EXCLUDED.is_fork,
+			parent_organisation = EXCLUDED.parent_organisation,
+			parent_name = EXCLUDED.parent_name,
+			updated_at = NOW()`
+
+	_, err := pool.Exec(ctx, query,
+		owner,
+		name,
+		metadata.Description,
+		metadata.Homepage,
+		metadata.Language,
+		metadata.Archived,
+		metadata.DefaultBranch,
+		metadata.CreatedAtGitHub,
+		metadata.PushedAt,
+		metadata.UpdatedAtGitHub,
+		metadata.IsFork,
+		parentOwner,
+		parentName,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to update repository metadata: %w", err)
 	}

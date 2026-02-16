@@ -266,37 +266,28 @@ func (r *Client) getModuleVersions(ctx context.Context, namespace, name, target 
 	return versions, nil
 }
 
+// matchesModuleFilter checks whether a module (namespace/name/target) matches the given filter parts.
+// With two filter parts, the second part matches against either name or target,
+// allowing filters like "hashicorp/aws" to find all hashicorp modules named or targeting "aws".
 func matchesModuleFilter(parts []string, filterParts []string) bool {
-	if len(filterParts) == 0 {
-		return true
-	}
-
-	if len(filterParts) == 1 {
-		return matchPattern(filterParts[0], parts[0])
-	}
-
-	if len(filterParts) == 2 {
-		if !matchPattern(filterParts[0], parts[0]) {
-			return false
-		}
-
-		if len(parts) >= 2 && matchPattern(filterParts[1], parts[1]) {
-			return true
-		}
-		if len(parts) >= 3 && matchPattern(filterParts[1], parts[2]) {
-			return true
-		}
+	if len(parts) < 3 {
 		return false
 	}
+	namespace, name, target := parts[0], parts[1], parts[2]
 
-	if len(filterParts) == 3 {
-		if len(parts) < 3 {
-			return false
-		}
-		return matchPattern(filterParts[0], parts[0]) &&
-			matchPattern(filterParts[1], parts[1]) &&
-			matchPattern(filterParts[2], parts[2])
+	switch len(filterParts) {
+	case 0:
+		return true
+	case 1:
+		return matchPattern(filterParts[0], namespace)
+	case 2:
+		return matchPattern(filterParts[0], namespace) &&
+			(matchPattern(filterParts[1], name) || matchPattern(filterParts[1], target))
+	case 3:
+		return matchPattern(filterParts[0], namespace) &&
+			matchPattern(filterParts[1], name) &&
+			matchPattern(filterParts[2], target)
+	default:
+		return false
 	}
-
-	return false
 }

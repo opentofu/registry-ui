@@ -3,9 +3,20 @@ package config
 import "fmt"
 
 type LicenseConfig struct {
-	CompatibleLicenses  []string `koanf:"compatiblelicenses"`
-	ConfidenceThreshold float32  `koanf:"confidencethreshold"`
-	// ConfidenceOverrideThreshold is the limit at which a detected license overrides all other detected licenses.
+	CompatibleLicenses []string `koanf:"compatiblelicenses"`
+
+	// ConfidenceThreshold is the minimum confidence score (0.0–1.0) a license match
+	// must reach to be included in the results. Scores are produced by the go-license-detector
+	// library, which compares repository files against known SPDX license texts.
+	// Matches below this threshold are discarded.
+	// Default: 0.85.
+	ConfidenceThreshold float32 `koanf:"confidencethreshold"`
+
+	// ConfidenceOverrideThreshold is the confidence score (0.0–1.0) at which a single
+	// license match is considered authoritative. When a match meets or exceeds this
+	// threshold, it is returned as the sole license and all lower-confidence matches
+	// are discarded. This avoids noisy results when a clear license file exists.
+	// Default: 0.98.
 	ConfidenceOverrideThreshold float32 `koanf:"confidenceoverridethreshold"`
 }
 

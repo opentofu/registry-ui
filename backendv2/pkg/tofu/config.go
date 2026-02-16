@@ -18,7 +18,7 @@ type providerConfig struct {
 	Alias             string         `json:"alias,omitempty"`
 	VersionConstraint string         `json:"version_constraint,omitempty"`
 	ModuleAddress     string         `json:"module_address,omitempty"`
-	Expressions       map[string]any `json:"expressions,omitempty"`
+	Expressions       map[string]any `json:"expressions,omitempty"` // not consumed, present for JSON parsing
 }
 
 type module struct {
@@ -32,7 +32,7 @@ type module struct {
 
 type moduleCall struct {
 	Source            string         `json:"source,omitempty"`
-	Expressions       map[string]any `json:"expressions,omitempty"`
+	Expressions       map[string]any `json:"expressions,omitempty"` // not consumed, present for JSON parsing
 	CountExpression   *expression    `json:"count_expression,omitempty"`
 	ForEachExpression *expression    `json:"for_each_expression,omitempty"`
 	Module            *module        `json:"module,omitempty"`
@@ -77,8 +77,8 @@ type resource struct {
 	// Connection info will not be included here.
 	Provisioners []provisioner `json:"provisioners,omitempty"`
 
-	// Expressions" describes the resource-type-specific  content of the
-	// configuration block.
+	// Expressions describes the resource-type-specific content of the
+	// configuration block. Not consumed, present for JSON parsing.
 	Expressions map[string]any `json:"expressions,omitempty"`
 
 	// SchemaVersion indicates which version of the resource type schema the
@@ -105,7 +105,7 @@ type output struct {
 
 type provisioner struct {
 	Type        string         `json:"type,omitempty"`
-	Expressions map[string]any `json:"expressions,omitempty"`
+	Expressions map[string]any `json:"expressions,omitempty"` // not consumed, present for JSON parsing
 }
 
 // expression represents any unparsed expression
