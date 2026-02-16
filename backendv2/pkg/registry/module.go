@@ -78,6 +78,7 @@ func (r *Client) ListModules(ctx context.Context, filter string) ([]Module, erro
 		}
 
 		for _, namespace := range namespaces {
+			// Skip non-matching namespaces early to avoid reading directory contents
 			if len(filterParts) > 0 && !matchPattern(filterParts[0], namespace) {
 				continue
 			}

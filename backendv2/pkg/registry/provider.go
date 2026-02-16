@@ -97,6 +97,7 @@ func (r *Client) ListProviders(ctx context.Context, filter string) ([]Provider, 
 		}
 
 		for _, namespace := range namespaces {
+			// Skip non-matching namespaces early to avoid reading JSON files
 			if len(filterParts) > 0 && !matchPattern(filterParts[0], namespace) {
 				continue
 			}
