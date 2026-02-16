@@ -181,9 +181,6 @@ func (r *Client) GetProvider(ctx context.Context, namespace, name string) (*Prov
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name))
 
 	firstLetter := strings.ToLower(string(namespace[0]))
-	if firstLetter >= "0" && firstLetter <= "9" {
-		firstLetter = string(namespace[0])
-	}
 
 	jsonPath := filepath.Join(r.path, "providers", firstLetter, namespace, name+".json")
 	if !fileExists(jsonPath) {
@@ -218,9 +215,6 @@ func (r *Client) GetProviderVersion(ctx context.Context, namespace, name, versio
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name), attribute.String("version", version))
 
 	firstLetter := strings.ToLower(string(namespace[0]))
-	if firstLetter >= "0" && firstLetter <= "9" {
-		firstLetter = string(namespace[0])
-	}
 
 	jsonPath := filepath.Join(r.path, "providers", firstLetter, namespace, name+".json")
 	if !fileExists(jsonPath) {
@@ -266,9 +260,6 @@ func (r *Client) GetProviderVersion(ctx context.Context, namespace, name, versio
 
 func (r *Client) getProviderVersions(ctx context.Context, namespace, name string) ([]ProviderVersion, error) {
 	firstLetter := strings.ToLower(string(namespace[0]))
-	if firstLetter >= "0" && firstLetter <= "9" {
-		firstLetter = string(namespace[0])
-	}
 
 	jsonPath := filepath.Join(r.path, "providers", firstLetter, namespace, name+".json")
 	if !fileExists(jsonPath) {

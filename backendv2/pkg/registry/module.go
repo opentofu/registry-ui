@@ -185,9 +185,6 @@ func (r *Client) GetModule(ctx context.Context, namespace, name, target string) 
 	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name), attribute.String("target", target))
 
 	firstLetter := strings.ToLower(string(namespace[0]))
-	if firstLetter >= "0" && firstLetter <= "9" {
-		firstLetter = string(namespace[0])
-	}
 
 	filename := name
 	if target != "" {
