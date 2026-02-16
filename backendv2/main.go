@@ -88,6 +88,7 @@ func main() {
 	err = app.Run(ctx, os.Args)
 	if err != nil {
 		slog.ErrorContext(ctx, "Error", "error", err)
-		log.Fatalf("Error running app: %v", err)
+		slog.ErrorContext(ctx, "Error running app", "error", err)
+		os.Exit(1)
 	}
 }
