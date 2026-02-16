@@ -3,9 +3,6 @@ import { ProvidersCardItem, ProvidersCardItemSkeleton } from "./CardItem";
 import { ComponentProps, forwardRef } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getProvidersQuery } from "../query";
-
 const gridComponents = {
   List: forwardRef<HTMLDivElement, ComponentProps<"div">>(({ style, children, ...props }, ref) => (
     <div
@@ -23,7 +20,7 @@ const gridComponents = {
   Item: ({ children, ...props }: ComponentProps<"div">) => (
     <div
       {...props}
-      className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2 flex"
+      className="w-full md:w-1/2 p-2 flex"
       style={{
         display: 'flex',
         flex: 'none',
@@ -38,27 +35,12 @@ const gridComponents = {
 };
 
 interface ProvidersListProps {
-  searchQuery?: string;
+  providers: any[];
 }
 
-export function ProvidersList({ searchQuery = "" }: ProvidersListProps) {
-  const { data: providers } = useSuspenseQuery(getProvidersQuery());
-
-  const filteredProviders = providers.filter((provider) => {
-    // First filter out providers without versions
-    if (!provider.versions || provider.versions.length === 0) return false;
-    
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const fullName = `${provider.addr.namespace}/${provider.addr.name}`.toLowerCase();
-    
-    return (
-      fullName.includes(query) ||
-      provider.addr.namespace.toLowerCase().includes(query) ||
-      provider.addr.name.toLowerCase().includes(query) ||
-      provider.description.toLowerCase().includes(query)
-    );
-  });
+export function ProvidersList({ providers }: ProvidersListProps) {
+  // Providers are already filtered by useListingFilters hook
+  const filteredProviders = providers;
 
   if (filteredProviders.length === 0) {
     return (
@@ -101,28 +83,28 @@ export function ProvidersList({ searchQuery = "" }: ProvidersListProps) {
 export function ProvidersListSkeleton() {
   return (
     <div className="flex flex-wrap">
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full md:w-1/2 p-2">
         <ProvidersCardItemSkeleton />
       </div>
     </div>

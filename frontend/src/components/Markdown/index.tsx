@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { processor } from "./processor";
 
 interface MarkdownProps {
@@ -21,7 +21,7 @@ export function Markdown({ text, onTocExtracted }: MarkdownProps) {
   }, [text]);
 
   // Call the callback with TOC data when it changes
-  useMemo(() => {
+  useEffect(() => {
     if (onTocExtracted) {
       onTocExtracted(toc);
     }

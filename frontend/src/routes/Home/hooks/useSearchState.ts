@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { definitions } from "@/api";
 
 export interface GroupedResults {
@@ -37,11 +37,6 @@ export function useSearchState() {
     setSelectedIndex(0);
   };
 
-  const handleHomeClick = () => {
-    setQuery("");
-    setSelectedResult(null);
-    setSelectedIndex(0);
-  };
 
   return {
     query,
@@ -53,6 +48,5 @@ export function useSearchState() {
     handleSearchInput,
     handleResultClick,
     handleClearSearch,
-    handleHomeClick,
   };
 }

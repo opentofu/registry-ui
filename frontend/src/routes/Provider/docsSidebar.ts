@@ -16,8 +16,11 @@ type Category = keyof Docs;
 const categoryLabelMap: Map<Category, string> = new Map([
   ["resources", "Resources"],
   ["datasources", "Data Sources"],
+  ["ephemeral", "Ephemeral Resources"],
   ["functions", "Functions"],
   ["guides", "Guides"],
+  ["actions", "Actions"],
+  ["listresources", "List Resources"],
 ]);
 
 // filterSidebarItem takes a NestedItem and a searchFilter string and returns true if the item
