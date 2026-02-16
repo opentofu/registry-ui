@@ -188,7 +188,7 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 
 	// Store documents and complete the scraping process only if license was accepted
 	if licenseAccepted {
-		err = docScraper.ScrapeAndStore(ctx, namespace, name, version, workDir, licenses, tx)
+		err = docScraper.StoreDocs(ctx, namespace, name, version, docs, licenses, tx)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())

@@ -38,8 +38,6 @@ func (c *BackendConfig) Validate() error {
 		return err
 	}
 
-	// no need to Validate telemetry right noww
-
 	if c.WorkDir == "" {
 		return fmt.Errorf("workDir is required")
 	}
@@ -48,7 +46,7 @@ func (c *BackendConfig) Validate() error {
 		return fmt.Errorf("registryPath is required")
 	}
 
-	// make the directory if it doesnt eixst
+	// make the directory if it doesn't exist
 	err := os.MkdirAll(c.WorkDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("could not create workDir: %w", err)

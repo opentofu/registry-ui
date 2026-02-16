@@ -97,6 +97,11 @@ func (s *Scraper) ScrapeAndStore(ctx context.Context, namespace, name, version, 
 		return err
 	}
 
+	return s.StoreDocs(ctx, namespace, name, version, docs, licenses, tx)
+}
+
+// StoreDocs uploads already-scraped documentation to S3 and stores metadata in the database.
+func (s *Scraper) StoreDocs(ctx context.Context, namespace, name, version string, docs map[string]*DocItem, licenses license.List, tx pgx.Tx) error {
 	if err := s.saveToBucket(ctx, namespace, name, version, docs); err != nil {
 		return err
 	}
