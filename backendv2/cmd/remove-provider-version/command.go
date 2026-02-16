@@ -17,7 +17,7 @@ import (
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
-func NewCommand(cfg *config.BackendConfig) *cli.Command {
+func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "remove-provider-version",
 		Usage: "Remove a provider version from the database and S3",
@@ -45,12 +45,13 @@ func NewCommand(cfg *config.BackendConfig) *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return run(ctx, cmd, cfg)
+			return run(ctx, cmd)
 		},
 	}
 }
 
-func run(ctx context.Context, cmd *cli.Command, cfg *config.BackendConfig) error {
+func run(ctx context.Context, cmd *cli.Command) error {
+	cfg := config.FromCLI(cmd)
 	ctx, span := telemetry.Tracer().Start(ctx, "remove-provider-version")
 	defer span.End()
 

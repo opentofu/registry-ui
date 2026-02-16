@@ -17,7 +17,7 @@ import (
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
-func NewCommand(cfg *config.BackendConfig) *cli.Command {
+func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "rebuild-global-indexes",
 		Usage: "Rebuild global provider and module indexes from the database",
@@ -36,12 +36,13 @@ func NewCommand(cfg *config.BackendConfig) *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return run(ctx, cmd, cfg)
+			return run(ctx, cmd)
 		},
 	}
 }
 
-func run(ctx context.Context, cmd *cli.Command, cfg *config.BackendConfig) error {
+func run(ctx context.Context, cmd *cli.Command) error {
+	cfg := config.FromCLI(cmd)
 	ctx, span := telemetry.Tracer().Start(ctx, "rebuild-global-indexes")
 	defer span.End()
 

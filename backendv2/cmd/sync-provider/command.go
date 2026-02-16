@@ -17,7 +17,7 @@ import (
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
-func NewCommand(cfg *config.BackendConfig) *cli.Command {
+func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "sync-provider",
 		Usage: "Sync all versions for a specific provider from the registry",
@@ -41,12 +41,13 @@ func NewCommand(cfg *config.BackendConfig) *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return run(ctx, cmd, cfg)
+			return run(ctx, cmd)
 		},
 	}
 }
 
-func run(ctx context.Context, cmd *cli.Command, cfg *config.BackendConfig) error {
+func run(ctx context.Context, cmd *cli.Command) error {
+	cfg := config.FromCLI(cmd)
 	ctx, span := telemetry.Tracer().Start(ctx, "sync-provider")
 	defer span.End()
 

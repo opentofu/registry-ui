@@ -14,7 +14,7 @@ import (
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
-func NewCommand(cfg *config.BackendConfig) *cli.Command {
+func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "retry-version",
 		Usage: "Reset a skipped or failed version to allow retry during next sync",
@@ -54,12 +54,13 @@ it to be re-processed from scratch during the next sync.`,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return run(ctx, cmd, cfg)
+			return run(ctx, cmd)
 		},
 	}
 }
 
-func run(ctx context.Context, cmd *cli.Command, cfg *config.BackendConfig) error {
+func run(ctx context.Context, cmd *cli.Command) error {
+	cfg := config.FromCLI(cmd)
 	ctx, span := telemetry.Tracer().Start(ctx, "retry-version")
 	defer span.End()
 

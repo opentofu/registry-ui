@@ -9,22 +9,21 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 	"github.com/opentofu/registry-ui/pkg/tofu"
 )
 
-func NewCommand(cfg *config.BackendConfig) *cli.Command {
+func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "dl-tofu-nightly",
 		Usage: "Download the latest nightly build of Tofu",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return run(ctx, cmd, cfg)
+			return run(ctx)
 		},
 	}
 }
 
-func run(ctx context.Context, _ *cli.Command, _ *config.BackendConfig) error {
+func run(ctx context.Context) error {
 	ctx, span := telemetry.Tracer().Start(ctx, "download-tofu-nightly")
 	defer span.End()
 

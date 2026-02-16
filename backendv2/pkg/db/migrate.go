@@ -15,6 +15,10 @@ import (
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
+func getDBConfig(cmd *cli.Command) config.DBConfig {
+	return config.FromCLI(cmd).DB
+}
+
 /*
 MIGRATION DEVELOPER GUIDE
 
@@ -1269,7 +1273,7 @@ DROP FUNCTION IF EXISTS safe_to_semver(TEXT);`,
 	},
 }
 
-func NewMigrateCommand(config config.DBConfig) *cli.Command {
+func NewMigrateCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "Run database migrations",
@@ -1278,7 +1282,8 @@ func NewMigrateCommand(config config.DBConfig) *cli.Command {
 				Name:  "up",
 				Usage: "Run all pending migrations",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					pool, err := config.GetPool(ctx)
+					dbConfig := getDBConfig(cmd)
+					pool, err := dbConfig.GetPool(ctx)
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
@@ -1289,7 +1294,8 @@ func NewMigrateCommand(config config.DBConfig) *cli.Command {
 				Name:  "down",
 				Usage: "Rollback all migrations",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					pool, err := config.GetPool(ctx)
+					dbConfig := getDBConfig(cmd)
+					pool, err := dbConfig.GetPool(ctx)
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
@@ -1300,7 +1306,8 @@ func NewMigrateCommand(config config.DBConfig) *cli.Command {
 				Name:  "reset",
 				Usage: "Rollback all migrations and run them again",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					pool, err := config.GetPool(ctx)
+					dbConfig := getDBConfig(cmd)
+					pool, err := dbConfig.GetPool(ctx)
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
@@ -1314,7 +1321,8 @@ func NewMigrateCommand(config config.DBConfig) *cli.Command {
 				Name:  "version",
 				Usage: "Show current migration version",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					pool, err := config.GetPool(ctx)
+					dbConfig := getDBConfig(cmd)
+					pool, err := dbConfig.GetPool(ctx)
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}

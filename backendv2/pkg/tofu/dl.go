@@ -54,6 +54,11 @@ func copyFile(src, dst string) error {
 	return nil
 }
 
+// DownloadLatestNightly downloads the latest nightly build of OpenTofu.
+// We use nightlies rather than stable releases because:
+//   - It ensures we always have access to the latest `tofu show -json` module configuration output,
+//     which is required for module indexing.
+//   - It lets us ship fixes to OpenTofu quickly without maintaining a separate branch.
 func DownloadLatestNightly(ctx context.Context, destination string) error {
 	ctx, span := telemetry.Tracer().Start(ctx, "DownloadLatestNightly")
 	defer span.End()
