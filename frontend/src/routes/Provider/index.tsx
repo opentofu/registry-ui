@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router";
-import { SidebarLayout } from "../../components/SidebarLayout";
+import { UnifiedLayout } from "../../components/UnifiedLayout";
 import { SidebarPanel } from "../../components/SidebarPanel";
 import { Suspense } from "react";
 
@@ -33,16 +33,15 @@ export function Provider() {
 
   return (
     <DocsProvider>
-      <SidebarLayout
-        showBreadcrumbs
-        before={
+      <UnifiedLayout
+        sidebar={
           <SidebarPanel>
             <Suspense fallback={<ProviderDocsMenuSkeleton />}>
               <ProviderDocsMenu />
-            </Suspense> 
+            </Suspense>
           </SidebarPanel>
         }
-        after={
+        afterSidebar={
           <SidebarPanel className="divide-y divide-gray-200 dark:divide-gray-800">
             <Suspense
               fallback={
@@ -62,6 +61,7 @@ export function Provider() {
             </Suspense>
           </SidebarPanel>
         }
+        useIDEHeader={true}
       >
         <ProviderMetaTags />
         <div className="flex flex-col gap-5 px-5">
@@ -81,7 +81,7 @@ export function Provider() {
         <div className="p-5">
           <Outlet />
         </div>
-      </SidebarLayout>
+      </UnifiedLayout>
     </DocsProvider>
   );
 }

@@ -7,6 +7,9 @@ const docsTypes: Array<DocType> = [
   "datasources",
   "functions",
   "guides",
+  "ephemeral",
+  "actions",
+  "listresources"
 ];
 
 export function isValidDocsType(type: string | undefined): type is DocType {
