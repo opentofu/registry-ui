@@ -124,7 +124,6 @@ export function ProviderDocsMenu() {
   const { data } = useSuspenseQuery(
     getProviderVersionDataQuery(namespace, provider, version),
   );
-
   const [searchFilter, setSearchFilter] = useState("");
   const deferredSearchFilter = useDeferredValue(searchFilter);
 

@@ -20,11 +20,10 @@ function TabLink({ to, label }: TabLinkProps) {
       to={to}
       className={({ isActive }) =>
         clsx(
-          "flex rounded-md px-3 py-2 text-left text-sm break-all transition-all duration-150",
+          "flex px-4 py-2 text-left break-all",
           isActive &&
-          "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200 font-medium",
-          !isActive &&
-          "text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white",
+          "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200",
+          !isActive && "text-inherit hover:bg-gray-100 dark:hover:bg-blue-900",
         )
       }
     >
@@ -50,17 +49,14 @@ function DocsTreeViewItem({
   if (item.items) {
     button = (
       <button
-        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-all duration-150 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+        className="flex gap-2 px-4 py-2 text-left text-inherit hover:bg-gray-100 dark:hover:bg-blue-900"
         onClick={() => setOpen(!open)}
       >
         <Icon
           path={chevron}
-          className={clsx(
-            "size-3.5 shrink-0 transition-transform duration-200",
-            open && "rotate-90",
-          )}
+          className={clsx("mt-1 size-4 shrink-0", open && "rotate-90")}
         />
-        <span className="font-medium">{item.title}</span>
+        {item.title}
       </button>
     );
   } else {
@@ -68,7 +64,7 @@ function DocsTreeViewItem({
   }
 
   return (
-    <TreeViewItem nested={nested}>
+    <TreeViewItem nested={nested} className={nested ? "ml-2" : ""}>
       {button}
       {open && item.items && (
         <TreeView className="ml-4">
@@ -88,12 +84,10 @@ function DocsTreeViewItem({
 
 export function DocsSidebarMenu() {
   return (
-    <div className="p-4">
-      <TreeView>
-        {sidebar.map((item) => (
-          <DocsTreeViewItem key={item.title} item={item} isOpenByDefault />
-        ))}
-      </TreeView>
-    </div>
+    <TreeView className="mt-4">
+      {sidebar.map((item) => (
+        <DocsTreeViewItem key={item.title} item={item} isOpenByDefault />
+      ))}
+    </TreeView>
   );
 }

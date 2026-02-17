@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { UnifiedLayout } from "../../components/UnifiedLayout";
+import { SidebarLayout } from "../../components/SidebarLayout";
 import { SidebarPanel } from "../../components/SidebarPanel";
 import { Suspense } from "react";
 
@@ -12,13 +12,13 @@ import { ModuleSubmoduleProvisionInstructionsSidebarBlock } from "./components/P
 
 export function ModuleSubmodule() {
   return (
-    <UnifiedLayout
-      sidebar={
+    <SidebarLayout
+      before={
         <SidebarPanel>
           <ModuleSubmoduleSideMenu />
         </SidebarPanel>
       }
-      afterSidebar={
+      after={
         <SidebarPanel>
           <Suspense
             fallback={<ModuleSubmoduleProvisionInstructionsSidebarBlock />}
@@ -27,7 +27,6 @@ export function ModuleSubmodule() {
           </Suspense>
         </SidebarPanel>
       }
-      useIDEHeader={true}
     >
       <div className="px-5">
         <Suspense fallback={<ModuleSubmoduleHeaderSkeleton />}>
@@ -36,6 +35,6 @@ export function ModuleSubmodule() {
       </div>
 
       <Outlet />
-    </UnifiedLayout>
+    </SidebarLayout>
   );
 }

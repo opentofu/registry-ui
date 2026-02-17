@@ -389,9 +389,6 @@ export interface definitions {
     guides: definitions["ProviderDocItem"][];
     index?: definitions["ProviderDocItem"];
     resources: definitions["ProviderDocItem"][];
-    ephemeral: definitions["ProviderDocItem"][];
-    listresources: definitions["ProviderDocItem"][];
-    actions: definitions["ProviderDocItem"][];
   };
   /** ProviderList is a list of providers. */
   ProviderList: {
