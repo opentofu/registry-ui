@@ -26,6 +26,12 @@ func NewCommand() *cli.Command {
 				Aliases:  []string{"t"},
 				Usage:    "Resource type: 'provider' or 'module'",
 				Required: true,
+				Validator: func(s string) error {
+					if s != "provider" && s != "module" {
+						return fmt.Errorf("invalid type: %s (must be 'provider' or 'module')", s)
+					}
+					return nil
+				},
 			},
 			&cli.StringFlag{
 				Name:     "namespace",
@@ -54,6 +60,19 @@ func NewCommand() *cli.Command {
 				Aliases:  []string{"r"},
 				Usage:    "Skip reason: incompatible_license, no_license, processing_error, manual_skip, malformed_data",
 				Required: true,
+				Validator: func(s string) error {
+					validReasons := map[string]bool{
+						"incompatible_license": true,
+						"no_license":           true,
+						"processing_error":     true,
+						"manual_skip":          true,
+						"malformed_data":       true,
+					}
+					if !validReasons[s] {
+						return fmt.Errorf("invalid reason: %s (must be one of: incompatible_license, no_license, processing_error, manual_skip, malformed_data)", s)
+					}
+					return nil
+				},
 			},
 			&cli.StringFlag{
 				Name:     "message",
@@ -61,6 +80,12 @@ func NewCommand() *cli.Command {
 				Usage:    "Optional detailed message explaining why this version is being skipped",
 				Required: false,
 			},
+		},
+		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+			if cmd.String("type") == "module" && cmd.String("target") == "" {
+				return ctx, fmt.Errorf("--target is required for modules")
+			}
+			return ctx, nil
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return run(ctx, cmd)
@@ -80,37 +105,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	version := cmd.String("version")
 	skipReason := cmd.String("reason")
 	errorMessage := cmd.String("message")
-
-	// Validate resource type
-	if resourceType != "provider" && resourceType != "module" {
-		err := fmt.Errorf("invalid type: %s (must be 'provider' or 'module')", resourceType)
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
-	}
-
-	// Validate target for modules
-	if resourceType == "module" && target == "" {
-		err := fmt.Errorf("--target is required for modules")
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
-	}
-
-	// Validate skip reason
-	validReasons := map[string]bool{
-		"incompatible_license": true,
-		"no_license":           true,
-		"processing_error":     true,
-		"manual_skip":          true,
-		"malformed_data":       true,
-	}
-	if !validReasons[skipReason] {
-		err := fmt.Errorf("invalid reason: %s (must be one of: incompatible_license, no_license, processing_error, manual_skip, malformed_data)", skipReason)
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
-	}
 
 	span.SetAttributes(
 		attribute.String("resource.type", resourceType),

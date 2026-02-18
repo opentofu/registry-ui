@@ -29,6 +29,12 @@ it to be re-processed from scratch during the next sync.`,
 				Aliases:  []string{"t"},
 				Usage:    "Resource type: 'provider' or 'module'",
 				Required: true,
+				Validator: func(s string) error {
+					if s != "provider" && s != "module" {
+						return fmt.Errorf("invalid type: %s (must be 'provider' or 'module')", s)
+					}
+					return nil
+				},
 			},
 			&cli.StringFlag{
 				Name:     "namespace",
@@ -53,6 +59,12 @@ it to be re-processed from scratch during the next sync.`,
 				Required: true,
 			},
 		},
+		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+			if cmd.String("type") == "module" && cmd.String("target") == "" {
+				return ctx, fmt.Errorf("--target is required for modules")
+			}
+			return ctx, nil
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return run(ctx, cmd)
 		},
@@ -69,22 +81,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	name := cmd.String("name")
 	target := cmd.String("target")
 	version := cmd.String("version")
-
-	// Validate resource type
-	if resourceType != "provider" && resourceType != "module" {
-		err := fmt.Errorf("invalid type: %s (must be 'provider' or 'module')", resourceType)
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
-	}
-
-	// Validate target for modules
-	if resourceType == "module" && target == "" {
-		err := fmt.Errorf("--target is required for modules")
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
-	}
 
 	span.SetAttributes(
 		attribute.String("resource.type", resourceType),

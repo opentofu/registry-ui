@@ -26,17 +26,23 @@ func NewCommand() *cli.Command {
 				Name:    "providers",
 				Aliases: []string{"p"},
 				Usage:   "Rebuild providers global index",
-				Value:   false,
+				Value:   true,
 			},
 			&cli.BoolFlag{
 				Name:    "modules",
 				Aliases: []string{"m"},
 				Usage:   "Rebuild modules global index",
-				Value:   false,
+				Value:   true,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return run(ctx, cmd)
+		},
+		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+			if !cmd.Bool("providers") && !cmd.Bool("modules") {
+				return ctx, fmt.Errorf("at least one of --providers or --modules must be specified")
+			}
+			return ctx, nil
 		},
 	}
 }
@@ -48,12 +54,6 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	rebuildProviders := cmd.Bool("providers")
 	rebuildModules := cmd.Bool("modules")
-
-	// If neither flag is specified, rebuild both
-	if !rebuildProviders && !rebuildModules {
-		rebuildProviders = true
-		rebuildModules = true
-	}
 
 	slog.InfoContext(ctx, "Starting global index rebuild",
 		"providers", rebuildProviders,

@@ -20,7 +20,7 @@ import (
 type BucketConfig struct {
 	BucketName string `koanf:"name"`
 
-	AccessKeyID    string `koanf:"accesskeyid"`
+	AccessKeyID     string `koanf:"accesskeyid"`
 	SecretAccessKey string `koanf:"secretaccesskey"`
 	Region          string `koanf:"region"`
 	Endpoint        string `koanf:"endpoint"` // S3-compatible endpoint URL, leave empty for AWS S3
