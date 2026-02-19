@@ -77,15 +77,16 @@ const defaultConfigFile = "config.yaml"
 func LoadConfig(ctx context.Context) (*BackendConfig, error) {
 	slog.InfoContext(ctx, "Loading configuration")
 
-	// Load yaml config.
-	if err := k.Load(file.Provider(defaultConfigFile), yaml.Parser()); err != nil {
-		slog.WarnContext(ctx, "Failed to load config file, using env vars only", "error", err, "filename", defaultConfigFile)
-	} else {
-		slog.InfoContext(ctx, "Loaded configuration from config file", "filename", defaultConfigFile)
+	err := k.Load(file.Provider(defaultConfigFile), yaml.Parser())
+	if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("failed to load config file %s: %w", defaultConfigFile, err)
+	}
+	if err != nil {
+		slog.InfoContext(ctx, "Config file not found, will use environment variables only", "filename", defaultConfigFile)
 	}
 
 	// also load from env vars
-	err := k.Load(env.Provider(".", env.Opt{
+	err = k.Load(env.Provider(".", env.Opt{
 		Prefix: EnvVarPrefix,
 		TransformFunc: func(k, v string) (string, any) {
 			k = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(k, EnvVarPrefix)), "_", ".")
