@@ -101,6 +101,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		slog.ErrorContext(ctx, "Failed to connect to database", "error", err)
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	defer pool.Close()
 
 	// Delete the version record to allow retry
 	// The scraper will recreate it during the next sync

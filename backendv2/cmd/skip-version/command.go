@@ -126,6 +126,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		slog.ErrorContext(ctx, "Failed to connect to database", "error", err)
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	defer pool.Close()
 
 	// Update the version status based on type
 	if resourceType == "provider" {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -63,8 +64,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	pool, err := cfg.DB.GetPool(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		slog.ErrorContext(ctx, "Failed to connect to database", "error", err)
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	defer pool.Close()
 
 	// Create S3 client for uploads
 	s3Client, err := cfg.Bucket.GetClient(ctx)
