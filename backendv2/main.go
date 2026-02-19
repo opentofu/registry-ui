@@ -39,11 +39,11 @@ func main() {
 	// Setup structured logging first
 	telemetry.SetupLogger()
 
-	var shutdown = func() {}
+	shutdown := func() {}
 
 	app := &cli.Command{
-		Name:  "registry-ui",
-		Usage: "OpenTofu Registry Backend CLI",
+		Name:     "registry-ui",
+		Usage:    "OpenTofu Registry Backend CLI",
 		Metadata: map[string]interface{}{},
 		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
 			// Skip config/telemetry setup for commands that don't need it
@@ -64,9 +64,11 @@ func main() {
 			}
 			shutdown = s
 
-			// Ensure that our logger can connect correctly
-			if err := telemetry.TestOTLPConnection(ctx); err != nil {
-				return ctx, fmt.Errorf("error testing OTLP connection: %w", err)
+			if backendConfig.Telemetry.Enabled {
+				// Ensure that our OTLP exporters can connect correctly
+				if err := telemetry.TestOTLPConnection(ctx, backendConfig.Telemetry); err != nil {
+					return ctx, fmt.Errorf("error testing OTLP connection: %w", err)
+				}
 			}
 
 			// Setup signal handling for graceful shutdown

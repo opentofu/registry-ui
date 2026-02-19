@@ -116,26 +116,29 @@ func SetupTelemetry(ctx context.Context, config config.TelemetryConfig) (context
 	)
 	otel.SetTracerProvider(tracerProvider)
 
-	// Set up logger provider (for otelslog)
-	logExporterOpts := []otlploggrpc.Option{
-		otlploggrpc.WithEndpoint(config.Endpoint),
-		otlploggrpc.WithHeaders(config.Headers),
-		otlploggrpc.WithCompressor(gzip.Name),
-	}
-	if config.Insecure {
-		logExporterOpts = append(logExporterOpts, otlploggrpc.WithInsecure())
-	}
+	// Set up logger provider (for otelslog) if logging is enabled
+	var loggerProvider *sdklog.LoggerProvider
+	if config.Logging {
+		logExporterOpts := []otlploggrpc.Option{
+			otlploggrpc.WithEndpoint(config.Endpoint),
+			otlploggrpc.WithHeaders(config.Headers),
+			otlploggrpc.WithCompressor(gzip.Name),
+		}
+		if config.Insecure {
+			logExporterOpts = append(logExporterOpts, otlploggrpc.WithInsecure())
+		}
 
-	logExporter, err := otlploggrpc.New(ctx, logExporterOpts...)
-	if err != nil {
-		return ctx, nil, fmt.Errorf("failed to create OTLP log exporter: %w", err)
-	}
+		logExporter, err := otlploggrpc.New(ctx, logExporterOpts...)
+		if err != nil {
+			return ctx, nil, fmt.Errorf("failed to create OTLP log exporter: %w", err)
+		}
 
-	loggerProvider := sdklog.NewLoggerProvider(
-		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
-		sdklog.WithResource(otelResource),
-	)
-	global.SetLoggerProvider(loggerProvider)
+		loggerProvider = sdklog.NewLoggerProvider(
+			sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
+			sdklog.WithResource(otelResource),
+		)
+		global.SetLoggerProvider(loggerProvider)
+	}
 
 	prop := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 	otel.SetTextMapPropagator(prop)
@@ -151,8 +154,10 @@ func SetupTelemetry(ctx context.Context, config config.TelemetryConfig) (context
 		if err := tracerProvider.Shutdown(ctx); err != nil {
 			slog.Error("Failed to shutdown tracer provider", "error", err)
 		}
-		if err := loggerProvider.Shutdown(ctx); err != nil {
-			slog.Error("Failed to shutdown logger provider", "error", err)
+		if loggerProvider != nil {
+			if err := loggerProvider.Shutdown(ctx); err != nil {
+				slog.Error("Failed to shutdown logger provider", "error", err)
+			}
 		}
 	}
 
@@ -252,21 +257,30 @@ func LinkedSpanStart(ctx context.Context, name string, opts ...trace.SpanStartOp
 	return Tracer().Start(ctx, name, allOpts...)
 }
 
-// TestOTLPConnection tests connectivity to the OTLP endpoint by sending a test log and flushing.
+// TestOTLPConnection tests connectivity to the OTLP endpoint by flushing traces and logs.
 // Call this after SetupTelemetry to verify the endpoint is reachable.
-func TestOTLPConnection(ctx context.Context) error {
-	// Send a test log
-	slog.InfoContext(ctx, "OTLP connectivity test - if you see this in your telemetry backend, connection is working!")
+func TestOTLPConnection(ctx context.Context, cfg config.TelemetryConfig) error {
+	// Test trace connectivity
+	tp, ok := otel.GetTracerProvider().(*sdktrace.TracerProvider)
+	if !ok {
+		return fmt.Errorf("tracer provider is not configured")
+	}
+	if err := tp.ForceFlush(ctx); err != nil {
+		return fmt.Errorf("failed to flush traces to OTLP endpoint: %w", err)
+	}
+	slog.InfoContext(ctx, "OTLP trace connection test successful")
 
-	// Flush logs to ensure they're sent immediately
-	loggerProvider := global.GetLoggerProvider()
-	if lp, ok := loggerProvider.(*sdklog.LoggerProvider); ok {
+	// Test log connectivity if logging is enabled
+	if cfg.Logging {
+		lp, ok := global.GetLoggerProvider().(*sdklog.LoggerProvider)
+		if !ok {
+			return fmt.Errorf("logger provider is not configured")
+		}
 		if err := lp.ForceFlush(ctx); err != nil {
 			return fmt.Errorf("failed to flush logs to OTLP endpoint: %w", err)
 		}
-		slog.InfoContext(ctx, "OTLP connection test successful - logs flushed")
-		return nil
+		slog.InfoContext(ctx, "OTLP log connection test successful")
 	}
 
-	return fmt.Errorf("logger provider is not configured")
+	return nil
 }
