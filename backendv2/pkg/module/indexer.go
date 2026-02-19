@@ -176,6 +176,24 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 		scrapeStatus = "completed"
 	}
 
+	// Ensure repository and module records exist (these may already exist
+	// when called from IndexAllVersions, but need to be created when
+	// IndexVersion is called standalone)
+	repoOrganisation := namespace
+	repoName := fmt.Sprintf("terraform-%s-%s", target, name)
+
+	if err := storage.StoreRepository(ctx, r.db, repoOrganisation, repoName); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("failed to store repository: %w", err)
+	}
+
+	if err := storage.StoreModule(ctx, r.db, namespace, name, target, repoOrganisation, repoName); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("failed to store module: %w", err)
+	}
+
 	// Store registryModule version in database (always store, even if skipped)
 	err = storage.StoreModuleVersion(ctx, tx, namespace, name, target, version, moduleData, tagCreatedAt, scrapeStatus, skipReason, "", indexChecksum, readmeChecksum)
 	if err != nil {
