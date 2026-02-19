@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"slices"
 	"sort"
@@ -93,6 +94,7 @@ func (r *Client) ListProviders(ctx context.Context, filter string) ([]Provider, 
 		letterPath := filepath.Join(providersDir, letter)
 		namespaces, err := listDirectories(letterPath)
 		if err != nil {
+			slog.DebugContext(ctx, "Failed to list namespaces in letter directory", "path", letterPath, "error", err)
 			continue
 		}
 
@@ -105,6 +107,7 @@ func (r *Client) ListProviders(ctx context.Context, filter string) ([]Provider, 
 			namespacePath := filepath.Join(letterPath, namespace)
 			providerNames, err := listJSONFiles(namespacePath)
 			if err != nil {
+				slog.DebugContext(ctx, "Failed to list provider JSON files", "path", namespacePath, "error", err)
 				continue
 			}
 
