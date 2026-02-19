@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -88,43 +90,22 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get S3 client: %w", err)
 	}
 
-	// Check if version exists in database
-	var exists bool
-	err = pool.QueryRow(ctx, `
-		SELECT EXISTS(
-			SELECT 1 FROM provider_versions
-			WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3
-		)`, namespace, name, version).Scan(&exists)
+	// Start transaction for consistent reads + delete
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to check if version exists: %w", err)
+		slog.ErrorContext(ctx, "Failed to start transaction", "error", err)
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
+	defer tx.Rollback(ctx) //nolint:errcheck
 
-	if !exists {
-		return fmt.Errorf("provider version %s/%s@%s not found in database", namespace, name, version)
-	}
-
-	// Count related records
-	var docCount, licenseCount int
-	err = pool.QueryRow(ctx, `
-		SELECT COUNT(*) FROM provider_documents
-		WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`,
-		namespace, name, version).Scan(&docCount)
+	// Check if version exists and count related records
+	docCount, licenseCount, err := queryVersionInfo(ctx, tx, namespace, name, version)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to count documents: %w", err)
-	}
-
-	err = pool.QueryRow(ctx, `
-		SELECT COUNT(*) FROM provider_version_licenses
-		WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`,
-		namespace, name, version).Scan(&licenseCount)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to count licenses: %w", err)
+		return err
 	}
 
 	// List S3 objects
@@ -136,13 +117,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to list S3 objects: %w", err)
 	}
 
-	// Print summary
-	fmt.Printf("\nProvider version: %s/%s@%s\n", namespace, name, version)
-	fmt.Printf("Database records to delete:\n")
-	fmt.Printf("  - 1 provider_versions record\n")
-	fmt.Printf("  - %d provider_documents records\n", docCount)
-	fmt.Printf("  - %d provider_version_licenses records\n", licenseCount)
-	fmt.Printf("S3 objects to delete: %d (prefix: %s)\n", len(s3Objects), s3Prefix)
+	printSummary(namespace, name, version, docCount, licenseCount, s3Objects, s3Prefix)
 
 	if dryRun {
 		fmt.Printf("\n[DRY RUN] No changes made.\n")
@@ -150,25 +125,12 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Delete from database (cascades to related tables)
-	slog.InfoContext(ctx, "Deleting from database", "namespace", namespace, "name", name, "version", version)
-	result, err := pool.Exec(ctx, `
-		DELETE FROM provider_versions
-		WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`,
-		namespace, name, version)
+	err = deleteVersionFromDB(ctx, tx, namespace, name, version, docCount, licenseCount)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to delete from database: %w", err)
+		return err
 	}
-
-	if result.RowsAffected() == 0 {
-		return fmt.Errorf("no rows deleted from database")
-	}
-
-	slog.InfoContext(ctx, "Deleted from database",
-		"rows_affected", result.RowsAffected(),
-		"cascaded_docs", docCount,
-		"cascaded_licenses", licenseCount)
 
 	// Delete from S3
 	if len(s3Objects) > 0 {
@@ -184,6 +146,65 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	fmt.Printf("\n✓ Successfully removed provider version %s/%s@%s\n", namespace, name, version)
 	return nil
+}
+
+func queryVersionInfo(ctx context.Context, tx pgx.Tx, namespace, name, version string) (docCount int, licenseCount int, err error) {
+	var exists bool
+	err = tx.QueryRow(ctx, `
+		SELECT
+			EXISTS(SELECT 1 FROM provider_versions
+				WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3),
+			(SELECT COUNT(*) FROM provider_documents
+				WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3),
+			(SELECT COUNT(*) FROM provider_version_licenses
+				WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3)`,
+		namespace, name, version).Scan(&exists, &docCount, &licenseCount)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to query version info: %w", err)
+	}
+
+	if !exists {
+		return 0, 0, fmt.Errorf("provider version %s/%s@%s not found in database", namespace, name, version)
+	}
+
+	return docCount, licenseCount, nil
+}
+
+func deleteVersionFromDB(ctx context.Context, tx pgx.Tx, namespace, name, version string, docCount, licenseCount int) error {
+	slog.InfoContext(ctx, "Deleting from database", "namespace", namespace, "name", name, "version", version)
+
+	result, err := tx.Exec(ctx, `
+		DELETE FROM provider_versions
+		WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`,
+		namespace, name, version)
+	if err != nil {
+		return fmt.Errorf("failed to delete from database: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("no rows deleted from database")
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	slog.InfoContext(ctx, "Deleted from database",
+		"rows_affected", result.RowsAffected(),
+		"cascaded_docs", docCount,
+		"cascaded_licenses", licenseCount)
+
+	return nil
+}
+
+func printSummary(namespace string, name string, version string, docCount int, licenseCount int, s3Objects []string, s3Prefix string) {
+	fmt.Printf("\nProvider version: %s/%s@%s\n", namespace, name, version)
+	fmt.Printf("Database records to delete:\n")
+	fmt.Printf("  - 1 provider_versions record\n")
+	fmt.Printf("  - %d provider_documents records\n", docCount)
+	fmt.Printf("  - %d provider_version_licenses records\n", licenseCount)
+	fmt.Printf("S3 objects to delete: %d (prefix: %s)\n", len(s3Objects), s3Prefix)
 }
 
 func listS3Objects(ctx context.Context, client *s3.Client, bucket, prefix string) ([]string, error) {
