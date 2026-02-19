@@ -485,6 +485,15 @@ func (p *ProviderReader) IndexAllVersions(ctx context.Context, namespace, name s
 	}
 
 	// Generate and upload provider version index after processing versions
+	p.RegenerateProviderVersionIndex(ctx, namespace, name)
+
+	return responses, nil
+}
+
+// RegenerateProviderVersionIndex generates and uploads the per-provider version index to S3.
+// Note: The global provider index is NOT updated here to avoid race conditions.
+// Use the `rebuild-global-indexes` command to rebuild it from the database.
+func (p *ProviderReader) RegenerateProviderVersionIndex(ctx context.Context, namespace, name string) {
 	slog.InfoContext(ctx, "Generating provider version index",
 		"provider", fmt.Sprintf("%s/%s", namespace, name))
 
@@ -493,24 +502,20 @@ func (p *ProviderReader) IndexAllVersions(ctx context.Context, namespace, name s
 		slog.WarnContext(ctx, "Failed to generate provider version index",
 			"provider", fmt.Sprintf("%s/%s", namespace, name),
 			"error", err)
-	} else {
-		// Upload provider version index to S3
-		err = index.UploadProviderVersionIndex(ctx, p.uploader, p.config.Bucket.BucketName, providerIndex)
-		if err != nil {
-			slog.WarnContext(ctx, "Failed to upload provider version index",
-				"provider", fmt.Sprintf("%s/%s", namespace, name),
-				"error", err)
-		} else {
-			slog.InfoContext(ctx, "Successfully uploaded provider version index",
-				"provider", fmt.Sprintf("%s/%s", namespace, name),
-				"versions", len(providerIndex.Versions))
-
-			// Note: Global provider index is NOT updated here to avoid race conditions.
-			// Use the `rebuild-global-indexes` command to rebuild it from the database.
-		}
+		return
 	}
 
-	return responses, nil
+	err = index.UploadProviderVersionIndex(ctx, p.uploader, p.config.Bucket.BucketName, providerIndex)
+	if err != nil {
+		slog.WarnContext(ctx, "Failed to upload provider version index",
+			"provider", fmt.Sprintf("%s/%s", namespace, name),
+			"error", err)
+		return
+	}
+
+	slog.InfoContext(ctx, "Successfully uploaded provider version index",
+		"provider", fmt.Sprintf("%s/%s", namespace, name),
+		"versions", len(providerIndex.Versions))
 }
 
 // storeFailedVersion stores a minimal version record with status='failed' to prevent re-scraping

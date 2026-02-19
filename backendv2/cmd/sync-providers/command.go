@@ -144,6 +144,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			var syncErr error
 			if specificVersion != "" {
 				_, syncErr = providerReader.IndexVersion(provCtx, &prov, specificVersion)
+				if syncErr == nil {
+					// Regenerate per-provider version index (IndexAllVersions does this
+					// internally, but IndexVersion does not)
+					providerReader.RegenerateProviderVersionIndex(provCtx, prov.Namespace, prov.Name)
+				}
 			} else {
 				syncErr = providerReader.ScrapeAllVersions(provCtx, &prov)
 			}

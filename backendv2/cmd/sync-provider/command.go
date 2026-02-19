@@ -103,14 +103,21 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Scrape the provider version(s)
 	if specificVersion != "" {
 		_, err = providerReader.IndexVersion(ctx, prov, specificVersion)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return err
+		}
+		// Regenerate per-provider version index (IndexAllVersions does this
+		// internally, but IndexVersion does not)
+		providerReader.RegenerateProviderVersionIndex(ctx, namespace, name)
 	} else {
 		err = providerReader.ScrapeAllVersions(ctx, prov)
-	}
-
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return err
+		}
 	}
 
 	return nil
