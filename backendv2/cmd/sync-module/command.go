@@ -76,6 +76,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	moduleReader, err := module.NewModuleReader(ctx, cfg)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "Failed to create module reader", "error", err)
 		return fmt.Errorf("failed to create module reader: %w", err)
 	}
@@ -102,7 +103,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	if specificVersion != "" {
-		return moduleReader.ScrapeVersion(ctx, module, specificVersion)
+		err = moduleReader.ScrapeVersion(ctx, module, specificVersion)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			slog.ErrorContext(ctx, "Failed to scrape module version", "namespace", namespace, "name", name, "target", target, "version", specificVersion, "error", err)
+			return fmt.Errorf("failed to scrape version %s for module %s/%s/%s: %w", specificVersion, namespace, name, target, err)
+		}
+		return nil
 	}
 
 	err = moduleReader.ScrapeAllVersions(ctx, module)
