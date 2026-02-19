@@ -112,13 +112,13 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 
 		if errors.Is(err, transport.ErrEmptyRemoteRepository) {
 			if removeErr := os.RemoveAll(r.LocalPath); removeErr != nil {
-				return removeErr
+				return fmt.Errorf("failed to clean up after empty repository %s: %w (original: %w)", r.URL, removeErr, err)
 			}
 			return fmt.Errorf("remote repository %s is empty", r.URL)
 		}
 		if errors.Is(err, transport.ErrRepositoryNotFound) {
 			if removeErr := os.RemoveAll(r.LocalPath); removeErr != nil {
-				return removeErr
+				return fmt.Errorf("failed to clean up after missing repository %s: %w (original: %w)", r.URL, removeErr, err)
 			}
 			return fmt.Errorf("repository %s not found", r.URL)
 		}
@@ -131,7 +131,7 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 		} else {
 			// Unknown error - clean up and return
 			if removeErr := os.RemoveAll(r.LocalPath); removeErr != nil {
-				return removeErr
+				return fmt.Errorf("failed to clean up after clone error for %s: %w (original: %w)", r.URL, removeErr, err)
 			}
 			return fmt.Errorf("failed to clone repository %s, unknown error: %w", r.URL, err)
 		}
