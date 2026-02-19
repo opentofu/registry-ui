@@ -237,11 +237,6 @@ func (r *Repo) AddWorktree(ctx context.Context, ref, path string) error {
 	if _, err := os.Stat(path); err == nil {
 		slog.DebugContext(ctx, "Removing stale worktree directory", "url", r.URL, "ref", ref, "path", path)
 		if err := os.RemoveAll(path); err != nil {
-			rmErr := os.RemoveAll(path)
-			if rmErr != nil {
-				span.RecordError(rmErr)
-				return fmt.Errorf("failed to remove stale worktree directory with fallback: %w", rmErr)
-			}
 			span.RecordError(err)
 			return fmt.Errorf("failed to remove existing worktree directory %s: %w", path, err)
 		}
