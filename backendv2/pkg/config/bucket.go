@@ -98,8 +98,8 @@ func (c *BucketConfig) GetClient(ctx context.Context) (*s3.Client, error) {
 	c.client = client
 
 	slog.InfoContext(ctx, "S3 client initialized with optimized connection pooling",
-		"max_idle_conns", 200,
-		"max_idle_conns_per_host", 200,
+		"max_idle_conns", transport.MaxIdleConns,
+		"max_idle_conns_per_host", transport.MaxIdleConnsPerHost,
 		"endpoint", c.Endpoint)
 
 	return client, nil
