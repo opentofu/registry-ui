@@ -245,7 +245,7 @@ func (d detector) collectResults(ctx context.Context, span trace.Span, licenseFi
 					attribute.Float64("license.early_return_confidence", float64(l.Confidence)),
 					attribute.String("license.early_return_file", l.File),
 				)
-				slog.DebugContext(ctx, "High-confidence license found, returning early",
+				slog.InfoContext(ctx, "High-confidence license found, returning early",
 					"license", l.SPDX, "confidence", l.Confidence, "file", l.File)
 				return []License{l}
 			}
@@ -305,8 +305,5 @@ func isDocumentationDirectory(filePath string) bool {
 }
 
 func pathDepth(filePath string) int {
-	if filePath == "." || filePath == "" {
-		return 0
-	}
 	return strings.Count(filePath, "/")
 }
