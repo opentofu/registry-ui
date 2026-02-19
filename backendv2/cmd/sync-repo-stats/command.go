@@ -1,5 +1,5 @@
-// Package syncrepostats implements a CLI command to sync repository statistics for providers.
-// This is intended to be used for testing or backfilling stats for existing providers.
+// Package syncrepostats implements a CLI command to sync repository statistics.
+// This is intended to be used for testing or backfilling stats for existing repositories.
 package syncrepostats
 
 import (
@@ -12,7 +12,6 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/opentofu/registry-ui/pkg/config"
-	"github.com/opentofu/registry-ui/pkg/provider/storage"
 	"github.com/opentofu/registry-ui/pkg/repository"
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
@@ -20,17 +19,17 @@ import (
 func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "sync-repo-stats",
-		Usage: "Sync repository statistics for a specific provider (stars, forks, etc.)",
+		Usage: "Sync repository statistics (stars, forks, etc.) from GitHub",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "namespace",
 				Aliases:  []string{"n"},
-				Usage:    "Provider namespace (e.g., hashicorp)",
+				Usage:    "GitHub organisation (e.g., hashicorp)",
 				Required: true,
 			},
 			&cli.StringFlag{
 				Name:     "name",
-				Usage:    "Provider name (e.g., aws)",
+				Usage:    "GitHub repository name (e.g., terraform-provider-aws)",
 				Required: true,
 			},
 		},
@@ -46,11 +45,16 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	defer span.End()
 
 	// Get command flags
-	namespace := cmd.String("namespace")
-	name := cmd.String("name")
+	org := cmd.String("namespace")
+	repoName := cmd.String("name")
 
-	slog.InfoContext(ctx, "Starting repository stats sync for provider",
-		"namespace", namespace, "name", name)
+	span.SetAttributes(
+		attribute.String("repo.organisation", org),
+		attribute.String("repo.name", repoName),
+	)
+
+	slog.InfoContext(ctx, "Starting repository stats sync",
+		"organisation", org, "repo", repoName)
 
 	// Connect to database
 	pool, err := cfg.DB.GetPool(ctx)
@@ -65,55 +69,16 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	// Create GitHub client
 	githubClient := repository.NewClient(&cfg.GitHub)
 
-	// Get provider repository info from database
-	provider, err := storage.GetProvider(ctx, pool, namespace, name)
+	// Sync repository metadata directly using org/repo name
+	err = repository.SyncRepositoryMetadata(ctx, pool, githubClient, org, repoName)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to get provider: %w", err)
-	}
-
-	span.SetAttributes(
-		attribute.String("provider.namespace", provider.Namespace),
-		attribute.String("provider.name", provider.Name),
-		attribute.String("repo.organisation", provider.RepoOrganisation),
-		attribute.String("repo.name", provider.RepoName),
-	)
-
-	slog.InfoContext(ctx, "Syncing repository stats",
-		"provider", fmt.Sprintf("%s/%s", provider.Namespace, provider.Name),
-		"repository", fmt.Sprintf("%s/%s", provider.RepoOrganisation, provider.RepoName))
-
-	// Fetch repository metadata from GitHub
-	metadata, err := githubClient.GetRepositoryMetadata(ctx, provider.RepoOrganisation, provider.RepoName)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to fetch repository metadata for %s/%s: %w",
-			provider.RepoOrganisation, provider.RepoName, err)
-	}
-
-	// Store repository stats in database
-	err = repository.StoreRepositoryStats(ctx, pool, metadata)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to store repository stats: %w", err)
-	}
-
-	// Update repositories table with latest metadata
-	err = repository.UpdateRepositoryMetadata(ctx, pool, metadata)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("failed to update repository metadata: %w", err)
+		return fmt.Errorf("failed to sync repository stats for %s/%s: %w", org, repoName, err)
 	}
 
 	slog.InfoContext(ctx, "Successfully synced repository stats",
-		"provider", fmt.Sprintf("%s/%s", provider.Namespace, provider.Name),
-		"repository", fmt.Sprintf("%s/%s", provider.RepoOrganisation, provider.RepoName),
-		"stars", metadata.Stars,
-		"forks", metadata.Forks)
+		"organisation", org, "repo", repoName)
 
 	return nil
 }
