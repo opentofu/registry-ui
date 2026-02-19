@@ -209,12 +209,14 @@ func RebuildGlobalModuleIndex(ctx context.Context, db *pgxpool.Pool) (*GlobalMod
 			COALESCE(us.stars, 0) as upstream_stars,
 			COALESCE(us.forks, 0) as upstream_forks
 		FROM module_versions_agg mv
-		LEFT JOIN repositories r 
+		-- repositories.name stores the full GitHub repo name (e.g. "terraform-aws-vpc"),
+		-- while module_versions stores the short name (e.g. "vpc") and target (e.g. "aws") separately
+		LEFT JOIN repositories r
 			ON r.organisation = mv.module_namespace
-			AND r.name = mv.module_name
-		LEFT JOIN latest_stats s 
+			AND r.name = 'terraform-' || mv.module_target || '-' || mv.module_name
+		LEFT JOIN latest_stats s
 			ON s.repo_organisation = mv.module_namespace
-			AND s.repo_name = mv.module_name
+			AND s.repo_name = 'terraform-' || mv.module_target || '-' || mv.module_name
 		LEFT JOIN latest_stats us 
 			ON us.repo_organisation = r.parent_organisation
 			AND us.repo_name = r.parent_name
@@ -340,6 +342,8 @@ func RebuildGlobalProviderIndex(ctx context.Context, db *pgxpool.Pool) (*GlobalP
 			COALESCE(us.stars, 0) as upstream_stars,
 			COALESCE(us.forks, 0) as upstream_forks
 		FROM provider_versions_agg pv
+		-- repositories.name stores the full GitHub repo name (e.g. "terraform-provider-aws"),
+		-- while provider_versions.provider_name stores the short name (e.g. "aws")
 		LEFT JOIN repositories r ON r.organisation = pv.provider_namespace
 			AND r.name = 'terraform-provider-' || pv.provider_name
 		LEFT JOIN latest_stats s ON s.repo_organisation = pv.provider_namespace
