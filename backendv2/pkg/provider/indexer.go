@@ -164,6 +164,24 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 		skipReason = ""
 	}
 
+	// Ensure repository and provider records exist (these may already exist
+	// when called from IndexAllVersions, but need to be created when
+	// IndexVersion is called standalone)
+	repoOrg := namespace
+	repoName := fmt.Sprintf("terraform-provider-%s", name)
+
+	if err := storage.StoreRepository(ctx, p.db, repoOrg, repoName); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("failed to store repository: %w", err)
+	}
+
+	if err := storage.StoreProvider(ctx, p.db, namespace, name, repoOrg, repoName, provider.Warnings); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("failed to store provider: %w", err)
+	}
+
 	// Store provider version in database
 	err = storage.StoreProviderVersion(ctx, tx, namespace, name, version, docCount, len(licenses), tagCreatedAt, licenseAccepted, scrapeStatus, skipReason, "")
 	if err != nil {
