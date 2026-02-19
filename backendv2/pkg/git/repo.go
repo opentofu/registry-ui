@@ -28,7 +28,6 @@ type Repo struct {
 	LocalPath string
 
 	// Internal state
-	cloned     bool
 	repository *git.Repository
 	worktrees  sync.Map // ref -> path mapping for worktrees (thread-safe)
 }
@@ -36,7 +35,7 @@ type Repo struct {
 // requireCloned requires that the repository is cloned and ready for operations.
 // Records error on span and logs if not cloned.
 func (r *Repo) requireCloned(ctx context.Context, span trace.Span, action string) error {
-	if !r.cloned || r.repository == nil {
+	if r.repository == nil {
 		err := fmt.Errorf("repository not cloned")
 		span.RecordError(err)
 		slog.ErrorContext(ctx, fmt.Sprintf("Cannot %s, repository not cloned", action), "url", r.URL, "error", err)
@@ -72,7 +71,6 @@ func GetRepo(url, localPath string) (*Repo, error) {
 			return nil, fmt.Errorf("failed to open existing repository at %s: %w", localPath, err)
 		}
 		repo.repository = repository
-		repo.cloned = true
 	}
 
 	return repo, nil
@@ -80,7 +78,7 @@ func GetRepo(url, localPath string) (*Repo, error) {
 
 // EnsureCloned clones the repository if it hasn't been cloned already
 func (r *Repo) EnsureCloned(ctx context.Context) error {
-	if r.cloned && r.repository != nil {
+	if r.repository != nil {
 		slog.DebugContext(ctx, "Repository already cloned", "url", r.URL, "path", r.LocalPath)
 		return nil
 	}
@@ -138,7 +136,6 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 	}
 
 	r.repository = repository
-	r.cloned = true
 
 	// Clean up any stale worktrees from previous runs
 	pruneCmd := exec.CommandContext(ctx, "git", "worktree", "prune")
