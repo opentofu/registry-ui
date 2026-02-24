@@ -47,7 +47,7 @@ func NewWorktreeManager(ctx context.Context, repoURL, localPath, tag string) (*W
 	}
 
 	// Create worktree for the specific tag (use as-is from registry)
-	worktreePath := filepath.Join(localPath, "worktrees", tag)
+	worktreePath := filepath.Join(localPath, ".tofu-worktrees", tag)
 	if err := repo.AddWorktree(ctx, tag, worktreePath); err != nil {
 		span.RecordError(err)
 		return nil, fmt.Errorf("failed to create worktree for tag %s: %w", tag, err)
