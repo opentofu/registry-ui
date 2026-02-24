@@ -56,54 +56,38 @@ func (d *Detector) Detect(ctx context.Context, directory string, repoURL string)
 		return nil, err
 	}
 
-	// If no local licenses were found, try GitHub API fallback
-	if len(matches) == 0 {
-		slog.InfoContext(ctx, "No licenses detected locally, trying GitHub API fallback", "repo_url", repoURL)
-
-		githubLicense, err := d.detectLicenseFromGitHub(ctx, repoURL)
-		if err != nil {
-			slog.WarnContext(ctx, "GitHub API license detection failed", "error", err)
-			return nil, nil // Return nil if both local and GitHub detection fail
-		}
-
-		if githubLicense != nil {
-			slog.InfoContext(ctx, "GitHub API fallback succeeded", "license", githubLicense.SPDX)
-			span.SetAttributes(
-				attribute.Bool("license.used_github_fallback", true),
-				attribute.Int("license.github_result_count", 1),
-			)
-			return []License{*githubLicense}, nil
-		}
-
-		return nil, nil // No licenses found via local detection or GitHub API
+	var result []License
+	if len(matches) > 0 {
+		filesWithLicenses := d.buildLicenseFileMap(matches, repoURL)
+		licenseFiles := d.filterAndSortLicenseFiles(ctx, filesWithLicenses)
+		result = d.collectResults(ctx, span, licenseFiles, filesWithLicenses)
 	}
 
-	filesWithLicenses := d.buildLicenseFileMap(matches, repoURL)
-	licenseFiles := d.filterAndSortLicenseFiles(ctx, filesWithLicenses)
-	result := d.collectResults(ctx, span, licenseFiles, filesWithLicenses)
-
-	// If no licenses remain after filtering, try GitHub API fallback
-	if len(result) == 0 {
-		slog.InfoContext(ctx, "No licenses remain after filtering, trying GitHub API fallback", "repo_url", repoURL)
-
-		githubLicense, err := d.detectLicenseFromGitHub(ctx, repoURL)
-		if err != nil {
-			slog.WarnContext(ctx, "GitHub API license detection failed", "error", err)
-		} else if githubLicense != nil {
-			slog.InfoContext(ctx, "GitHub API fallback succeeded after filtering", "license", githubLicense.SPDX)
-			span.SetAttributes(
-				attribute.Bool("license.used_github_fallback", true),
-				attribute.Int("license.github_result_count", 1),
-			)
-			return []License{*githubLicense}, nil
-		}
+	if len(result) > 0 {
+		span.SetAttributes(
+			attribute.Bool("license.used_github_fallback", false),
+			attribute.Int("license.final_result_count", len(result)),
+		)
+		return result, nil
 	}
 
-	span.SetAttributes(
-		attribute.Bool("license.used_github_fallback", false),
-		attribute.Int("license.final_result_count", len(result)),
-	)
-	return result, nil
+	// No licenses found locally, try GitHub API fallback
+	slog.InfoContext(ctx, "No licenses detected locally, trying GitHub API fallback", "repo_url", repoURL)
+	githubLicense, err := d.detectLicenseFromGitHub(ctx, repoURL)
+	if err != nil {
+		slog.WarnContext(ctx, "GitHub API license detection failed", "error", err)
+		return nil, nil
+	}
+	if githubLicense != nil {
+		slog.InfoContext(ctx, "GitHub API fallback succeeded", "license", githubLicense.SPDX)
+		span.SetAttributes(
+			attribute.Bool("license.used_github_fallback", true),
+			attribute.Int("license.github_result_count", 1),
+		)
+		return []License{*githubLicense}, nil
+	}
+
+	return nil, nil
 }
 
 func (d *Detector) detectLicenseInDirectory(ctx context.Context, directory string) ([]licensedb.Match, error) {
