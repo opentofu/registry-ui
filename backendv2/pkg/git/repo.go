@@ -54,10 +54,12 @@ func GetRepo(url, localPath string) (*Repo, error) {
 	}
 
 	localPath = filepath.Clean(localPath)
-	if info, err := os.Stat(localPath); err == nil {
-		if !info.IsDir() {
-			return nil, fmt.Errorf("local path %s exists but is not a directory", localPath)
+	if info, err := os.Stat(localPath); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("failed to stat local path %s: %w", localPath, err)
 		}
+	} else if !info.IsDir() {
+		return nil, fmt.Errorf("local path %s exists but is not a directory", localPath)
 	}
 
 	repo := &Repo{
@@ -65,7 +67,11 @@ func GetRepo(url, localPath string) (*Repo, error) {
 		LocalPath: localPath,
 	}
 
-	if _, err := os.Stat(filepath.Join(localPath, ".git")); err == nil {
+	if _, err := os.Stat(filepath.Join(localPath, ".git")); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("failed to stat .git directory in %s: %w", localPath, err)
+		}
+	} else {
 		repository, err := git.PlainOpen(localPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open existing repository at %s: %w", localPath, err)
