@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/opentofu/registry-ui/pkg/config"
-	"github.com/opentofu/registry-ui/pkg/module/storage"
+	modulestorage "github.com/opentofu/registry-ui/pkg/module/storage"
 	providerstorage "github.com/opentofu/registry-ui/pkg/provider/storage"
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
@@ -148,7 +148,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		slog.InfoContext(ctx, "Marking module version as skipped",
 			"namespace", namespace, "name", name, "target", target, "version", version, "reason", skipReason)
 
-		err = storage.UpdateModuleVersionStatus(ctx, pool, namespace, name, target, version, "skipped", skipReason, errorMessage)
+		err = modulestorage.UpdateModuleVersionStatus(ctx, pool, namespace, name, target, version, "skipped", skipReason, errorMessage)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
