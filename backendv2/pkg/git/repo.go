@@ -263,7 +263,7 @@ func (r *Repo) AddWorktree(ctx context.Context, ref, path string) error {
 	return nil
 }
 
-func (r *Repo) RemoveWorktree(ctx context.Context, ref string) error {
+func (r *Repo) RemoveWorktree(ctx context.Context, ref string) {
 	ctx, span := telemetry.Tracer().Start(ctx, "git.remove_worktree")
 	defer span.End()
 
@@ -277,7 +277,7 @@ func (r *Repo) RemoveWorktree(ctx context.Context, ref string) error {
 	p, exists := r.worktrees.Load(ref)
 	if !exists {
 		slog.DebugContext(ctx, "Worktree does not exist", "url", r.URL, "ref", ref)
-		return nil
+		return
 	}
 
 	path := p.(string)
@@ -295,7 +295,7 @@ func (r *Repo) RemoveWorktree(ctx context.Context, ref string) error {
 	}
 
 	r.worktrees.Delete(ref)
-	return nil
+	return
 }
 
 // GetTagDate returns the commit date for a git tag (works for both lightweight and annotated tags)

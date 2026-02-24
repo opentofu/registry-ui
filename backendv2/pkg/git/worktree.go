@@ -77,10 +77,7 @@ func (wm *WorktreeManager) Cleanup(ctx context.Context) error {
 		attribute.String("git.worktree_path", wm.worktreePath),
 	)
 
-	if err := wm.repo.RemoveWorktree(ctx, wm.tag); err != nil {
-		span.RecordError(err)
-		return fmt.Errorf("failed to remove worktree for tag %s: %w", wm.tag, err)
-	}
+	wm.repo.RemoveWorktree(ctx, wm.tag)
 
 	return nil
 }
