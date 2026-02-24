@@ -147,12 +147,6 @@ func (d *Detector) detectLicenseInDirectory(ctx context.Context, directory strin
 
 	span.SetAttributes(attribute.Int("license.detected_count", len(allMatches)))
 
-	// Group matches by license for logging (similar to old behavior)
-	licenseGroups := make(map[string][]licensedb.Match)
-	for _, match := range allMatches {
-		licenseGroups[match.License] = append(licenseGroups[match.License], match)
-	}
-
 	slog.DebugContext(ctx, "License detection completed", "detected_licenses_count", len(allMatches))
 	return allMatches, nil
 }
