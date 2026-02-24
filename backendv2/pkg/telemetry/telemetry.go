@@ -76,7 +76,7 @@ func SetupTelemetry(ctx context.Context, config config.TelemetryConfig) (context
 		),
 	)
 	if err != nil {
-		return ctx, nil, fmt.Errorf("failed to create resource: %w", err)
+		return ctx, func() {}, fmt.Errorf("failed to create resource: %w", err)
 	}
 
 	// Create OTLP grpc exporter using config
@@ -94,7 +94,7 @@ func SetupTelemetry(ctx context.Context, config config.TelemetryConfig) (context
 
 	exporter, err := otlptracegrpc.New(ctx, exporterOpts...)
 	if err != nil {
-		return ctx, nil, fmt.Errorf("failed to create OTLP exporter: %w", err)
+		return ctx, func() {}, fmt.Errorf("failed to create OTLP exporter: %w", err)
 	}
 
 	// Set up tracer provider with span limits to prevent oversized spans
@@ -130,7 +130,7 @@ func SetupTelemetry(ctx context.Context, config config.TelemetryConfig) (context
 
 		logExporter, err := otlploggrpc.New(ctx, logExporterOpts...)
 		if err != nil {
-			return ctx, nil, fmt.Errorf("failed to create OTLP log exporter: %w", err)
+			return ctx, func() {}, fmt.Errorf("failed to create OTLP log exporter: %w", err)
 		}
 
 		loggerProvider = sdklog.NewLoggerProvider(
