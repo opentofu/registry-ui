@@ -51,13 +51,14 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.sync_module")
+	defer span.End()
+
 	namespace := cmd.String("namespace")
 	name := cmd.String("name")
 	target := cmd.String("target")
 	specificVersion := cmd.String("version")
 
-	ctx, span := telemetry.Tracer().Start(ctx, "cmd.sync_module")
-	defer span.End()
 	span.SetAttributes(
 		attribute.String("module.namespace", namespace),
 		attribute.String("module.name", name),

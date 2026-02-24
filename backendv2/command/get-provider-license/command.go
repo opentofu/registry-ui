@@ -45,12 +45,13 @@ func NewCommand() *cli.Command {
 
 func run(ctx context.Context, cmd *cli.Command) error {
 	cfg := config.FromCLI(cmd)
+	ctx, span := telemetry.Tracer().Start(ctx, "cmd.get_provider_license")
+	defer span.End()
+
 	namespace := cmd.String("namespace")
 	name := cmd.String("name")
 	version := cmd.String("version")
 
-	ctx, span := telemetry.Tracer().Start(ctx, "cmd.get_provider_license")
-	defer span.End()
 	span.SetAttributes(
 		attribute.String("provider.namespace", namespace),
 		attribute.String("provider.name", name),
