@@ -255,6 +255,8 @@ func (r *Repo) AddWorktree(ctx context.Context, ref, path string) error {
 		span.RecordError(err)
 		// Don't add command output to span - can be very large and cause OTLP export failures
 		slog.ErrorContext(ctx, "Failed to create worktree", "url", r.URL, "ref", ref, "path", path, "output", string(output), "error", err)
+		// Clean up any partial directory left behind by the failed command
+		_ = os.RemoveAll(path)
 		return fmt.Errorf("failed to create worktree: %w", err)
 	}
 
