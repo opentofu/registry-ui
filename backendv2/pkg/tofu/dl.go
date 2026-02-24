@@ -17,6 +17,8 @@ import (
 )
 
 const (
+	// BinaryName is the expected filename for the tofu binary in the working directory.
+	BinaryName       = "tofu"
 	nightliesBaseURL = "https://nightlies.opentofu.org"
 	latestURL        = nightliesBaseURL + "/nightlies/latest.json"
 )

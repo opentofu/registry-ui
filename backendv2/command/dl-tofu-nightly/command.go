@@ -29,9 +29,9 @@ func run(ctx context.Context) error {
 	defer span.End()
 
 	// remove the file if it already exists
-	stat, err := os.Stat("./tofu")
+	stat, err := os.Stat(tofu.BinaryName)
 	if err == nil && !stat.IsDir() {
-		err = os.Remove("./tofu")
+		err = os.Remove(tofu.BinaryName)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
@@ -40,7 +40,7 @@ func run(ctx context.Context) error {
 		slog.InfoContext(ctx, "Removed existing tofu file")
 	}
 
-	err = tofu.DownloadLatestNightly(ctx, "./tofu")
+	err = tofu.DownloadLatestNightly(ctx, tofu.BinaryName)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

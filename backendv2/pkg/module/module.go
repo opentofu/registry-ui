@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/opentofu/registry-ui/pkg/config"
+	"github.com/opentofu/registry-ui/pkg/tofu"
 	"github.com/opentofu/registry-ui/pkg/git"
 	"github.com/opentofu/registry-ui/pkg/license"
 	"github.com/opentofu/registry-ui/pkg/registry"
@@ -61,7 +62,7 @@ func NewModuleReader(ctx context.Context, cfg *config.BackendConfig) (*Reader, e
 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
-	tofuPath := path.Join(cwd, "tofu")
+	tofuPath := path.Join(cwd, tofu.BinaryName)
 	stat, err := os.Stat(tofuPath)
 	if err != nil || stat.IsDir() {
 		return nil, fmt.Errorf("tofu binary not found in current directory: %w", err)
