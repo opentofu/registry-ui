@@ -318,7 +318,7 @@ func (g generator) generate(ctx context.Context, moduleList []module.Addr, block
 					ID:        ver.Version,
 					Published: publicationTime,
 				}
-				if err := g.generateModuleVersion(ctx, moduleAddr, *entry, modVersion, vcsVer); err != nil {
+				if err := g.generateModuleVersion(ctx, moduleAddr, *entry, modVersion, vcsVer, forceModule); err != nil {
 					var repoNotFound *vcs.RepositoryNotFoundError
 					if errors.As(err, &repoNotFound) {
 						g.log.Info(ctx, "The repository for the module %s has been removed from the VCS system, queueing removal from index.", moduleAddr.String())
@@ -431,7 +431,7 @@ func (g generator) removeModuleVersion(ctx context.Context, moduleAddr ModuleAdd
 	return nil
 }
 
-func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleAddr, entry Module, ver ModuleVersionDescriptor, vcsVersion vcs.VersionNumber) error {
+func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleAddr, entry Module, ver ModuleVersionDescriptor, vcsVersion vcs.VersionNumber, force bool) error {
 	g.log.Info(ctx, "Generating index artifacts for module %s version %s...", moduleAddr.String(), ver.ID)
 	indexPath := path.Join(moduleAddr.Namespace, moduleAddr.Name, moduleAddr.TargetSystem, string(ver.ID), "index.json")
 	result := ModuleVersion{
@@ -462,7 +462,30 @@ func (g generator) generateModuleVersion(ctx context.Context, moduleAddr ModuleA
 		}
 	} else {
 		if err := json.Unmarshal(contents, &result); err != nil {
-			return fmt.Errorf("module descriptor %s corrupt (%w)", indexPath, err)
+			if !force {
+				return fmt.Errorf("module index %s corrupt (%w)", indexPath, err)
+			}
+			g.log.Warn(ctx, "Module index %s corrupt, regenerating from scratch (%v)", indexPath, err)
+			result = ModuleVersion{
+				ModuleVersionDescriptor: ver,
+				Details: Details{
+					BaseDetails: BaseDetails{
+						Readme:      false,
+						Variables:   map[string]Variable{},
+						Outputs:     map[string]Output{},
+						SchemaError: "",
+					},
+					Providers:    []ProviderDependency{},
+					Dependencies: []ModuleDependency{},
+					Resources:    []Resource{},
+				},
+				VCSRepository:       "",
+				Licenses:            nil,
+				IncompatibleLicense: false,
+				Link:                "",
+				Examples:            map[string]Example{},
+				Submodules:          map[string]Submodule{},
+			}
 		}
 	}
 
