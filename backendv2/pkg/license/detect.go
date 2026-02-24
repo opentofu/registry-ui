@@ -17,29 +17,25 @@ import (
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
 
-type Detector interface {
-	Detect(ctx context.Context, directory string, repoURL string) (List, error)
-}
-
-type detector struct {
+type Detector struct {
 	config       config.LicenseConfig
 	licenseMap   map[string]struct{}
 	githubClient *repository.Client
 }
 
-func New(licenseConfig config.LicenseConfig, githubClient *repository.Client) (Detector, error) {
+func New(licenseConfig config.LicenseConfig, githubClient *repository.Client) (*Detector, error) {
 	licenseMap := map[string]struct{}{}
 	for _, license := range licenseConfig.CompatibleLicenses {
 		licenseMap[strings.ToLower(license)] = struct{}{}
 	}
-	return &detector{
+	return &Detector{
 		licenseMap:   licenseMap,
 		config:       licenseConfig,
 		githubClient: githubClient,
 	}, nil
 }
 
-func (d detector) Detect(ctx context.Context, directory string, repoURL string) (List, error) {
+func (d *Detector) Detect(ctx context.Context, directory string, repoURL string) (List, error) {
 	ctx, span := telemetry.Tracer().Start(ctx, "license.detect")
 	defer span.End()
 
@@ -110,7 +106,7 @@ func (d detector) Detect(ctx context.Context, directory string, repoURL string) 
 	return result, nil
 }
 
-func (d detector) detectLicenseInDirectory(ctx context.Context, directory string) ([]licensedb.Match, error) {
+func (d *Detector) detectLicenseInDirectory(ctx context.Context, directory string) ([]licensedb.Match, error) {
 	ctx, span := telemetry.Tracer().Start(ctx, "license.detect_in_directory")
 	defer span.End()
 
@@ -161,7 +157,7 @@ func (d detector) detectLicenseInDirectory(ctx context.Context, directory string
 	return allMatches, nil
 }
 
-func (d detector) buildLicenseFileMap(matches []licensedb.Match, repoURL string) map[string][]License {
+func (d *Detector) buildLicenseFileMap(matches []licensedb.Match, repoURL string) map[string][]License {
 	filesWithLicenses := make(map[string][]License)
 
 	for _, match := range matches {
@@ -186,7 +182,7 @@ func (d detector) buildLicenseFileMap(matches []licensedb.Match, repoURL string)
 	return filesWithLicenses
 }
 
-func (d detector) filterAndSortLicenseFiles(ctx context.Context, filesWithLicenses map[string][]License) []string {
+func (d *Detector) filterAndSortLicenseFiles(ctx context.Context, filesWithLicenses map[string][]License) []string {
 	var licenseFiles []string
 	for file := range filesWithLicenses {
 		if shouldIgnore, reason := shouldIgnoreLicenseFile(file); shouldIgnore {
@@ -232,7 +228,7 @@ func (d detector) filterAndSortLicenseFiles(ctx context.Context, filesWithLicens
 	return licenseFiles
 }
 
-func (d detector) collectResults(ctx context.Context, span trace.Span, licenseFiles []string, filesWithLicenses map[string][]License) []License {
+func (d *Detector) collectResults(ctx context.Context, span trace.Span, licenseFiles []string, filesWithLicenses map[string][]License) []License {
 	var result []License
 
 	// Iterate through sorted list of potential license files
