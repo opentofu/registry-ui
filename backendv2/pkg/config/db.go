@@ -67,10 +67,3 @@ func (c *DBConfig) GetConnection(ctx context.Context) (*pgx.Conn, error) {
 
 	return conn.Conn(), nil
 }
-
-func (c *DBConfig) Close() {
-	if c.pool != nil {
-		c.pool.Close()
-		c.pool = nil
-	}
-}
