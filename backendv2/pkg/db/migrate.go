@@ -1287,6 +1287,7 @@ func NewMigrateCommand() *cli.Command {
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
+					defer pool.Close()
 					return migrateUp(ctx, pool)
 				},
 			},
@@ -1299,6 +1300,7 @@ func NewMigrateCommand() *cli.Command {
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
+					defer pool.Close()
 					return migrateDown(ctx, pool)
 				},
 			},
@@ -1311,9 +1313,11 @@ func NewMigrateCommand() *cli.Command {
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
+					defer pool.Close()
 					if err := migrateDown(ctx, pool); err != nil {
 						return err
 					}
+
 					return migrateUp(ctx, pool)
 				},
 			},
@@ -1326,6 +1330,7 @@ func NewMigrateCommand() *cli.Command {
 					if err != nil {
 						return fmt.Errorf("failed to connect to database: %w", err)
 					}
+					defer pool.Close()
 					return showVersion(ctx, pool)
 				},
 			},
