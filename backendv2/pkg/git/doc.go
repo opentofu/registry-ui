@@ -15,7 +15,7 @@
 //   - Removing worktrees (RemoveWorktree)
 //   - Pruning stale worktrees
 //
-// The reason fo using this dual-approach is that go-git does not implement git worktree commands.
+// The reason for using this dual-approach is that go-git does not implement git worktree commands.
 //
 // # Why Not Pure go-git?
 //
