@@ -296,7 +296,6 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 	var responses []*IndexResponse
 	var responsesMu sync.Mutex
 	var failedVersions []string
-	var policySkippedVersions []string // Versions skipped due to license policy
 	var failedMu sync.Mutex
 
 	// Add responses for skipped versions (already exist)
@@ -399,46 +398,24 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 			// Pass the module data to avoid redundant file reads
 			response, err := r.IndexVersion(versionCtx, namespace, name, target, version, registryModule)
 			if err != nil {
-				// Check if this is a policy skip (license issue) or an actual failure
-				errMsg := err.Error()
-				isSkip := strings.Contains(errMsg, "module version skipped")
+				versionSpan.RecordError(err)
+				versionSpan.SetStatus(codes.Error, err.Error())
+				slog.WarnContext(versionCtx, "Failed to index version, storing as failed to prevent retry",
+					"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
+					"version", version, "error", err)
 
-				if isSkip {
-					// Policy-based skip (no license or incompatible license)
-					// These are now stored in the database by IndexVersion with status='skipped'
-					slog.WarnContext(versionCtx, "Skipped version due to license policy",
+				// Store failed version in database to prevent re-scraping
+				storeErr := r.storeFailedVersion(versionCtx, namespace, name, target, version, err.Error(), registryModule)
+				if storeErr != nil {
+					slog.ErrorContext(versionCtx, "Failed to store failed version record",
 						"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
-						"version", version, "reason", errMsg)
-					versionSpan.SetAttributes(attribute.Bool("module.version_skipped", true))
-
-					// Thread-safe append to skipped versions
-					failedMu.Lock()
-					policySkippedVersions = append(policySkippedVersions, version)
-					failedMu.Unlock()
-				} else {
-					// Actual technical failure - store in database with status='failed' to prevent retry
-					versionSpan.RecordError(err)
-					versionSpan.SetStatus(codes.Error, err.Error())
-					slog.WarnContext(versionCtx, "Failed to index version, storing as failed to prevent retry",
-						"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
-						"version", version, "error", err)
-
-					// Store failed version in database to prevent re-scraping
-					// Pass the module data to avoid redundant file reads
-					storeErr := r.storeFailedVersion(versionCtx, namespace, name, target, version, err.Error(), registryModule)
-					if storeErr != nil {
-						slog.ErrorContext(versionCtx, "Failed to store failed version record",
-							"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
-							"version", version, "error", storeErr)
-					}
-
-					// Thread-safe append to failed versions
-					failedMu.Lock()
-					failedVersions = append(failedVersions, version)
-					failedMu.Unlock()
+						"version", version, "error", storeErr)
 				}
 
-				// Create error response
+				failedMu.Lock()
+				failedVersions = append(failedVersions, version)
+				failedMu.Unlock()
+
 				response = &IndexResponse{
 					Namespace:    namespace,
 					Name:         name,
@@ -466,14 +443,7 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 		return nil, fmt.Errorf("errgroup failed: %w", err)
 	}
 
-	// Log skipped versions (policy-based)
-	if len(policySkippedVersions) > 0 {
-		slog.WarnContext(ctx, "Some versions skipped due to license policy",
-			"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
-			"skipped_versions", policySkippedVersions)
-	}
-
-	// Log failed versions (technical failures)
+	// Log failed versions
 	if len(failedVersions) > 0 {
 		slog.WarnContext(ctx, "Some versions failed to index",
 			"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
