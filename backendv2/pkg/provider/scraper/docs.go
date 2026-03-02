@@ -577,7 +577,7 @@ func (s *Scraper) uploadDocToS3(ctx context.Context, namespace, name, version, f
 	key := fmt.Sprintf("providers/%s/%s/%s/%s.md", namespace, name, version, filePath)
 
 	// Check if a document with the same checksum already exists (content-based deduplication)
-	docType := getDocCategory(filePath)
+	docType := storage.GetDocCategory(filePath)
 	language := extractLanguage(filePath)
 
 	if docType != "" && doc.md5Checksum != "" {
@@ -647,7 +647,7 @@ func (s *Scraper) buildProviderDocs(docs map[string]*DocItem) ProviderDocs {
 			Description: doc.Description,
 		}
 
-		category := getDocCategory(filePath)
+		category := storage.GetDocCategory(filePath)
 		if category == "index" {
 			result.Index = &docItem
 			continue
@@ -718,7 +718,7 @@ func (s *Scraper) buildCDKTFDocs(docs map[string]*DocItem) map[string]ProviderDo
 
 		// Categorize based on remaining path (everything after language) using unified categorization logic
 		remainingPath := strings.Join(parts[cdktfIndex+2:], "/")
-		category := getDocCategory(remainingPath)
+		category := storage.GetDocCategory(remainingPath)
 		if category == "index" {
 			langDocs.Index = &docItem
 		} else {

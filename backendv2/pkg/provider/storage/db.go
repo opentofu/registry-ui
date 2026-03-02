@@ -267,7 +267,7 @@ func StoreProviderDocuments(ctx context.Context, tx pgx.Tx, namespace, name, ver
 	batch := &pgx.Batch{}
 
 	for filePath, doc := range docs {
-		docType := getDocCategory(filePath)
+		docType := GetDocCategory(filePath)
 		if docType == "" {
 			slog.WarnContext(ctx, "Unknown document type, skipping database storage",
 				"filePath", filePath, "document_name", doc.Name)
@@ -320,9 +320,9 @@ func StoreProviderDocuments(ctx context.Context, tx pgx.Tx, namespace, name, ver
 	return nil
 }
 
-// getDocCategory determines the category of a document based on its file path
-// Returns the category name (resources, datasources, functions, guides, ephemeral, index) or empty string if no match
-func getDocCategory(filePath string) string {
+// GetDocCategory determines the category of a document based on its file path.
+// Returns the category name (resources, datasources, functions, guides, ephemeral, index) or empty string if no match.
+func GetDocCategory(filePath string) string {
 	if strings.Contains(filePath, "index") {
 		return "index"
 	}
