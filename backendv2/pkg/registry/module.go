@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"slices"
 	"sort"
 	"strings"
-	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 
@@ -23,32 +21,10 @@ type Module struct {
 	Versions    []string `json:"versions,omitempty"`
 }
 
-type ModuleVersion struct {
-	Namespace string    `json:"namespace"`
-	Name      string    `json:"name"`
-	Target    string    `json:"target"`
-	Version   string    `json:"version"`
-	Source    string    `json:"source,omitempty"`
-	Published time.Time `json:"published"`
-}
-
 type moduleJSON struct {
 	Versions []struct {
 		Version string `json:"version"`
 	} `json:"versions"`
-}
-
-func (m *Module) GetVersion(version string) *ModuleVersion {
-	if slices.Contains(m.Versions, version) {
-		return &ModuleVersion{
-			Namespace: m.Namespace,
-			Name:      m.Name,
-			Target:    m.Target,
-			Version:   version,
-			Source:    m.Source,
-		}
-	}
-	return nil
 }
 
 func (r *Client) ListModules(ctx context.Context, filter string) ([]Module, error) {
@@ -154,31 +130,6 @@ func (r *Client) ListModules(ctx context.Context, filter string) ([]Module, erro
 	return modules, nil
 }
 
-func (r *Client) ListModuleVersions(ctx context.Context, filter string) ([]ModuleVersion, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "registry.list_module_versions")
-	defer span.End()
-
-	span.SetAttributes(attribute.String("filter", filter))
-
-	modules, err := r.ListModules(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	var versions []ModuleVersion
-	for _, module := range modules {
-		moduleVersions, err := r.getModuleVersions(ctx, module.Namespace, module.Name, module.Target)
-		if err != nil {
-			continue
-		}
-		versions = append(versions, moduleVersions...)
-	}
-
-	span.SetAttributes()
-
-	return versions, nil
-}
-
 func (r *Client) GetModule(ctx context.Context, namespace, name, target string) (*Module, error) {
 	ctx, span := telemetry.Tracer().Start(ctx, "registry.get_module")
 	defer span.End()
@@ -221,50 +172,6 @@ func (r *Client) GetModule(ctx context.Context, namespace, name, target string) 
 	}
 
 	return module, nil
-}
-
-func (r *Client) GetModuleVersion(ctx context.Context, namespace, name, target, version string) (*ModuleVersion, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "registry.get_module_version")
-	defer span.End()
-
-	span.SetAttributes(attribute.String("namespace", namespace), attribute.String("name", name), attribute.String("target", target), attribute.String("version", version))
-
-	module, err := r.GetModule(ctx, namespace, name, target)
-	if err != nil {
-		return nil, err
-	}
-
-	if slices.Contains(module.Versions, version) {
-		return &ModuleVersion{
-			Namespace: namespace,
-			Name:      name,
-			Target:    target,
-			Version:   version,
-			Source:    module.Source,
-		}, nil
-	}
-
-	return nil, fmt.Errorf("version %s not found for module %s/%s/%s", version, namespace, name, target)
-}
-
-func (r *Client) getModuleVersions(ctx context.Context, namespace, name, target string) ([]ModuleVersion, error) {
-	module, err := r.GetModule(ctx, namespace, name, target)
-	if err != nil {
-		return nil, err
-	}
-
-	var versions []ModuleVersion
-	for _, v := range module.Versions {
-		versions = append(versions, ModuleVersion{
-			Namespace: namespace,
-			Name:      name,
-			Target:    target,
-			Version:   v,
-			Source:    module.Source,
-		})
-	}
-
-	return versions, nil
 }
 
 // matchesModuleFilter checks whether a module (namespace/name/target) matches the given filter parts.

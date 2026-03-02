@@ -95,68 +95,11 @@ type ProviderInfo struct {
 	RepoName         string
 }
 
-// GetProvider retrieves a provider from the database by namespace and name
-func GetProvider(ctx context.Context, pool *pgxpool.Pool, namespace, name string) (*ProviderInfo, error) {
-	query := `
-		SELECT namespace, name, repo_organisation, repo_name 
-		FROM providers 
-		WHERE namespace = $1 AND name = $2`
-
-	var provider ProviderInfo
-	err := pool.QueryRow(ctx, query, namespace, name).Scan(
-		&provider.Namespace,
-		&provider.Name,
-		&provider.RepoOrganisation,
-		&provider.RepoName,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get provider %s/%s: %w", namespace, name, err)
-	}
-
-	return &provider, nil
-}
-
-// ProviderVersionExists checks if a provider version already exists in the database
-func ProviderVersionExists(ctx context.Context, db interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-}, namespace, name, version string,
-) (bool, error) {
-	var exists bool
-	query := `SELECT EXISTS(SELECT 1 FROM provider_versions WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3)`
-
-	err := db.QueryRow(ctx, query, namespace, name, version).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("failed to check if provider version exists: %w", err)
-	}
-
-	return exists, nil
-}
-
 // ProviderVersionInfo represents information about a provider version
 type ProviderVersionInfo struct {
 	DocumentsCount int
 	LicensesCount  int
 	ProcessedAt    time.Time
-}
-
-// GetProviderVersionInfo retrieves information about an existing provider version
-func GetProviderVersionInfo(ctx context.Context, db interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-}, namespace, name, version string,
-) (*ProviderVersionInfo, error) {
-	var info ProviderVersionInfo
-	query := `SELECT updated_at FROM provider_versions WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`
-
-	err := db.QueryRow(ctx, query, namespace, name, version).Scan(&info.ProcessedAt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get provider version info: %w", err)
-	}
-
-	// Set counts to 0 since we don't track them in the schema
-	info.DocumentsCount = 0
-	info.LicensesCount = 0
-
-	return &info, nil
 }
 
 // GetExistingProviderVersions returns all versions that already exist in the database for a given provider
@@ -230,104 +173,6 @@ type ProviderVersionStatusInfo struct {
 	ErrorMessage    string
 	LastAttemptAt   *time.Time
 	LicenseAccepted bool
-}
-
-// GetSkippedProviderVersions returns all skipped versions for a given provider
-func GetSkippedProviderVersions(ctx context.Context, db interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-}, namespace, name string,
-) ([]ProviderVersionStatusInfo, error) {
-	query := `
-		SELECT version, scrape_status, skip_reason, error_message, last_attempt_at, license_accepted
-		FROM provider_versions
-		WHERE provider_namespace = $1
-		  AND provider_name = $2
-		  AND scrape_status = 'skipped'
-		ORDER BY version DESC`
-
-	rows, err := db.Query(ctx, query, namespace, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query skipped versions: %w", err)
-	}
-	defer rows.Close()
-
-	var versions []ProviderVersionStatusInfo
-	for rows.Next() {
-		var v ProviderVersionStatusInfo
-		var skipReason, errorMessage *string
-		var lastAttempt *time.Time
-
-		if err := rows.Scan(&v.Version, &v.ScrapeStatus, &skipReason, &errorMessage, &lastAttempt, &v.LicenseAccepted); err != nil {
-			return nil, fmt.Errorf("failed to scan version: %w", err)
-		}
-
-		if skipReason != nil {
-			v.SkipReason = *skipReason
-		}
-		if errorMessage != nil {
-			v.ErrorMessage = *errorMessage
-		}
-		if lastAttempt != nil {
-			v.LastAttemptAt = lastAttempt
-		}
-
-		versions = append(versions, v)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over versions: %w", err)
-	}
-
-	return versions, nil
-}
-
-// GetFailedProviderVersions returns all failed versions for a given provider
-func GetFailedProviderVersions(ctx context.Context, db interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-}, namespace, name string,
-) ([]ProviderVersionStatusInfo, error) {
-	query := `
-		SELECT version, scrape_status, skip_reason, error_message, last_attempt_at, license_accepted
-		FROM provider_versions
-		WHERE provider_namespace = $1
-		  AND provider_name = $2
-		  AND scrape_status = 'failed'
-		ORDER BY last_attempt_at DESC`
-
-	rows, err := db.Query(ctx, query, namespace, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query failed versions: %w", err)
-	}
-	defer rows.Close()
-
-	var versions []ProviderVersionStatusInfo
-	for rows.Next() {
-		var v ProviderVersionStatusInfo
-		var skipReason, errorMessage *string
-		var lastAttempt *time.Time
-
-		if err := rows.Scan(&v.Version, &v.ScrapeStatus, &skipReason, &errorMessage, &lastAttempt, &v.LicenseAccepted); err != nil {
-			return nil, fmt.Errorf("failed to scan version: %w", err)
-		}
-
-		if skipReason != nil {
-			v.SkipReason = *skipReason
-		}
-		if errorMessage != nil {
-			v.ErrorMessage = *errorMessage
-		}
-		if lastAttempt != nil {
-			v.LastAttemptAt = lastAttempt
-		}
-
-		versions = append(versions, v)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over versions: %w", err)
-	}
-
-	return versions, nil
 }
 
 // DocItem represents a documentation item for storage operations
