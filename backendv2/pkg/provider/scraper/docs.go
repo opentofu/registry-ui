@@ -651,26 +651,10 @@ func (s *Scraper) buildCDKTFDocs(docs map[string]*DocItem) map[string]ProviderDo
 
 	for filePath, doc := range docs {
 		// Only process CDKTF docs
-		if !strings.Contains(filePath, "cdktf/") {
+		language := extractLanguage(filePath)
+		if language == "default" {
 			continue
 		}
-
-		// Extract language from path - handle both `website/docs` and `docs` by iterating across all the parts and looking for `cdktf`
-		parts := strings.Split(filePath, "/")
-
-		cdktfIndex := -1
-		for i, part := range parts {
-			if part == "cdktf" {
-				cdktfIndex = i
-				break
-			}
-		}
-		// check if there's more of the path to actually parse
-		if cdktfIndex == -1 || len(parts) < cdktfIndex+2 {
-			continue
-		}
-
-		language := parts[cdktfIndex+1] // Language should come after "cdktf"
 
 		// Initialize language docs if not exists
 		if _, exists := result[language]; !exists {
@@ -689,8 +673,8 @@ func (s *Scraper) buildCDKTFDocs(docs map[string]*DocItem) map[string]ProviderDo
 			Description: doc.Description,
 		}
 
-		// Categorize based on remaining path (everything after language) using unified categorization logic
-		remainingPath := strings.Join(parts[cdktfIndex+2:], "/")
+		// Categorize based on remaining path (everything after cdktf/<language>/)
+		_, remainingPath, _ := strings.Cut(filePath, "cdktf/"+language+"/")
 		category := storage.GetDocCategory(remainingPath)
 		if category == "index" {
 			langDocs.Index = &docItem
