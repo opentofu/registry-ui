@@ -124,7 +124,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 
 	// Only process module data if license is acceptable
 	var collectedData *CollectedModuleData
-	var moduleData map[string]any
+	var moduleData *ModuleData
 	var indexChecksum, readmeChecksum string
 	if !shouldSkip {
 		// Build complete registryModule structure using parser (collects root, submodules, examples in parallel)
@@ -134,7 +134,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 			span.SetStatus(codes.Error, err.Error())
 			return nil, fmt.Errorf("failed to build complete registryModule data: %w", err)
 		}
-		moduleData = collectedData.ModuleMap
+		moduleData = &collectedData.ModuleData
 
 		// Store registryModule data in S3 and capture checksum
 		indexChecksum, err = storage.StoreModuleInS3(ctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, moduleData)
@@ -153,7 +153,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 		}
 	} else {
 		// Create minimal empty module data for skipped versions
-		moduleData = make(map[string]any)
+		moduleData = &ModuleData{}
 	}
 
 	// Start a database transaction for atomic operations
@@ -202,7 +202,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 		return nil, fmt.Errorf("failed to store registryModule version: %w", err)
 	}
 
-	// Only store submodules, examples, and licenses if not skipped
+	// Only store submodules and examples if not skipped
 	if !shouldSkip {
 		// Store submodules (data was already collected in buildCompleteModuleData)
 		err = r.storeSubmodulesWithTx(ctx, tx, namespace, name, target, version, workDir, collectedData.Submodules)
@@ -219,25 +219,15 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 			span.SetStatus(codes.Error, err.Error())
 			return nil, fmt.Errorf("failed to store examples: %w", err)
 		}
+	}
 
-		// Store license information in database (already detected earlier for validation)
-		if len(licenses) > 0 {
-			err = storage.StoreModuleVersionLicenses(ctx, tx, namespace, name, target, version, licenses)
-			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-				return nil, fmt.Errorf("failed to store module licenses: %w", err)
-			}
-		}
-	} else {
-		// For skipped versions, still store license info if available for audit trail
-		if len(licenses) > 0 {
-			err = storage.StoreModuleVersionLicenses(ctx, tx, namespace, name, target, version, licenses)
-			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-				return nil, fmt.Errorf("failed to store module licenses: %w", err)
-			}
+	// Store license information regardless of skip status
+	if len(licenses) > 0 {
+		err = storage.StoreModuleVersionLicenses(ctx, tx, namespace, name, target, version, licenses)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return nil, fmt.Errorf("failed to store module licenses: %w", err)
 		}
 	}
 
@@ -250,10 +240,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 	}
 
 	// Count licenses from registryModule data
-	licensesCount := 0
-	if licenseData, ok := moduleData["licenses"].([]any); ok {
-		licensesCount = len(licenseData)
-	}
+	licensesCount := len(moduleData.Licenses)
 
 	response = &IndexResponse{
 		Namespace:      namespace,
@@ -570,7 +557,7 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 
 // CollectedModuleData holds all collected module data for storage
 type CollectedModuleData struct {
-	ModuleMap  map[string]any
+	ModuleData ModuleData
 	Submodules map[string]SubmoduleData
 	Examples   map[string]ExampleData
 }
@@ -618,35 +605,11 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 		return nil, fmt.Errorf("failed to build complete module structure: %w", err)
 	}
 
-	// Convert typed struct to map for backward compatibility with storage layer
-	moduleMap, err := structToMap(completeStructure)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("failed to convert module data to map: %w", err)
-	}
-
 	return &CollectedModuleData{
-		ModuleMap:  moduleMap,
+		ModuleData: completeStructure,
 		Submodules: submodules,
 		Examples:   examples,
 	}, nil
-}
-
-// structToMap converts a struct to map[string]interface{} via JSON marshaling
-// This is used for backward compatibility with storage functions that expect maps
-func structToMap(v any) (map[string]any, error) {
-	data, err := json.Marshal(v)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal struct: %w", err)
-	}
-
-	var result map[string]any
-	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal to map: %w", err)
-	}
-
-	return result, nil
 }
 
 // runTofuShow executes tofu show -json -module=DIR and returns the parsed JSON
@@ -897,16 +860,8 @@ func (r *Reader) storeSubmodulesWithTx(ctx context.Context, tx pgx.Tx, namespace
 		g.Go(func() error {
 			submodulePath := filepath.Join("modules", submoduleName)
 
-			// Convert typed struct to map for storage
-			submoduleMap, err := structToMap(submoduleData)
-			if err != nil {
-				slog.WarnContext(gctx, "Failed to convert submodule data to map",
-					"submodule", submoduleName, "error", err)
-				return nil // Don't fail the entire process for one submodule
-			}
-
 			// Store submodule data in S3 and capture checksums
-			indexChecksum, readmeChecksum, err := storage.StoreModuleSubmoduleInS3(gctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, submoduleName, submoduleMap, workDir)
+			indexChecksum, readmeChecksum, err := storage.StoreModuleSubmoduleInS3(gctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, submoduleName, submoduleData, workDir)
 			if err != nil {
 				slog.ErrorContext(gctx, "Failed to store submodule in S3",
 					"submodule", submoduleName, "error", err)
@@ -914,7 +869,7 @@ func (r *Reader) storeSubmodulesWithTx(ctx context.Context, tx pgx.Tx, namespace
 			}
 
 			txMu.Lock()
-			err = storage.StoreModuleSubmodule(gctx, tx, namespace, name, target, version, submoduleName, submodulePath, submoduleMap, indexChecksum, readmeChecksum)
+			err = storage.StoreModuleSubmodule(gctx, tx, namespace, name, target, version, submoduleName, submodulePath, submoduleData, indexChecksum, readmeChecksum)
 			txMu.Unlock()
 			if err != nil {
 				slog.ErrorContext(gctx, "Failed to store submodule in database",
@@ -967,16 +922,8 @@ func (r *Reader) storeExamplesWithTx(ctx context.Context, tx pgx.Tx, namespace, 
 		g.Go(func() error {
 			examplePath := filepath.Join("examples", exampleName)
 
-			// Convert typed struct to map for storage
-			exampleMap, err := structToMap(exampleData)
-			if err != nil {
-				slog.WarnContext(gctx, "Failed to convert example data to map",
-					"example", exampleName, "error", err)
-				return nil // Don't fail the entire process for one example
-			}
-
 			// Store example data in S3 and capture checksums
-			indexChecksum, readmeChecksum, err := storage.StoreModuleExampleInS3(gctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, exampleName, exampleMap, workDir)
+			indexChecksum, readmeChecksum, err := storage.StoreModuleExampleInS3(gctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, exampleName, exampleData, workDir)
 			if err != nil {
 				slog.ErrorContext(gctx, "Failed to store example in S3",
 					"example", exampleName, "error", err)
@@ -984,7 +931,7 @@ func (r *Reader) storeExamplesWithTx(ctx context.Context, tx pgx.Tx, namespace, 
 			}
 
 			txMu.Lock()
-			err = storage.StoreModuleExample(gctx, tx, namespace, name, target, version, exampleName, examplePath, exampleMap, indexChecksum, readmeChecksum)
+			err = storage.StoreModuleExample(gctx, tx, namespace, name, target, version, exampleName, examplePath, exampleData, indexChecksum, readmeChecksum)
 			txMu.Unlock()
 			if err != nil {
 				slog.ErrorContext(gctx, "Failed to store example in database",
@@ -1039,8 +986,7 @@ func (r *Reader) storeFailedVersion(ctx context.Context, namespace, name, target
 	defer tx.Rollback(ctx)
 
 	// Store module version with status='failed' and error message (no checksums for failed versions)
-	emptyModuleData := make(map[string]any)
-	err = storage.StoreModuleVersion(ctx, tx, namespace, name, target, version, emptyModuleData, nil, "failed", "processing_error", errorMessage, "", "")
+	err = storage.StoreModuleVersion(ctx, tx, namespace, name, target, version, &ModuleData{}, nil, "failed", "processing_error", errorMessage, "", "")
 	if err != nil {
 		return fmt.Errorf("failed to store module version: %w", err)
 	}

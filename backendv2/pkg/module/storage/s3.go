@@ -20,7 +20,7 @@ import (
 )
 
 // StoreModuleInS3 stores module data in S3 and returns the MD5 checksum
-func StoreModuleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version string, moduleData map[string]interface{}) (string, error) {
+func StoreModuleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version string, moduleData any) (string, error) {
 	// Convert module data to JSON
 	jsonData, err := json.MarshalIndent(moduleData, "", "  ")
 	if err != nil {
@@ -43,7 +43,7 @@ func StoreModuleInS3(ctx context.Context, uploader *manager.Uploader, bucketName
 }
 
 // StoreModuleSubmoduleInS3 stores submodule data and README in S3, returns (indexChecksum, readmeChecksum, error)
-func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, submoduleName string, tofuJSON map[string]interface{}, workDir string) (string, string, error) {
+func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, submoduleName string, tofuJSON any, workDir string) (string, string, error) {
 	// Upload submodule index.json
 	jsonData, err := json.MarshalIndent(tofuJSON, "", "  ")
 	if err != nil {
@@ -80,7 +80,7 @@ func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, b
 }
 
 // StoreModuleExampleInS3 stores example data and README in S3, returns (indexChecksum, readmeChecksum, error)
-func StoreModuleExampleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, exampleName string, tofuJSON map[string]interface{}, workDir string) (string, string, error) {
+func StoreModuleExampleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, exampleName string, tofuJSON any, workDir string) (string, string, error) {
 	// Upload example index.json
 	jsonData, err := json.MarshalIndent(tofuJSON, "", "  ")
 	if err != nil {

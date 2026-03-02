@@ -56,7 +56,7 @@ func StoreRepository(ctx context.Context, db Queryable, organisation, name strin
 }
 
 // StoreModuleVersion stores module version information in the database
-func StoreModuleVersion(ctx context.Context, tx pgx.Tx, namespace, name, target, version string, tofuJSON map[string]interface{}, tagCreatedAt *time.Time, scrapeStatus, skipReason, errorMessage, indexChecksum, readmeChecksum string) error {
+func StoreModuleVersion(ctx context.Context, tx pgx.Tx, namespace, name, target, version string, tofuJSON any, tagCreatedAt *time.Time, scrapeStatus, skipReason, errorMessage, indexChecksum, readmeChecksum string) error {
 	// Convert the moduleData to JSON
 	jsonData, err := json.Marshal(tofuJSON)
 	if err != nil {
@@ -87,7 +87,7 @@ func StoreModuleVersion(ctx context.Context, tx pgx.Tx, namespace, name, target,
 }
 
 // StoreModuleSubmodule stores submodule information in the database
-func StoreModuleSubmodule(ctx context.Context, tx pgx.Tx, namespace, name, target, version, submoduleName, submodulePath string, tofuJSON map[string]interface{}, indexChecksum, readmeChecksum string) error {
+func StoreModuleSubmodule(ctx context.Context, tx pgx.Tx, namespace, name, target, version, submoduleName, submodulePath string, tofuJSON any, indexChecksum, readmeChecksum string) error {
 	// Convert the moduleData to JSON
 	jsonData, err := json.Marshal(tofuJSON)
 	if err != nil {
@@ -113,7 +113,7 @@ func StoreModuleSubmodule(ctx context.Context, tx pgx.Tx, namespace, name, targe
 }
 
 // StoreModuleExample stores example information in the database
-func StoreModuleExample(ctx context.Context, tx pgx.Tx, namespace, name, target, version, exampleName, examplePath string, tofuJSON map[string]interface{}, indexChecksum, readmeChecksum string) error {
+func StoreModuleExample(ctx context.Context, tx pgx.Tx, namespace, name, target, version, exampleName, examplePath string, tofuJSON any, indexChecksum, readmeChecksum string) error {
 	// Convert the moduleData to JSON
 	jsonData, err := json.Marshal(tofuJSON)
 	if err != nil {
