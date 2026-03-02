@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -74,7 +73,6 @@ type DocItem struct {
 	isError     bool
 }
 
-
 type Scraper struct {
 	config   *config.BackendConfig
 	s3Client *s3.Client
@@ -89,15 +87,6 @@ func New(cfg *config.BackendConfig, s3Client *s3.Client, pool *pgxpool.Pool) *Sc
 		uploader: manager.NewUploader(s3Client),
 		pool:     pool,
 	}
-}
-
-func (s *Scraper) ScrapeAndStore(ctx context.Context, namespace, name, version, directory string, licenses license.List, tx pgx.Tx) error {
-	docs, err := s.ScrapeDocumentation(ctx, namespace, name, version, directory)
-	if err != nil {
-		return err
-	}
-
-	return s.StoreDocs(ctx, namespace, name, version, docs, licenses, tx)
 }
 
 // StoreDocs uploads already-scraped documentation to S3 and stores metadata in the database.
@@ -480,7 +469,7 @@ func (s *Scraper) readDocFile(ctx context.Context, dir string, item fs.DirEntry,
 		contents = fmt.Appendf(nil, "# File Too Large\n\nThis file is too large to display. View it directly in the repository: %s/blob/%s/%s",
 			repoURL, version, fn)
 	} else {
-		contents, err = s.readFile(fsys, fn)
+		contents, err = fs.ReadFile(fsys, fn)
 		if err != nil {
 			return nil, err
 		}
@@ -506,21 +495,6 @@ func (s *Scraper) readDocFile(ctx context.Context, dir string, item fs.DirEntry,
 	doc.EditLink = fmt.Sprintf("%s/blob/v%s/%s", repoURL, version, fn)
 
 	return doc, nil
-}
-
-func (s *Scraper) readFile(fsys fs.ReadDirFS, fn string) ([]byte, error) {
-	fh, err := fsys.Open(fn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", fn, err)
-	}
-	defer fh.Close()
-
-	contents, err := io.ReadAll(fh)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", fn, err)
-	}
-
-	return contents, nil
 }
 
 // extractLanguage determines the language from a file path
@@ -555,7 +529,6 @@ func (s *Scraper) bulkUploadDocs(ctx context.Context, namespace, name, version s
 	}
 
 	for filePath, doc := range docs {
-		filePath, doc := filePath, doc
 		g.Go(func() error {
 			return s.uploadDocToS3(gctx, namespace, name, version, filePath, doc, existingChecksums)
 		})
