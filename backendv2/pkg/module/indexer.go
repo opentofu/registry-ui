@@ -549,6 +549,7 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 
 	// Collect root module, submodules, and examples in parallel
 	var rootModuleData *tofu.Config
+	var rootSchemaError string
 	var submodules map[string]SubmoduleData
 	var examples map[string]ExampleData
 	var rootErr, submodulesErr, examplesErr error
@@ -556,7 +557,7 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 	g, gctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		rootModuleData, _, rootErr = tofu.Show(gctx, workDir)
+		rootModuleData, rootSchemaError, rootErr = tofu.Show(gctx, workDir)
 		return rootErr
 	})
 
@@ -576,7 +577,7 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 		return nil, fmt.Errorf("failed to collect module data: %w", err)
 	}
 
-	completeStructure, err := parser.BuildCompleteModuleStructure(ctx, workDir, rootModuleData, submodules, examples, licenses)
+	completeStructure, err := parser.BuildCompleteModuleStructure(ctx, workDir, rootModuleData, rootSchemaError, submodules, examples, licenses)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -634,7 +635,7 @@ func (r *Reader) collectSubmodulesDataParallel(ctx context.Context, namespace, n
 			fullSubmodulePath := filepath.Join(workDir, "modules", submoduleName)
 
 			// Run tofu show on the submodule
-			tofuConfig, _, err := tofu.Show(gctx, fullSubmodulePath)
+			tofuConfig, schemaError, err := tofu.Show(gctx, fullSubmodulePath)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to run tofu show on submodule",
 					"submodule", submoduleName, "error", err)
@@ -643,7 +644,7 @@ func (r *Reader) collectSubmodulesDataParallel(ctx context.Context, namespace, n
 
 			// Create parser and transform the raw tofu config
 			parser := NewModuleParser(workDir, namespace, name, target, version, nil)
-			submoduleData, err := parser.BuildSubmoduleData(gctx, submoduleName, tofuConfig)
+			submoduleData, err := parser.BuildSubmoduleData(gctx, submoduleName, tofuConfig, schemaError)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to transform submodule data",
 					"submodule", submoduleName, "error", err)
@@ -716,7 +717,7 @@ func (r *Reader) collectExamplesDataParallel(ctx context.Context, namespace, nam
 			fullExamplePath := filepath.Join(workDir, "examples", exampleName)
 
 			// Run tofu show on the example
-			tofuConfig, _, err := tofu.Show(gctx, fullExamplePath)
+			tofuConfig, schemaError, err := tofu.Show(gctx, fullExamplePath)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to run tofu show on example",
 					"example", exampleName, "error", err)
@@ -725,7 +726,7 @@ func (r *Reader) collectExamplesDataParallel(ctx context.Context, namespace, nam
 
 			// Create parser and transform the raw tofu config
 			parser := NewModuleParser(workDir, namespace, name, target, version, nil)
-			exampleData, err := parser.BuildExampleData(gctx, exampleName, tofuConfig)
+			exampleData, err := parser.BuildExampleData(gctx, exampleName, tofuConfig, schemaError)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to transform example data",
 					"example", exampleName, "error", err)

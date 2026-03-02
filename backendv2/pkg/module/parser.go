@@ -36,13 +36,13 @@ func NewModuleParser(workDir, namespace, name, target, version string, published
 
 // BuildCompleteModuleStructure creates the complete module structure required by the registry API.
 // Submodules and examples should be pre-collected in parallel before calling this function.
-func (p *Parser) BuildCompleteModuleStructure(ctx context.Context, rootDir string, rootModuleData *tofu.Config, submodules map[string]SubmoduleData, examples map[string]ExampleData, licenses []license.License) (ModuleData, error) {
+func (p *Parser) BuildCompleteModuleStructure(ctx context.Context, rootDir string, rootModuleData *tofu.Config, rootSchemaError string, submodules map[string]SubmoduleData, examples map[string]ExampleData, licenses []license.License) (ModuleData, error) {
 	slog.DebugContext(ctx, "Building complete module structure",
 		"module", fmt.Sprintf("%s/%s/%s", p.namespace, p.name, p.target),
 		"version", p.version)
 
 	// Transform root module data
-	rootTransformed, err := p.transformTofuShowOutput(rootModuleData)
+	rootTransformed, err := p.transformTofuShowOutput(rootModuleData, rootSchemaError)
 	if err != nil {
 		return ModuleData{}, fmt.Errorf("failed to transform root module data: %w", err)
 	}
@@ -80,14 +80,14 @@ func (p *Parser) BuildCompleteModuleStructure(ctx context.Context, rootDir strin
 }
 
 // BuildSubmoduleData transforms submodule tofu config into storage format
-func (p *Parser) BuildSubmoduleData(ctx context.Context, submoduleName string, tofuConfig *tofu.Config) (SubmoduleData, error) {
+func (p *Parser) BuildSubmoduleData(ctx context.Context, submoduleName string, tofuConfig *tofu.Config, schemaError string) (SubmoduleData, error) {
 	slog.DebugContext(ctx, "Building submodule data structure",
 		"module", fmt.Sprintf("%s/%s/%s", p.namespace, p.name, p.target),
 		"version", p.version,
 		"submodule", submoduleName)
 
 	// Transform the raw tofu config
-	transformed, err := p.transformTofuShowOutput(tofuConfig)
+	transformed, err := p.transformTofuShowOutput(tofuConfig, schemaError)
 	if err != nil {
 		return SubmoduleData{}, fmt.Errorf("failed to transform submodule data: %w", err)
 	}
@@ -101,14 +101,14 @@ func (p *Parser) BuildSubmoduleData(ctx context.Context, submoduleName string, t
 }
 
 // BuildExampleData transforms example tofu config into storage format
-func (p *Parser) BuildExampleData(ctx context.Context, exampleName string, tofuConfig *tofu.Config) (ExampleData, error) {
+func (p *Parser) BuildExampleData(ctx context.Context, exampleName string, tofuConfig *tofu.Config, schemaError string) (ExampleData, error) {
 	slog.DebugContext(ctx, "Building example data structure",
 		"module", fmt.Sprintf("%s/%s/%s", p.namespace, p.name, p.target),
 		"version", p.version,
 		"example", exampleName)
 
 	// Transform the raw tofu config
-	transformed, err := p.transformTofuShowOutput(tofuConfig)
+	transformed, err := p.transformTofuShowOutput(tofuConfig, schemaError)
 	if err != nil {
 		return ExampleData{}, fmt.Errorf("failed to transform example data: %w", err)
 	}
@@ -118,7 +118,7 @@ func (p *Parser) BuildExampleData(ctx context.Context, exampleName string, tofuC
 		BaseComponentData: BaseComponentData{
 			Variables:   transformed.Variables,
 			Outputs:     transformed.Outputs,
-			SchemaError: "",
+			SchemaError: schemaError,
 			Readme:      hasReadme(filepath.Join(p.workDir, "examples", exampleName)),
 			EditLink:    p.buildExampleEditLink(exampleName),
 		},
@@ -128,8 +128,9 @@ func (p *Parser) BuildExampleData(ctx context.Context, exampleName string, tofuC
 	return exampleData, nil
 }
 
-// transformTofuShowOutput transforms the raw tofu show -json output to registry format
-func (p *Parser) transformTofuShowOutput(tofuData *tofu.Config) (ModuleComponentData, error) {
+// transformTofuShowOutput transforms the raw tofu show -json output to registry format.
+// schemaError is stderr from tofu show, stored for debugging parse issues.
+func (p *Parser) transformTofuShowOutput(tofuData *tofu.Config, schemaError string) (ModuleComponentData, error) {
 	// Transform variables
 	transformedVars := make(map[string]Variable)
 	for varName, varData := range tofuData.RootModule.Variables {
@@ -193,7 +194,7 @@ func (p *Parser) transformTofuShowOutput(tofuData *tofu.Config) (ModuleComponent
 		BaseComponentData: BaseComponentData{
 			Variables:   transformedVars,
 			Outputs:     transformedOutputs,
-			SchemaError: "",
+			SchemaError: schemaError,
 			Readme:      false, // Will be set by caller based on actual README existence
 			EditLink:    "",    // Will be set by caller
 		},

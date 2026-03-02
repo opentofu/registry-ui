@@ -41,6 +41,7 @@ func NewModuleReader(ctx context.Context, cfg *config.BackendConfig) (*Reader, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize database pool: %w", err)
 	}
+	defer db.Close()
 
 	// Initialize S3 client
 	s3Client, err := cfg.Bucket.GetClient(ctx)
