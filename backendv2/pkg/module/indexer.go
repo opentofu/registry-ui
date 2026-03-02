@@ -2,12 +2,9 @@ package module
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
-	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -578,7 +575,7 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 	g, gctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		rootModuleData, _, rootErr = r.runTofuShow(gctx, workDir)
+		rootModuleData, _, rootErr = tofu.Show(gctx, workDir)
 		return rootErr
 	})
 
@@ -610,64 +607,6 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 		Submodules: submodules,
 		Examples:   examples,
 	}, nil
-}
-
-// runTofuShow executes tofu show -json -module=DIR and returns the parsed JSON
-// Returns (config, stderr, error) - stderr is returned for callers to store in SchemaError if needed
-func (r *Reader) runTofuShow(ctx context.Context, moduleDir string) (*tofu.Config, string, error) {
-	ctx, span := telemetry.Tracer().Start(ctx, "module.run_tofu_show")
-	defer span.End()
-
-	span.SetAttributes(
-		attribute.String("module.dir", moduleDir),
-	)
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, "", fmt.Errorf("failed to get current working directory: %w", err)
-	}
-
-	// Execute `tofu show -json -module=moduleDir`
-	cmd := exec.CommandContext(ctx, path.Join(cwd, "tofu"), "show", "-json", "-module="+moduleDir)
-	cmd.Dir = moduleDir
-
-	slog.DebugContext(ctx, "Executing tofu show", "cmd", cmd.String(), "dir", moduleDir)
-
-	var stdout, stderr strings.Builder
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err = cmd.Run()
-
-	// Return stderr to caller for storage in SchemaError (don't log it to avoid large traces)
-	stderrStr := stderr.String()
-
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, stderrStr, fmt.Errorf("tofu show failed: %w", err)
-	}
-
-	output := stdout.String()
-	span.SetAttributes(
-		attribute.Int("tofu.output_size", len(output)),
-	)
-
-	// Parse the JSON output
-	var moduleData *tofu.Config
-	if err := json.Unmarshal([]byte(output), &moduleData); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, stderrStr, fmt.Errorf("failed to parse tofu JSON output: %w", err)
-	}
-
-	slog.DebugContext(ctx, "Successfully executed tofu show",
-		"dir", moduleDir,
-		"outputSize", len(output))
-
-	return moduleData, stderrStr, nil
 }
 
 // collectSubmodulesDataParallel collects submodule data in parallel using tofu show.
@@ -714,7 +653,7 @@ func (r *Reader) collectSubmodulesDataParallel(ctx context.Context, namespace, n
 			fullSubmodulePath := filepath.Join(workDir, "modules", submoduleName)
 
 			// Run tofu show on the submodule
-			tofuConfig, _, err := r.runTofuShow(gctx, fullSubmodulePath)
+			tofuConfig, _, err := tofu.Show(gctx, fullSubmodulePath)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to run tofu show on submodule",
 					"submodule", submoduleName, "error", err)
@@ -796,7 +735,7 @@ func (r *Reader) collectExamplesDataParallel(ctx context.Context, namespace, nam
 			fullExamplePath := filepath.Join(workDir, "examples", exampleName)
 
 			// Run tofu show on the example
-			tofuConfig, _, err := r.runTofuShow(gctx, fullExamplePath)
+			tofuConfig, _, err := tofu.Show(gctx, fullExamplePath)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to run tofu show on example",
 					"example", exampleName, "error", err)
