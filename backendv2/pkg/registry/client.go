@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 
-	"github.com/opentofu/registry-ui/pkg/telemetry"
+	"github.com/opentofu/registry-ui/pkg/git"
 )
 
 const registryURL = "https://github.com/opentofu/registry.git"
 
 type Client struct {
+	repo *git.Repo
 	path string
 }
 
@@ -23,80 +22,20 @@ func New(path string) (*Client, error) {
 		return nil, fmt.Errorf("repo path cannot be empty")
 	}
 
-	absPath, err := filepath.Abs(path)
+	repo, err := git.GetRepo(registryURL, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute path: %w", err)
+		return nil, fmt.Errorf("failed to create git repo: %w", err)
 	}
 
 	return &Client{
-		path: absPath,
+		repo: repo,
+		path: repo.LocalPath,
 	}, nil
 }
 
-func (r *Client) Clone(ctx context.Context) error {
-	// If .git directory exists, assume it's already cloned
-	if _, err := os.Stat(filepath.Join(r.path, ".git")); err == nil {
-		return nil
-	}
-
-	// If directory exists but no .git, remove it and start fresh
-	if _, err := os.Stat(r.path); err == nil {
-		// Directory exists but no valid .git, remove it completely
-		if err := os.RemoveAll(r.path); err != nil {
-			return fmt.Errorf("failed to remove existing directory: %w", err)
-		}
-	}
-
-	parentDir := filepath.Dir(r.path)
-	if err := os.MkdirAll(parentDir, 0o755); err != nil {
-		return fmt.Errorf("failed to create parent directory: %w", err)
-	}
-
-	cmd := exec.CommandContext(ctx, "git", "clone", "--depth", "1", registryURL, r.path)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to clone repository: %w\n%s", err, output)
-	}
-
-	return nil
-}
-
-// Update pulls the latest changes from the remote repository.
+// Update clones the registry repository if needed and pulls the latest changes.
 func (r *Client) Update(ctx context.Context) error {
-	ctx, span := telemetry.Tracer().Start(ctx, "registry.update")
-	defer span.End()
-
-	gitDir := filepath.Join(r.path, ".git")
-	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
-		return r.Clone(ctx)
-	}
-
-	resetCmd := exec.CommandContext(ctx, "git", "-C", r.path, "reset", "--hard", "HEAD")
-	if err := resetCmd.Run(); err != nil {
-		// If reset fails, remove and re-clone
-		os.RemoveAll(r.path)
-		return r.Clone(ctx)
-	}
-	span.AddEvent("git reset --hard HEAD completed")
-
-	// Ensure we're on main branch
-	checkoutCmd := exec.CommandContext(ctx, "git", "-C", r.path, "checkout", "main")
-	if err := checkoutCmd.Run(); err != nil {
-		// If checkout fails, remove and re-clone
-		os.RemoveAll(r.path)
-		return r.Clone(ctx)
-	}
-	span.AddEvent("git checkout main completed")
-
-	// Now pull latest changes
-	cmd := exec.CommandContext(ctx, "git", "-C", r.path, "pull", "--ff-only")
-	if err := cmd.Run(); err != nil {
-		// If pull fails, remove and re-clone
-		os.RemoveAll(r.path)
-		return r.Clone(ctx)
-	}
-	span.AddEvent("git pull --ff-only completed")
-
-	return nil
+	return r.repo.Update(ctx)
 }
 
 func parseFilter(filter string) []string {

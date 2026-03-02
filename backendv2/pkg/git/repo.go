@@ -154,6 +154,89 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 	return nil
 }
 
+// Update fetches the latest changes from origin and resets the working tree to origin/main.
+// If any step fails, it removes the local clone and starts fresh.
+func (r *Repo) Update(ctx context.Context) error {
+	ctx, span := telemetry.Tracer().Start(ctx, "git.update")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("git.url", r.URL),
+		attribute.String("git.local_path", r.LocalPath),
+	)
+
+	if err := r.EnsureCloned(ctx); err != nil {
+		return err
+	}
+
+	slog.DebugContext(ctx, "Updating repository", "url", r.URL, "path", r.LocalPath)
+
+	// Fetch latest from origin
+	err := r.repository.FetchContext(ctx, &git.FetchOptions{
+		RemoteName: "origin",
+	})
+	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+		slog.WarnContext(ctx, "Fetch failed, re-cloning", "url", r.URL, "error", err)
+		return r.recloneAndCheckout(ctx)
+	}
+	span.AddEvent("fetch completed")
+
+	w, err := r.repository.Worktree()
+	if err != nil {
+		slog.WarnContext(ctx, "Failed to get worktree, re-cloning", "url", r.URL, "error", err)
+		return r.recloneAndCheckout(ctx)
+	}
+
+	// Checkout main branch
+	err = w.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName("main"),
+		Force:  true,
+	})
+	if err != nil {
+		slog.WarnContext(ctx, "Checkout main failed, re-cloning", "url", r.URL, "error", err)
+		return r.recloneAndCheckout(ctx)
+	}
+	span.AddEvent("checkout main completed")
+
+	// Reset hard to origin/main
+	ref, err := r.repository.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+	if err != nil {
+		slog.WarnContext(ctx, "Failed to resolve origin/main, re-cloning", "url", r.URL, "error", err)
+		return r.recloneAndCheckout(ctx)
+	}
+
+	err = w.Reset(&git.ResetOptions{
+		Commit: ref.Hash(),
+		Mode:   git.HardReset,
+	})
+	if err != nil {
+		slog.WarnContext(ctx, "Reset failed, re-cloning", "url", r.URL, "error", err)
+		return r.recloneAndCheckout(ctx)
+	}
+	span.AddEvent("reset to origin/main completed")
+
+	slog.DebugContext(ctx, "Successfully updated repository", "url", r.URL, "path", r.LocalPath)
+	return nil
+}
+
+// recloneAndCheckout removes the local clone and re-clones with a working tree checkout of main.
+func (r *Repo) recloneAndCheckout(ctx context.Context) error {
+	os.RemoveAll(r.LocalPath)
+	r.repository = nil
+	if err := r.EnsureCloned(ctx); err != nil {
+		return err
+	}
+	// EnsureCloned uses NoCheckout, so populate the working tree
+	w, err := r.repository.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree after re-clone: %w", err)
+	}
+	return w.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName("main"),
+		Force:  true,
+	})
+}
+
 // FetchTags fetches all tags from the remote repository
 func (r *Repo) FetchTags(ctx context.Context) error {
 	ctx, span := telemetry.Tracer().Start(ctx, "git.fetch_tags")
