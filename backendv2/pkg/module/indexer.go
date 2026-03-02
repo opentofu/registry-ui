@@ -29,14 +29,9 @@ import (
 // IndexVersion indexes a specific version of a module
 // registryModule parameter must be provided by the caller to avoid redundant file reads
 // This will NOT check if the version already exists - caller must ensure this
-func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, version string, registryModule *registry.Module) (response *IndexResponse, err error) {
+func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, version string, registryModule *registry.Module) (*IndexResponse, error) {
 	ctx, span := telemetry.Tracer().Start(ctx, "module.index_version")
-	defer func() {
-		if err != nil {
-			span.SetStatus(codes.Error, err.Error())
-		}
-		span.End()
-	}()
+	defer span.End()
 
 	span.SetAttributes(
 		attribute.String("registryModule.namespace", namespace),
@@ -59,7 +54,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 	// Checkout the version for processing
 	var workDir string
 	var cleanup func()
-	workDir, cleanup, err = r.CheckoutVersionForScraping(ctx, namespace, name, target, version)
+	workDir, cleanup, err := r.CheckoutVersionForScraping(ctx, namespace, name, target, version)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -220,7 +215,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 	// Count licenses from registryModule data
 	licensesCount := len(moduleData.Licenses)
 
-	response = &IndexResponse{
+	response := &IndexResponse{
 		Namespace:      namespace,
 		Name:           name,
 		Target:         target,
