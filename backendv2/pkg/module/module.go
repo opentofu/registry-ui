@@ -15,12 +15,13 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/opentofu/registry-ui/pkg/config"
-	"github.com/opentofu/registry-ui/pkg/tofu"
 	"github.com/opentofu/registry-ui/pkg/git"
 	"github.com/opentofu/registry-ui/pkg/license"
+	"github.com/opentofu/registry-ui/pkg/module/storage"
 	"github.com/opentofu/registry-ui/pkg/registry"
 	"github.com/opentofu/registry-ui/pkg/repository"
 	"github.com/opentofu/registry-ui/pkg/telemetry"
+	"github.com/opentofu/registry-ui/pkg/tofu"
 )
 
 // Reader is the main entry point for all module operations
@@ -94,6 +95,18 @@ func (r *Reader) ScrapeVersion(ctx context.Context, module *registry.Module, ver
 		attribute.String("module.target", target),
 		attribute.String("module.version", version),
 	)
+
+	// Ensure repository and module records exist before indexing the version
+	repoOrganisation := namespace
+	repoName := fmt.Sprintf("terraform-%s-%s", target, name)
+
+	if err := storage.StoreRepository(ctx, r.db, repoOrganisation, repoName); err != nil {
+		return fmt.Errorf("failed to store repository: %w", err)
+	}
+
+	if err := storage.StoreModule(ctx, r.db, namespace, name, target, repoOrganisation, repoName); err != nil {
+		return fmt.Errorf("failed to store module: %w", err)
+	}
 
 	// Use the indexer to process the module version
 	_, err := r.IndexVersion(ctx, namespace, name, target, version, module)

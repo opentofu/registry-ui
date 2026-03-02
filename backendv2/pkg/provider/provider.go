@@ -15,6 +15,7 @@ import (
 	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/git"
 	"github.com/opentofu/registry-ui/pkg/license"
+	"github.com/opentofu/registry-ui/pkg/provider/storage"
 	"github.com/opentofu/registry-ui/pkg/registry"
 	"github.com/opentofu/registry-ui/pkg/repository"
 	"github.com/opentofu/registry-ui/pkg/telemetry"
@@ -59,6 +60,26 @@ func NewProviderReader(cfg *config.BackendConfig) (*ProviderReader, error) {
 		uploader:     uploader,
 		githubClient: githubClient,
 	}, nil
+}
+
+// EnsureParentRecords stores the repository and provider records in the database.
+// Must be called before IndexVersion when IndexVersion is called standalone
+// (IndexAllVersions handles this internally).
+func (p *ProviderReader) EnsureParentRecords(ctx context.Context, provider *registry.Provider) error {
+	namespace := provider.Namespace
+	name := provider.Name
+	repoOrg := namespace
+	repoName := fmt.Sprintf("terraform-provider-%s", name)
+
+	if err := storage.StoreRepository(ctx, p.db, repoOrg, repoName); err != nil {
+		return fmt.Errorf("failed to store repository: %w", err)
+	}
+
+	if err := storage.StoreProvider(ctx, p.db, namespace, name, repoOrg, repoName, provider.Warnings); err != nil {
+		return fmt.Errorf("failed to store provider: %w", err)
+	}
+
+	return nil
 }
 
 // ScrapeAllVersions scrapes all versions of a provider

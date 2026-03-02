@@ -102,6 +102,11 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Scrape the provider version(s)
 	if specificVersion != "" {
+		if err := providerReader.EnsureParentRecords(ctx, prov); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return err
+		}
 		_, err = providerReader.IndexVersion(ctx, prov, specificVersion)
 		if err != nil {
 			span.RecordError(err)

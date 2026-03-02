@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/exaring/otelpgx"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -52,18 +51,4 @@ func (c *DBConfig) GetPool(ctx context.Context) (*pgxpool.Pool, error) {
 
 	c.pool = pool
 	return pool, nil
-}
-
-func (c *DBConfig) GetConnection(ctx context.Context) (*pgx.Conn, error) {
-	pool, err := c.GetPool(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := pool.Acquire(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to acquire connection from pool: %w", err)
-	}
-
-	return conn.Conn(), nil
 }
