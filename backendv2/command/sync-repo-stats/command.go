@@ -67,7 +67,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	defer pool.Close()
 
 	// Create GitHub client
-	githubClient := repository.NewClient(&cfg.GitHub)
+	githubClient := repository.NewClient(ctx, &cfg.GitHub)
 
 	// Sync repository metadata directly using org/repo name
 	err = repository.SyncRepositoryMetadata(ctx, pool, githubClient, org, repoName)

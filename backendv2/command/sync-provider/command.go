@@ -92,7 +92,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Create provider reader
-	providerReader, err := provider.NewProviderReader(cfg)
+	providerReader, err := provider.NewProviderReader(ctx, cfg)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

@@ -43,7 +43,7 @@ func NewModuleReader(ctx context.Context, cfg *config.BackendConfig) (*Reader, e
 	}
 
 	// Initialize S3 client
-	s3Client, err := cfg.Bucket.GetClient(context.Background())
+	s3Client, err := cfg.Bucket.GetClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize S3 client: %w", err)
 	}
@@ -54,7 +54,7 @@ func NewModuleReader(ctx context.Context, cfg *config.BackendConfig) (*Reader, e
 	// Initialize GitHub client if configured
 	var githubClient *repository.Client
 	if cfg.GitHub.Token != "" {
-		githubClient = repository.NewClient(&cfg.GitHub)
+		githubClient = repository.NewClient(ctx, &cfg.GitHub)
 	}
 
 	// Ensure the tofu binary exists

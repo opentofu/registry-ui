@@ -31,15 +31,15 @@ type ProviderReader struct {
 }
 
 // NewProviderReader creates a new ProviderReader with all dependencies initialized
-func NewProviderReader(cfg *config.BackendConfig) (*ProviderReader, error) {
+func NewProviderReader(ctx context.Context, cfg *config.BackendConfig) (*ProviderReader, error) {
 	// Initialize database pool
-	db, err := cfg.DB.GetPool(context.Background())
+	db, err := cfg.DB.GetPool(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize database pool: %w", err)
 	}
 
 	// Initialize S3 client
-	s3Client, err := cfg.Bucket.GetClient(context.Background())
+	s3Client, err := cfg.Bucket.GetClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize S3 client: %w", err)
 	}
@@ -50,7 +50,7 @@ func NewProviderReader(cfg *config.BackendConfig) (*ProviderReader, error) {
 	// Initialize GitHub client if configured
 	var githubClient *repository.Client
 	if cfg.GitHub.Token != "" {
-		githubClient = repository.NewClient(&cfg.GitHub)
+		githubClient = repository.NewClient(ctx, &cfg.GitHub)
 	}
 
 	return &ProviderReader{

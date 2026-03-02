@@ -18,11 +18,11 @@ type Client struct {
 	config *config.GitHubConfig
 }
 
-func NewClient(cfg *config.GitHubConfig) *Client {
+func NewClient(ctx context.Context, cfg *config.GitHubConfig) *Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: cfg.Token},
 	)
-	tc := oauth2.NewClient(context.Background(), ts)
+	tc := oauth2.NewClient(ctx, ts)
 
 	return &Client{
 		client: github.NewClient(tc),

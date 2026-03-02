@@ -62,7 +62,7 @@ func SetupTelemetry(ctx context.Context, config config.TelemetryConfig) (context
 		serviceName = config.ServiceName
 	}
 
-	otelResource, err := resource.New(context.Background(),
+	otelResource, err := resource.New(ctx,
 		resource.WithOS(),
 		resource.WithHost(),
 		resource.WithProcess(),
