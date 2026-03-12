@@ -35,13 +35,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer body.Close()
+	defer func() { _ = body.Close() }()
 
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mostRecentJob, err := getMostRecentJob(db)
 	if err != nil {
@@ -102,13 +102,14 @@ func main() {
 		toDelete := make([]SearchIndexItem, 0, batchSize)
 
 		for _, item := range batchItems {
-			if item.Type == "add" {
+			switch item.Type {
+			case "add":
 				toInsert = append(toInsert, item)
 				handled++
-			} else if item.Type == "delete" {
+			case "delete":
 				toDelete = append(toDelete, item)
 				handled++
-			} else {
+			default:
 				log.Printf("Skipping unknown item type: %s\n", item.Type)
 			}
 		}
@@ -187,7 +188,7 @@ func getMostRecentJob(db *sql.DB) (*ImportJob, error) {
 		log.Fatal(err)
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var id int
 	var createdAt sql.NullTime
@@ -239,7 +240,7 @@ func downloadSearchMetaIndex() (io.ReadCloser, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return nil, fmt.Errorf("failed to download search index: %s", resp.Status)
 	}
 
