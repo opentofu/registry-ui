@@ -31,7 +31,7 @@ export function ModulesCardItem({
         {addr.namespace}/{addr.name}
       </CardItemTitle>
 
-      <Paragraph className="mb-4 mt-2">{description}</Paragraph>
+      <Paragraph className="mt-2 mb-4">{description}</Paragraph>
 
       <CardItemFooter>
         <CardItemFooterDetail label="Latest version">
@@ -48,9 +48,9 @@ export function ModulesCardItem({
 export function ModulesCardItemSkeleton() {
   return (
     <CardItem>
-      <span className="flex h-em w-48 animate-pulse bg-gray-500/25 text-xl" />
+      <span className="h-em flex w-48 animate-pulse bg-gray-500/25 text-xl" />
 
-      <span className="mb-7 mt-5 flex h-em w-96 animate-pulse bg-gray-500/25" />
+      <span className="h-em mt-5 mb-7 flex w-96 animate-pulse bg-gray-500/25" />
 
       <CardItemFooter>
         <CardItemFooterDetailSkeleton />

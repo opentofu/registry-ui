@@ -8,7 +8,7 @@ export function HeadingLink({ id, label }: HeadingLinkProps) {
     <a
       href={`#${id}`}
       aria-label={`Direct link to ${label}`}
-      className="ml-2 hidden text-brand-600 hover:underline hover:underline-offset-2 group-hover:inline"
+      className="text-brand-600 ml-2 hidden group-hover:inline hover:underline hover:underline-offset-2"
     >
       #
     </a>

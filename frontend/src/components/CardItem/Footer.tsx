@@ -35,8 +35,8 @@ export function CardItemFooterDetail({
 export function CardItemFooterDetailSkeleton() {
   return (
     <div className="flex w-52 gap-2">
-      <span className="flex h-em w-28 animate-pulse bg-gray-500/25" />
-      <span className="flex h-em w-10 animate-pulse bg-gray-500/25" />
+      <span className="h-em flex w-28 animate-pulse bg-gray-500/25" />
+      <span className="h-em flex w-10 animate-pulse bg-gray-500/25" />
     </div>
   );
 }

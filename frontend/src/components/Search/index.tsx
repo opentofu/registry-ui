@@ -216,7 +216,7 @@ export function Search({
           path={search}
           className={clsx(
             "absolute z-10 text-gray-600",
-            size === "small" ? "left-2 top-2 size-5" : "left-3 top-3 size-6",
+            size === "small" ? "top-2 left-2 size-5" : "top-3 left-3 size-6",
           )}
         />
         <ComboboxInput
@@ -226,7 +226,7 @@ export function Search({
           onKeyDown={(event) => onKeyDown(event, canShowLoadingInfo)}
           placeholder={placeholder}
           className={clsx(
-            "relative block w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-hidden dark:bg-gray-800",
+            "focus:border-brand-700 relative block w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:outline-hidden dark:bg-gray-800",
             size === "small" ? "h-9 pl-8" : "h-12 pl-10",
           )}
         />
@@ -245,7 +245,7 @@ export function Search({
                     <ComboboxOption
                       key={result.id}
                       value={result}
-                      className="cursor-pointer px-4 py-2 data-focus:bg-brand-500 data-focus:text-inherit dark:data-focus:bg-brand-800"
+                      className="data-focus:bg-brand-500 dark:data-focus:bg-brand-800 cursor-pointer px-4 py-2 data-focus:text-inherit"
                       as="div"
                     >
                       {(item.type === SearchResultType.Provider ||

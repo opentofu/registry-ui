@@ -41,10 +41,10 @@ export function Home() {
             d="m73.68 232.66-.02.2-30.06-15.82v-.2c.7-9.35 8-13.4 16.3-9.03 8.3 4.37 14.48 15.5 13.78 24.85ZM121 259.98l-.02.2-30.07-15.82.02-.2c.7-9.35 7.99-13.4 16.3-9.03 8.3 4.37 14.46 15.5 13.77 24.85Z"
           />
         </svg>
-        <h2 className="mt-5 max-w-4xl text-balance text-6xl font-bold leading-tight">
+        <h2 className="mt-5 max-w-4xl text-6xl leading-tight font-bold text-balance">
           Documentation for OpenTofu Providers and Modules
         </h2>
-        <Paragraph className="mb-7 mt-5 text-balance">
+        <Paragraph className="mt-5 mb-7 text-balance">
           This technology preview contains documentation for a select few
           providers, namespaces, and modules in the OpenTofu registry.
           <br />
