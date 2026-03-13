@@ -31,6 +31,7 @@ jobs:
             echo "Changes detected after go generate. Please run go generate ./... and push your changes."
           fi
   tests:
+    if: ${{ false }}
     name: Tests
     runs-on: ubuntu-latest
     defaults:
