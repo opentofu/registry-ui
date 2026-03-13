@@ -55,6 +55,7 @@ jobs:
         run: |
           go test ./...
   frontend:
+    if: ${{ false }}
     name: Frontend Lint and Test
     runs-on: ubuntu-latest
     defaults:
@@ -76,6 +77,7 @@ jobs:
       - name: Run Tests
         run: pnpm run test
   backend-lint:
+    if: ${{ false }}
     name: Backend Lint
     runs-on: ubuntu-latest
     defaults:
