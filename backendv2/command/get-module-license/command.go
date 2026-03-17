@@ -69,7 +69,15 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		"namespace", namespace, "name", name, "target", target, "version", version)
 
 	// Create module reader
-	moduleReader, err := module.NewModuleReader(ctx, cfg)
+	pool, err := cfg.DB.GetPool(ctx)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return fmt.Errorf("failed to initialize database pool: %w", err)
+	}
+	defer pool.Close()
+
+	moduleReader, err := module.NewModuleReader(ctx, cfg, pool)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

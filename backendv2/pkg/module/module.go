@@ -35,14 +35,7 @@ type Reader struct {
 }
 
 // NewModuleReader creates a new Reader with all dependencies initialized
-func NewModuleReader(ctx context.Context, cfg *config.BackendConfig) (*Reader, error) {
-	// Initialize database pool
-	db, err := cfg.DB.GetPool(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database pool: %w", err)
-	}
-	defer db.Close()
-
+func NewModuleReader(ctx context.Context, cfg *config.BackendConfig, db *pgxpool.Pool) (*Reader, error) {
 	// Initialize S3 client
 	s3Client, err := cfg.Bucket.GetClient(ctx)
 	if err != nil {

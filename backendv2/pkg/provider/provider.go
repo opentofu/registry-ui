@@ -31,14 +31,7 @@ type ProviderReader struct {
 }
 
 // NewProviderReader creates a new ProviderReader with all dependencies initialized
-func NewProviderReader(ctx context.Context, cfg *config.BackendConfig) (*ProviderReader, error) {
-	// Initialize database pool
-	db, err := cfg.DB.GetPool(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database pool: %w", err)
-	}
-	defer db.Close()
-
+func NewProviderReader(ctx context.Context, cfg *config.BackendConfig, db *pgxpool.Pool) (*ProviderReader, error) {
 	// Initialize S3 client
 	s3Client, err := cfg.Bucket.GetClient(ctx)
 	if err != nil {

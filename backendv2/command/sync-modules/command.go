@@ -70,7 +70,15 @@ func run(ctx context.Context, cmd *cli.Command) error {
 			"filter", filter)
 	}
 
-	moduleReader, err := module.NewModuleReader(ctx, cfg)
+	pool, err := cfg.DB.GetPool(ctx)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return fmt.Errorf("failed to initialize database pool: %w", err)
+	}
+	defer pool.Close()
+
+	moduleReader, err := module.NewModuleReader(ctx, cfg, pool)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
