@@ -1271,6 +1271,41 @@ COMMENT ON FUNCTION safe_to_semver(TEXT) IS 'Normalizes version strings (strips 
 		Down: `
 DROP FUNCTION IF EXISTS safe_to_semver(TEXT);`,
 	},
+	{
+		ID:          33,
+		Name:        "add_is_selected_to_license_tables",
+		Description: "Add is_selected flag to provider_version_licenses and module_version_licenses to distinguish authoritative license detections from lower-confidence candidates. Allows storing all detected candidates above base threshold while preserving current selection semantics.",
+		Up: `
+-- Add is_selected to provider_version_licenses
+-- Default true so existing rows (stored under early-exit logic) remain authoritative
+ALTER TABLE provider_version_licenses
+	ADD COLUMN IF NOT EXISTS is_selected BOOLEAN NOT NULL DEFAULT true;
+
+-- Add is_selected to module_version_licenses
+ALTER TABLE module_version_licenses
+	ADD COLUMN IF NOT EXISTS is_selected BOOLEAN NOT NULL DEFAULT true;
+
+-- Index for efficient filtering of selected licenses per provider version
+CREATE INDEX IF NOT EXISTS idx_pvl_is_selected
+	ON provider_version_licenses(provider_namespace, provider_name, version, is_selected);
+
+-- Index for efficient filtering of selected licenses per module version
+CREATE INDEX IF NOT EXISTS idx_mvl_is_selected
+	ON module_version_licenses(module_namespace, module_name, module_target, version, is_selected);
+
+COMMENT ON COLUMN provider_version_licenses.is_selected IS 'True if this license was selected as authoritative under the confidence override threshold logic; false for lower-confidence candidates stored for auditing purposes';
+COMMENT ON COLUMN module_version_licenses.is_selected IS 'True if this license was selected as authoritative under the confidence override threshold logic; false for lower-confidence candidates stored for auditing purposes';`,
+		Down: `
+-- Remove indexes before dropping columns
+DROP INDEX IF EXISTS idx_pvl_is_selected;
+DROP INDEX IF EXISTS idx_mvl_is_selected;
+
+-- Remove is_selected columns
+ALTER TABLE provider_version_licenses
+	DROP COLUMN IF EXISTS is_selected;
+ALTER TABLE module_version_licenses
+	DROP COLUMN IF EXISTS is_selected;`,
+	},
 }
 
 func NewMigrateCommand() *cli.Command {

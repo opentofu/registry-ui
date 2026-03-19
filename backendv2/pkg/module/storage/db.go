@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/license"
 )
 
@@ -138,58 +139,67 @@ func StoreModuleExample(ctx context.Context, tx pgx.Tx, namespace, name, target,
 	return nil
 }
 
-// StoreModuleVersionLicenses stores detailed license information for a module version
-func StoreModuleVersionLicenses(ctx context.Context, tx pgx.Tx, namespace, name, target, version string, licenses license.List) error {
-	// First ensure all licenses exist in the licenses table
-	for _, lic := range licenses {
-		licenseQuery := `
-			INSERT INTO licenses (spdx_id, name, category, redistributable, url)
-			VALUES ($1, $2, $3, $4, $5)
-			ON CONFLICT (spdx_id) DO NOTHING`
-
-		// Determine if license is redistributable (compatible)
-		redistributable := lic.IsCompatible
-
-		// Use SPDX ID as name if no specific name available
-		licenseName := lic.SPDX
-		if licenseName == "" {
-			licenseName = "Unknown"
-		}
-
-		_, err := tx.Exec(ctx, licenseQuery, lic.SPDX, licenseName, "detected", redistributable, "")
-		if err != nil {
-			return fmt.Errorf("failed to ensure license %s exists: %w", lic.SPDX, err)
-		}
-	}
-
+// StoreModuleVersionLicenses stores all detected license candidates for a module version.
+// is_selected is set to true only for the authoritative license(s) as determined by
+// baseThreshold and overrideThreshold (see license.List.Selected).
+func StoreModuleVersionLicenses(ctx context.Context, tx pgx.Tx, namespace, name, target, version string, licenses license.List, cfg config.LicenseConfig) error {
 	// Delete existing licenses for this module version
-	deleteQuery := `
-		DELETE FROM module_version_licenses 
-		WHERE module_namespace = $1 AND module_name = $2 AND module_target = $3 AND version = $4`
-
-	_, err := tx.Exec(ctx, deleteQuery, namespace, name, target, version)
+	_, err := tx.Exec(ctx, `
+		DELETE FROM module_version_licenses
+		WHERE module_namespace = $1 AND module_name = $2 AND module_target = $3 AND version = $4`,
+		namespace, name, target, version)
 	if err != nil {
 		return fmt.Errorf("failed to delete existing module licenses: %w", err)
 	}
 
-	// Insert new licenses
-	insertQuery := `
-		INSERT INTO module_version_licenses (
-			module_namespace, module_name, module_target, version, 
-			license_spdx_id, confidence_score, file_path, match_type
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	if len(licenses) == 0 {
+		return nil
+	}
+
+	// Build a set of selected licenses keyed by (spdx_id, file_path) — matching the unique constraint
+	type licenseKey struct{ spdx, file string }
+	selected := licenses.Selected(cfg)
+	selectedSet := make(map[licenseKey]struct{}, len(selected))
+	for _, lic := range selected {
+		selectedSet[licenseKey{lic.SPDX, lic.File}] = struct{}{}
+	}
+
+	batch := &pgx.Batch{}
 
 	for _, lic := range licenses {
+		licenseName := lic.SPDX
+		if licenseName == "" {
+			licenseName = "Unknown"
+		}
 		matchType := "detected"
 		if lic.IsCompatible {
 			matchType = "compatible"
 		}
+		_, isSelected := selectedSet[licenseKey{lic.SPDX, lic.File}]
 
-		_, err = tx.Exec(ctx, insertQuery,
+		// Ensure we insert the licenses first
+		batch.Queue(`
+			INSERT INTO licenses (spdx_id, name, category, redistributable, url)
+			VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT (spdx_id) DO NOTHING`,
+			lic.SPDX, licenseName, "detected", lic.IsCompatible, "")
+
+		// Then store the module_version_licenses record linking to the license
+		batch.Queue(`
+			INSERT INTO module_version_licenses (
+				module_namespace, module_name, module_target, version,
+				license_spdx_id, confidence_score, file_path, match_type, is_selected
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 			namespace, name, target, version,
-			lic.SPDX, float64(lic.Confidence), lic.File, matchType)
-		if err != nil {
-			return fmt.Errorf("failed to insert module license %s: %w", lic.SPDX, err)
+			lic.SPDX, float64(lic.Confidence), lic.File, matchType, isSelected)
+	}
+
+	results := tx.SendBatch(ctx, batch)
+	defer results.Close()
+
+	for range batch.Len() {
+		if _, err := results.Exec(); err != nil {
+			return fmt.Errorf("failed to store module license: %w", err)
 		}
 	}
 

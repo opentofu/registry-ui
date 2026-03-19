@@ -86,11 +86,11 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 			attribute.String("module.skip_reason", "no_license"),
 			attribute.Bool("module.version_skipped", true),
 		)
-	} else if licenses.HasIncompatible() {
+	} else if selected := licenses.Selected(r.config.License); selected.HasIncompatible() {
 		// Validate licenses - mark for skip if incompatible licenses found
 		shouldSkip = true
 		skipReason = "incompatible_license"
-		incompatibleList := licenses.String()
+		incompatibleList := selected.String()
 		slog.WarnContext(ctx, "Module has incompatible license(s), will store with skipped status",
 			"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
 			"version", version,
@@ -196,7 +196,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 
 	// Store license information regardless of skip status
 	if len(licenses) > 0 {
-		err = storage.StoreModuleVersionLicenses(ctx, tx, namespace, name, target, version, licenses)
+		err = storage.StoreModuleVersionLicenses(ctx, tx, namespace, name, target, version, licenses, r.config.License)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())

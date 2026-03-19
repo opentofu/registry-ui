@@ -146,15 +146,16 @@ func (d *Detector) buildLicenseFileMap(matches []licensedb.Match, repoURL string
 
 		_, isCompatible := d.licenseMap[strings.ToLower(match.License)]
 
-		if match.Confidence >= d.config.ConfidenceThreshold {
-			filesWithLicenses[match.File] = append(filesWithLicenses[match.File], License{
-				SPDX:         match.License,
-				Confidence:   match.Confidence,
-				IsCompatible: isCompatible,
-				File:         match.File,
-				Link:         generateGitHubLink(repoURL, match.File),
-			})
-		}
+		// Store all detected licenses regardless of confidence so the full detection
+		// picture is available for auditing. Threshold filtering is handled at query time
+		// via the is_selected flag set during storage.
+		filesWithLicenses[match.File] = append(filesWithLicenses[match.File], License{
+			SPDX:         match.License,
+			Confidence:   match.Confidence,
+			IsCompatible: isCompatible,
+			File:         match.File,
+			Link:         generateGitHubLink(repoURL, match.File),
+		})
 	}
 
 	return filesWithLicenses
@@ -209,23 +210,17 @@ func (d *Detector) filterAndSortLicenseFiles(ctx context.Context, filesWithLicen
 func (d *Detector) collectResults(ctx context.Context, span trace.Span, licenseFiles []string, filesWithLicenses map[string][]License) []License {
 	var result []License
 
-	// Iterate through sorted list of potential license files
+	// Iterate through sorted list of potential license files, collecting all candidates.
+	// Selection of the authoritative license (via ConfidenceOverrideThreshold) is deferred to the storage layer
+	// so that all candidates are persisted in case we need them in the future.
 	for _, file := range licenseFiles {
 		for _, l := range filesWithLicenses[file] {
-			// Exit early (keeping in mind the sort order above)
-			if l.Confidence >= d.config.ConfidenceOverrideThreshold {
-				span.SetAttributes(
-					attribute.String("license.early_return_spdx", l.SPDX),
-					attribute.Float64("license.early_return_confidence", float64(l.Confidence)),
-					attribute.String("license.early_return_file", l.File),
-				)
-				slog.InfoContext(ctx, "High-confidence license found, returning early",
-					"license", l.SPDX, "confidence", l.Confidence, "file", l.File)
-				return []License{l}
-			}
 			result = append(result, l)
 		}
 	}
+
+	span.SetAttributes(attribute.Int("license.candidate_count", len(result)))
+	slog.DebugContext(ctx, "Collected license candidates", "count", len(result))
 
 	return result
 }

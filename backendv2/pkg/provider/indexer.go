@@ -89,9 +89,9 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 			attribute.String("provider.skip_reason", "no_license"),
 			attribute.Bool("provider.docs_skipped", true),
 		)
-	} else if licenses.HasIncompatible() {
+	} else if selected := licenses.Selected(p.config.License); selected.HasIncompatible() {
 		licenseAccepted = false
-		incompatibleList := licenses.String()
+		incompatibleList := selected.String()
 		slog.WarnContext(ctx, "Provider has incompatible license(s), will store version but skip documentation",
 			"provider", fmt.Sprintf("%s/%s", namespace, name),
 			"version", version,
@@ -174,7 +174,7 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 
 	// Store license information (always, for complete audit trail)
 	if len(licenses) > 0 {
-		err = storage.StoreProviderLicenses(ctx, tx, namespace, name, version, licenses)
+		err = storage.StoreProviderLicenses(ctx, tx, namespace, name, version, licenses, p.config.License)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
