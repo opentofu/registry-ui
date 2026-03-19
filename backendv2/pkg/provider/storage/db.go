@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.opentelemetry.io/otel/attribute"
 
+	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/license"
 	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
@@ -396,58 +397,64 @@ func GetAllDocumentChecksums(ctx context.Context, db interface {
 	return checksums, nil
 }
 
-// StoreProviderLicenses stores detailed license information for a provider version
-func StoreProviderLicenses(ctx context.Context, tx pgx.Tx, namespace, name, version string, licenses license.List) error {
-	// First ensure all licenses exist in the licenses table
-	for _, lic := range licenses {
-		licenseQuery := `
-			INSERT INTO licenses (spdx_id, name, redistributable)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (spdx_id) DO NOTHING`
-
-		// Determine if license is redistributable (compatible)
-		redistributable := lic.IsCompatible
-
-		// Use SPDX ID as name if no specific name available
-		licenseName := lic.SPDX
-		if licenseName == "" {
-			licenseName = "Unknown"
-		}
-
-		_, err := tx.Exec(ctx, licenseQuery, lic.SPDX, licenseName, redistributable)
-		if err != nil {
-			return fmt.Errorf("failed to ensure license %s exists: %w", lic.SPDX, err)
-		}
-	}
-
+// StoreProviderLicenses stores all detected license candidates for a provider version.
+// is_selected is set to true only for the authoritative license(s) as determined by
+// baseThreshold and overrideThreshold (see license.List.Selected).
+func StoreProviderLicenses(ctx context.Context, tx pgx.Tx, namespace, name, version string, licenses license.List, cfg config.LicenseConfig) error {
 	// Delete existing licenses for this provider version
-	deleteQuery := `
+	_, err := tx.Exec(ctx, `
 		DELETE FROM provider_version_licenses
-		WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`
-
-	_, err := tx.Exec(ctx, deleteQuery, namespace, name, version)
+		WHERE provider_namespace = $1 AND provider_name = $2 AND version = $3`,
+		namespace, name, version)
 	if err != nil {
 		return fmt.Errorf("failed to delete existing provider licenses: %w", err)
 	}
 
-	// Insert new licenses
-	insertQuery := `
-		INSERT INTO provider_version_licenses (
-			provider_namespace, provider_name, version,
-			license_spdx_id, confidence_score, file_path, match_type
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	if len(licenses) == 0 {
+		return nil
+	}
+
+	// Build a set of selected licenses keyed by (spdx_id, file_path) — matching the unique constraint
+	type licenseKey struct{ spdx, file string }
+	selected := licenses.Selected(cfg)
+	selectedSet := make(map[licenseKey]struct{}, len(selected))
+	for _, lic := range selected {
+		selectedSet[licenseKey{lic.SPDX, lic.File}] = struct{}{}
+	}
+
+	batch := &pgx.Batch{}
 
 	for _, lic := range licenses {
+		licenseName := lic.SPDX
+		if licenseName == "" {
+			licenseName = "Unknown"
+		}
 		matchType := "detected"
 		if lic.IsCompatible {
 			matchType = "compatible"
 		}
+		_, isSelected := selectedSet[licenseKey{lic.SPDX, lic.File}]
 
-		_, err = tx.Exec(ctx, insertQuery,
+		batch.Queue(`
+			INSERT INTO licenses (spdx_id, name, category, redistributable, url)
+			VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT (spdx_id) DO NOTHING`,
+			lic.SPDX, licenseName, "detected", lic.IsCompatible, "")
+		batch.Queue(`
+			INSERT INTO provider_version_licenses (
+				provider_namespace, provider_name, version,
+				license_spdx_id, confidence_score, file_path, match_type, is_selected
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 			namespace, name, version,
-			lic.SPDX, float64(lic.Confidence), lic.File, matchType)
-		if err != nil {
-			return fmt.Errorf("failed to insert provider license %s: %w", lic.SPDX, err)
+			lic.SPDX, float64(lic.Confidence), lic.File, matchType, isSelected)
+	}
+
+	results := tx.SendBatch(ctx, batch)
+	defer results.Close()
+
+	for range batch.Len() {
+		if _, err := results.Exec(); err != nil {
+			return fmt.Errorf("failed to store provider license: %w", err)
 		}
 	}
 
