@@ -1,0 +1,16 @@
+package config
+
+type TelemetryConfig struct {
+	Enabled     bool   `koanf:"enabled"`
+	Logging     bool   `koanf:"logging"`     // Enable/disable sending logs over OTEL
+	Exporter    string `koanf:"exporter"`    // "otlp" hopefully
+	Endpoint    string `koanf:"endpoint"`    // OTLP endpoint URL
+	ServiceName string `koanf:"servicename"` // Override service name
+	Insecure    bool   `koanf:"insecure"`    // Use HTTP instead of HTTPS
+
+	Headers map[string]string `koanf:"headers"` // Additional headers for exporter
+
+	// Distributed tracing context
+	TraceParent string `koanf:"traceparent"`
+	TraceState  string `koanf:"tracestate"`
+}
