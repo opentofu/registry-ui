@@ -1,0 +1,12 @@
+version: "2"
+linters:
+  exclusions:
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+  settings:
+    errcheck:
+      exclude-functions:
+        - (github.com/jackc/pgx/v5.Tx).Rollback
