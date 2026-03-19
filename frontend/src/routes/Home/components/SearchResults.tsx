@@ -1,5 +1,5 @@
 import { definitions } from "@/api";
-import { SearchInput } from "./SearchInput";
+import { SearchInput } from "@/components/SearchInput";
 import { ResultGroup } from "./ResultGroup";
 
 interface GroupedResults {
@@ -21,7 +21,7 @@ interface SearchResultsProps {
   selectedResult: definitions["SearchResultItem"] | null;
   onResultClick: (result: definitions["SearchResultItem"]) => void;
   resultsContainerRef: React.RefObject<HTMLDivElement>;
-  isSearchActive: boolean;
+  searchData?: definitions["SearchResultItem"][];
 }
 
 export function SearchResults({
@@ -35,7 +35,7 @@ export function SearchResults({
   selectedResult,
   onResultClick,
   resultsContainerRef,
-  isSearchActive,
+  searchData,
 }: SearchResultsProps) {
   return (
     <aside className="custom-scrollbar sticky top-0 flex max-h-screen w-1/5 min-w-80 shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-gray-100 pt-2 dark:border-gray-800 dark:bg-blue-900">
@@ -49,11 +49,9 @@ export function SearchResults({
           size="small"
           showClearButton={true}
           onClear={onClear}
-          autoFocus={isSearchActive}
+          autoFocus={false}
         />
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          Use ↑↓ to navigate • Enter to open • ESC to close
-        </div>
+
       </div>
 
       {/* Search Results */}
@@ -64,7 +62,7 @@ export function SearchResults({
           </div>
         )}
 
-        {!isLoading && flatResults.length === 0 && query && (
+        {!isLoading && flatResults.length === 0 && query && searchData !== undefined && (
           <div className="px-4 py-8 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               No results found for "{query}"

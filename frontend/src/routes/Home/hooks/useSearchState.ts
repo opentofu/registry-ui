@@ -11,17 +11,17 @@ export interface GroupedResults {
 
 export function useSearchState() {
   const [query, setQuery] = useState("");
-  const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedResult, setSelectedResult] = useState<
     definitions["SearchResultItem"] | null
   >(null);
 
-
   const handleSearchInput = (value: string) => {
     setQuery(value);
-    if (value.length > 0 && !isSearchActive) {
-      setIsSearchActive(true);
+    // Clear selection when search changes
+    if (selectedResult && value !== query) {
+      setSelectedResult(null);
+      setSelectedIndex(0);
     }
   };
 
@@ -33,19 +33,19 @@ export function useSearchState() {
 
   const handleClearSearch = () => {
     setQuery("");
-    setIsSearchActive(false);
+    setSelectedResult(null);
+    setSelectedIndex(0);
   };
 
   const handleHomeClick = () => {
     setQuery("");
-    setIsSearchActive(false);
+    setSelectedResult(null);
+    setSelectedIndex(0);
   };
 
   return {
     query,
     setQuery,
-    isSearchActive,
-    setIsSearchActive,
     selectedIndex,
     setSelectedIndex,
     selectedResult,

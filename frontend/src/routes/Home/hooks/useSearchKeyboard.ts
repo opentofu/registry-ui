@@ -11,9 +11,8 @@ interface UseSearchKeyboardProps {
   setSelectedIndex: (index: number) => void;
   setSelectedResult: (result: definitions["SearchResultItem"]) => void;
   resultsContainerRef: React.RefObject<HTMLDivElement>;
-  isSearchActive: boolean;
   setQuery: (query: string) => void;
-  setIsSearchActive: (active: boolean) => void;
+  onClearSearch: () => void;
 }
 
 /**
@@ -32,9 +31,8 @@ export function useSearchKeyboard({
   setSelectedIndex,
   setSelectedResult,
   resultsContainerRef,
-  isSearchActive,
   setQuery,
-  setIsSearchActive,
+  onClearSearch,
 }: UseSearchKeyboardProps) {
   const navigate = useNavigate();
   
@@ -72,9 +70,8 @@ export function useSearchKeyboard({
           }
           return newIndex;
         });
-      } else if (e.key === "Escape" && isSearchActive) {
-        setQuery("");
-        setIsSearchActive(false);
+      } else if (e.key === "Escape") {
+        onClearSearch();
       } else if (e.key === "Enter" && flatResults.length > 0) {
         e.preventDefault();
         const selectedResult = flatResults[selectedIndex];
@@ -92,9 +89,8 @@ export function useSearchKeyboard({
       setSelectedIndex,
       setSelectedResult,
       resultsContainerRef,
-      isSearchActive,
       setQuery,
-      setIsSearchActive,
+      onClearSearch,
       navigate,
     ],
   );

@@ -229,8 +229,8 @@ export function Search({
           onKeyDown={(event) => onKeyDown(event, canShowLoadingInfo)}
           placeholder={placeholder}
           className={clsx(
-            "relative block w-full appearance-none rounded-lg bg-white border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400",
-            size === "small" ? "h-10 pl-9 pr-4" : "h-12 pl-12 pr-4",
+            "relative block w-full appearance-none rounded-xl bg-white border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400",
+            size === "small" ? "h-9 pl-9 pr-4" : "h-14 pl-12 pr-4 shadow-sm",
           )}
         />
 
