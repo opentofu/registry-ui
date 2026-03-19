@@ -74,6 +74,6 @@ export const processor = unified()
     allowDangerousHtml: true,
   })
   .use(rehypeRaw)
-  .use(rehypeSanitize, sanitizeSchema)
   .use(rehypeSlug)
+  .use(rehypeSanitize, sanitizeSchema)
   .use(rehypeReact, rehypeReactOptions);
