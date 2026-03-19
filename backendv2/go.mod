@@ -1,6 +1,6 @@
 module github.com/opentofu/registry-ui
 
-go 1.26.0
+go 1.26.1
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.4
