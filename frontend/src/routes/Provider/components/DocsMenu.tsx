@@ -36,8 +36,8 @@ function TabLink({ to, label, active }: TabLinkProps) {
         }
       }}
       className={clsx(
-        "flex break-all px-4 py-2 text-left",
-        active && "bg-brand-500 text-brand-600 text-inherit dark:bg-brand-800",
+        "flex px-4 py-2 text-left break-all",
+        active && "bg-brand-500 text-brand-600 dark:bg-brand-800 text-inherit",
         !active && "text-inherit hover:bg-gray-100 dark:hover:bg-blue-900",
         isPending && "opacity-50 transition-opacity delay-75",
       )}
@@ -126,7 +126,7 @@ export function ProviderDocsMenu() {
       <input
         type="text"
         placeholder="Filter..."
-        className="mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:border-brand-700 focus:outline-hidden dark:bg-gray-800"
+        className="focus:border-brand-700 mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:outline-hidden dark:bg-gray-800"
         value={deferredSearchFilter}
         onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
       />
@@ -137,7 +137,7 @@ export function ProviderDocsMenu() {
     filterSidebarItem(item, searchFilter),
   );
   return (
-    <TreeView className="mr-4 mt-4">
+    <TreeView className="mt-4 mr-4">
       {filterInput}
       <TreeViewItem>
         <TabLink
@@ -163,12 +163,12 @@ export function ProviderDocsMenu() {
 
 export function ProviderDocsMenuSkeleton() {
   return (
-    <div className="mr-4 mt-4 flex animate-pulse flex-col gap-5">
-      <span className="flex h-em w-48 bg-gray-500/25" />
-      <span className="flex h-em w-52 bg-gray-500/25" />
-      <span className="flex h-em w-36 bg-gray-500/25" />
-      <span className="flex h-em w-64 bg-gray-500/25" />
-      <span className="flex h-em w-56 bg-gray-500/25" />
+    <div className="mt-4 mr-4 flex animate-pulse flex-col gap-5">
+      <span className="h-em flex w-48 bg-gray-500/25" />
+      <span className="h-em flex w-52 bg-gray-500/25" />
+      <span className="h-em flex w-36 bg-gray-500/25" />
+      <span className="h-em flex w-64 bg-gray-500/25" />
+      <span className="h-em flex w-56 bg-gray-500/25" />
     </div>
   );
 }

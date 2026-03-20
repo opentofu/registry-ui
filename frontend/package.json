@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "npm run eslint && npm run prettier:check",
+    "lint:fix": "npm run eslint && npm run prettier --fix",
     "eslint": "eslint .",
     "test": "vitest",
     "preview": "vite preview",

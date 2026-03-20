@@ -52,18 +52,18 @@ export function ProviderHeaderSkeleton() {
   return (
     <Wrapper>
       <BreadcrumbsSkeleton />
-      <span className="flex h-em w-72 animate-pulse bg-gray-500/25 text-5xl" />
-      <span className="mb-6 mt-6 flex h-em w-[450px] animate-pulse bg-gray-500/25" />
+      <span className="h-em flex w-72 animate-pulse bg-gray-500/25 text-5xl" />
+      <span className="h-em mt-6 mb-6 flex w-[450px] animate-pulse bg-gray-500/25" />
 
       <InfoSection>
         <InfoSectionItem label="Owner">
-          <span className="flex h-em w-32 animate-pulse bg-gray-500/25" />
+          <span className="h-em flex w-32 animate-pulse bg-gray-500/25" />
         </InfoSectionItem>
         <InfoSectionItem label="Latest version">
-          <span className="flex h-em w-16 animate-pulse bg-gray-500/25" />
+          <span className="h-em flex w-16 animate-pulse bg-gray-500/25" />
         </InfoSectionItem>
         <InfoSectionItem label="Published">
-          <span className="flex h-em w-32 animate-pulse bg-gray-500/25" />
+          <span className="h-em flex w-32 animate-pulse bg-gray-500/25" />
         </InfoSectionItem>
       </InfoSection>
     </Wrapper>

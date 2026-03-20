@@ -2,14 +2,16 @@ import { HeadingLink } from "../HeadingLink";
 import { Markdown } from "../Markdown";
 import { Paragraph } from "../Paragraph";
 
+type ModuleType = string | [string, ...ModuleType[]];
+
 interface ModuleInputProps {
   name: string;
-  type: any;
+  type: ModuleType;
   description: string;
   defaultValue?: unknown;
 }
 
-function formatType(type: any): string {
+function formatType(type: ModuleType): string {
   if (typeof type === "string") {
     return type;
   }
