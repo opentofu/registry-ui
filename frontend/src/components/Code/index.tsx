@@ -30,14 +30,14 @@ export function Code({ value, language, className }: CodeProps) {
   };
 
   return (
-    <div className={clsx("relative bg-gray-100 dark:bg-blue-900", className)}>
+    <div className={clsx("relative bg-gray-200 dark:bg-blue-950", className)}>
       <pre className="overflow-auto p-4 text-sm">
         <Suspense fallback={<code>{value}</code>}>
           <SyntaxHighlighter value={value} language={language} />
         </Suspense>
       </pre>
       <button
-        className="absolute right-2 top-2 bg-gray-50 p-2 text-inherit dark:bg-blue-950"
+        className="absolute right-2 top-2 bg-gray-300 p-2 text-inherit dark:bg-blue-900"
         onClick={copyToClipboard}
         aria-label="Copy code to clipboard"
       >

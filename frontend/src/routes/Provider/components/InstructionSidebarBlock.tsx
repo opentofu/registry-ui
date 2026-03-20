@@ -8,13 +8,12 @@ import { getProviderDataQuery } from "../query";
 
 function Block({ children }: { children: ReactNode }) {
   return (
-    <SidebarBlock title="How to use this provider">
-      <Paragraph className="my-4">
-        Copy this code into your OpenTofu configuration and run{" "}
-        <code className="text-sm text-purple-700 dark:text-purple-300">
+    <SidebarBlock title="Use this provider">
+      <Paragraph className="my-3 text-sm text-gray-600 dark:text-gray-400">
+        Add this to your configuration and run{" "}
+        <code className="rounded bg-gray-200 px-1 py-0.5 font-mono text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
           tofu init
-        </code>{" "}
-        to install this provider.
+        </code>
       </Paragraph>
       {children}
     </SidebarBlock>
