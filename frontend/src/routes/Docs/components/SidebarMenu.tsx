@@ -20,9 +20,9 @@ function TabLink({ to, label }: TabLinkProps) {
       to={to}
       className={({ isActive }) =>
         clsx(
-          "flex break-all px-4 py-2 text-left",
+          "flex px-4 py-2 text-left break-all",
           isActive &&
-            "bg-brand-500 text-brand-600 text-inherit dark:bg-brand-800",
+          "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200",
           !isActive && "text-inherit hover:bg-gray-100 dark:hover:bg-blue-900",
         )
       }
@@ -60,14 +60,7 @@ function DocsTreeViewItem({
       </button>
     );
   } else {
-    button = (
-      <TabLink
-        to={{
-          pathname: `/docs/${item.slug}`,
-        }}
-        label={item.title}
-      />
-    );
+    button = <TabLink to={`/docs/${item.slug}`} label={item.title} />;
   }
 
   return (
@@ -91,7 +84,7 @@ function DocsTreeViewItem({
 
 export function DocsSidebarMenu() {
   return (
-    <TreeView className="mr-4 mt-4">
+    <TreeView className="mt-4">
       {sidebar.map((item) => (
         <DocsTreeViewItem key={item.title} item={item} isOpenByDefault />
       ))}

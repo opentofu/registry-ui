@@ -140,3 +140,40 @@
   --syntax-punctuation: #f4ecff;
   --syntax-variable: #f9f9f9;
 }
+
+/* Custom scrollbar styles */
+@layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+  }
+  
+  .dark .custom-scrollbar {
+    scrollbar-color: var(--color-gray-700) transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-300);
+    border-radius: 4px;
+  }
+  
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-700);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-gray-400);
+  }
+  
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-gray-600);
+  }
+}
