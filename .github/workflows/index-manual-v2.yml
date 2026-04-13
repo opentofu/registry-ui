@@ -1,0 +1,90 @@
+name: Index V2 (manual)
+permissions: {}
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Backendv2 command to run"
+        required: true
+        type: choice
+        options:
+          - sync-providers
+          - sync-modules
+          - sync-provider
+          - sync-module
+          - rebuild-global-indexes
+          - db migrate
+      filter:
+        description: "Filter pattern (e.g., 'hashicorp/*', 'hashicorp/aws', 'hashicorp/vpc/aws')"
+        required: false
+        type: string
+        default: ""
+      version:
+        description: "Specific version to sync (e.g., 6.7.0). If not provided, syncs all missing versions"
+        required: false
+        type: string
+        default: ""
+concurrency:
+  group: index-v2
+  cancel-in-progress: false
+jobs:
+  sync:
+    name: Run backendv2 command
+    runs-on: ubuntu-latest
+    environment: backendv2
+    defaults:
+      run:
+        working-directory: backendv2
+    services:
+      datadog-agent:
+        image: gcr.io/datadoghq/agent:7
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: "datadoghq.eu"
+          DD_ENV: "ci"
+          DD_HOSTNAME: "gha-backendv2"
+          DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT: "0.0.0.0:4317"
+          DD_APM_ENABLED: "true"
+          DD_APM_NON_LOCAL_TRAFFIC: "true"
+          DD_LOGS_ENABLED: "true"
+          DD_OTLP_CONFIG_LOGS_ENABLED: "true"
+        ports:
+          - 4317:4317
+    env:
+      REGISTRY_BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      REGISTRY_BUCKET_ACCESSKEYID: ${{ secrets.BUCKET_ACCESSKEYID }}
+      REGISTRY_BUCKET_SECRETACCESSKEY: ${{ secrets.BUCKET_SECRETACCESSKEY }}
+      REGISTRY_BUCKET_ENDPOINT: ${{ secrets.BUCKET_ENDPOINT }}
+      REGISTRY_BUCKET_REGION: "auto"
+      REGISTRY_DB_CONNECTIONSTRING: ${{ secrets.DB_CONNECTIONSTRING }}
+      REGISTRY_GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      REGISTRY_TELEMETRY_ENABLED: "true"
+      REGISTRY_TELEMETRY_LOGGING: "true"
+      REGISTRY_TELEMETRY_EXPORTER: "otlp"
+      REGISTRY_TELEMETRY_ENDPOINT: "localhost:4317"
+      REGISTRY_TELEMETRY_SERVICENAME: "opentofu-registry-backendv2"
+      REGISTRY_TELEMETRY_INSECURE: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: backendv2/go.mod
+          cache-dependency-path: backendv2/go.sum
+      - name: Download tofu nightly
+        run: go run . dl-tofu-nightly
+      - name: Run command
+        env:
+          COMMAND: ${{ inputs.command }}
+          FILTER: ${{ inputs.filter }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          ARGS=()
+          if [ -n "${FILTER}" ]; then
+            ARGS+=(--filter "${FILTER}")
+          fi
+          if [ -n "${VERSION}" ]; then
+            ARGS+=(--version "${VERSION}")
+          fi
+          go run . ${COMMAND} "${ARGS[@]}"
