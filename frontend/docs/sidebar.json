@@ -61,21 +61,6 @@
         "title": "Overview",
         "path": "modules/index.md",
         "slug": "modules"
-      },
-      {
-        "title": "Creating a module",
-        "path": "modules/creating.md",
-        "slug": "modules/creating"
-      },
-      {
-        "title": "Publishing a module",
-        "path": "modules/publishing.md",
-        "slug": "modules/publishing"
-      },
-      {
-        "title": "Adding a module to the Registry",
-        "path": "modules/adding.md",
-        "slug": "modules/adding"
       }
     ]
   }

@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -240,7 +239,7 @@ func downloadSearchMetaIndex() (io.ReadCloser, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		_ = resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		return nil, fmt.Errorf("failed to download search index: %s", resp.Status)
 	}
 
