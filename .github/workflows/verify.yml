@@ -67,6 +67,8 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          version: 9.10.0 # The same with the one from frontend/package.json#packageManager
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Run ESLint
