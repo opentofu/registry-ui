@@ -136,16 +136,16 @@ func (m ModuleAddr) MarshalJSON() ([]byte, error) {
 	result.Display = m.Display
 	result.Namespace = m.Addr.Namespace
 	result.Name = m.Addr.Name
-	result.Target = m.Addr.TargetSystem
+	result.Target = m.TargetSystem
 
 	return json.Marshal(result)
 }
 
 func (m *ModuleAddr) fill() {
-	m.Display = m.Addr.String()
+	m.Display = m.String()
 	m.Namespace = m.Addr.Namespace
 	m.Name = m.Addr.Name
-	m.Target = m.Addr.TargetSystem
+	m.Target = m.TargetSystem
 }
 
 func (m *Module) Compare(other Module) int {

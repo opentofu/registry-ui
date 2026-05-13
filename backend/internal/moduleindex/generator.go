@@ -135,7 +135,7 @@ func (g generator) GenerateNamespaceAndName(ctx context.Context, namespace strin
 		return err
 	}
 	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
-		return !(moduleAddr.Namespace == namespace && moduleAddr.Name == name)
+		return moduleAddr.Namespace != namespace || moduleAddr.Name != name
 	}, opts)
 }
 
@@ -167,7 +167,7 @@ func (g generator) GenerateNamespace(ctx context.Context, namespace string, opts
 		return err
 	}
 	return g.generate(ctx, moduleList, func(moduleAddr ModuleAddr) bool {
-		return !(moduleAddr.Namespace == namespace)
+		return moduleAddr.Namespace != namespace
 	}, opts)
 }
 
@@ -649,7 +649,7 @@ func (g generator) extractSubmodules(ctx context.Context, addr ModuleAddr, ver M
 	// We only want to handle situations where the file is a directory, so we check if the directory exists.
 	// and if it's a file, we skip it.
 	if fileInfo, err := workingCopy.Open(directoryPrefix); err == nil {
-		defer fileInfo.Close()
+		defer func() { _ = fileInfo.Close() }()
 		if stat, err := fileInfo.Stat(); err == nil && !stat.IsDir() {
 			// it's not a directory, so we skip it.
 			return nil
@@ -708,7 +708,7 @@ func (g generator) extractExamples(ctx context.Context, moduleAddr ModuleAddr, v
 	// We only want to handle situations where the file is a directory, so we check if the directory exists.
 	// and if it's a file, we skip it.
 	if fileInfo, err := workingCopy.Open(directoryPrefix); err == nil {
-		defer fileInfo.Close()
+		defer func() { _ = fileInfo.Close() }()
 		if stat, err := fileInfo.Stat(); err == nil && !stat.IsDir() {
 			// it's not a directory, so we skip it.
 			return nil
