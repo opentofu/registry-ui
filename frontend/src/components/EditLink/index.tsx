@@ -8,7 +8,7 @@ export function EditLink({ url }: EditLinkProps) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-5 inline-flex text-brand-700 hover:underline dark:text-brand-600"
+      className="text-brand-700 dark:text-brand-600 mt-5 inline-flex hover:underline"
     >
       Edit this page
     </a>

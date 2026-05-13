@@ -56,7 +56,7 @@ export function Breadcrumbs({ className }: BreadcrumbsProps) {
 export function BreadcrumbsSkeleton() {
   return (
     <nav className="flex h-16 items-center">
-      <div className="flex h-em w-80 animate-pulse bg-gray-500/25" />
+      <div className="h-em flex w-80 animate-pulse bg-gray-500/25" />
     </nav>
   );
 }

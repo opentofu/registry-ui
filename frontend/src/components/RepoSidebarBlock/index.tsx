@@ -12,7 +12,7 @@ function getLinkLabel(url: string) {
 
         return (
           <>
-            <Icon path={github} className="mt-1.5 size-em shrink-0" />
+            <Icon path={github} className="size-em mt-1.5 shrink-0" />
             <span>
               {pathParts[1]}/{pathParts[2]}
             </span>
@@ -44,7 +44,7 @@ export function RepoSidebarBlock(props: BlockProps) {
           {getLinkLabel(props.link)}
         </a>
       ) : (
-        <span className="flex h-em w-32 animate-pulse bg-gray-500/25" />
+        <span className="h-em flex w-32 animate-pulse bg-gray-500/25" />
       )}
     </SidebarBlock>
   );

@@ -30,17 +30,17 @@ export function ModuleSubmoduleSideMenu() {
   return (
     <>
       <Menu>
-        <MenuButton className="relative mr-4 mt-4 bg-gray-200 px-4 py-2 text-left dark:bg-blue-850">
+        <MenuButton className="dark:bg-blue-850 relative mt-4 mr-4 bg-gray-200 px-4 py-2 text-left">
           <span className="text-gray-700 dark:text-gray-300">Submodule</span>
           <span className="flex text-inherit">{submodule}</span>
           <Icon
             path={chevron}
-            className="absolute right-4 top-6 size-4 rotate-90 text-inherit"
+            className="absolute top-6 right-4 size-4 rotate-90 text-inherit"
           />
         </MenuButton>
         <MenuItems
           anchor="bottom start"
-          className="mt-1 flex min-w-96 flex-col bg-gray-200 dark:bg-blue-850"
+          className="dark:bg-blue-850 mt-1 flex min-w-96 flex-col bg-gray-200"
         >
           {submodules.map((submodule) => (
             <MenuItem key={submodule}>
@@ -60,7 +60,7 @@ export function ModuleSubmoduleSideMenu() {
           ))}
         </MenuItems>
       </Menu>
-      <TreeView className="mr-4 mt-2">
+      <TreeView className="mt-2 mr-4">
         <ModuleTabLink to="." end>
           Readme
         </ModuleTabLink>
