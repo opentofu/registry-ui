@@ -3,7 +3,7 @@ import { warning } from "@/icons/warning";
 
 export function ModuleSchemaError() {
   return (
-    <div className="flex items-center gap-3 bg-brand-150 px-4 py-4 dark:bg-brand-800">
+    <div className="bg-brand-150 dark:bg-brand-800 flex items-center gap-3 px-4 py-4">
       <Icon
         path={warning}
         className="size-em text-brand-700 dark:text-brand-600"

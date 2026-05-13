@@ -26,7 +26,7 @@ export function LicenseSidebarBlock(props: BlockProps) {
   let content: ReactNode;
 
   if (props.license === undefined) {
-    content = <span className="flex h-em w-24 animate-pulse bg-gray-500/25" />;
+    content = <span className="h-em flex w-24 animate-pulse bg-gray-500/25" />;
   } else if (props.license === null || props.license.length === 0) {
     content = (
       <div className="flex items-center gap-2">

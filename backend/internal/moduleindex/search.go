@@ -42,7 +42,7 @@ func (m moduleSearch) indexModuleVersion(ctx context.Context, addr ModuleAddr, m
 		return err
 	}
 
-	for name, _ := range response.Submodules {
+	for name := range response.Submodules {
 		submoduleItem := searchtypes.IndexItem{
 			// We pick an ID without a version number so that the search index overwrites the submodule names.
 			ID:          searchtypes.IndexID(indexPrefix + "/" + addr.String() + "/" + name),

@@ -38,7 +38,7 @@ export function ModuleTabLink({
         clsx(
           sharedClasses,
           isActive
-            ? "bg-brand-500 text-brand-600 text-inherit dark:bg-brand-800"
+            ? "bg-brand-500 text-brand-600 dark:bg-brand-800 text-inherit"
             : "text-inherit hover:bg-gray-100 dark:hover:bg-blue-900",
         )
       }
