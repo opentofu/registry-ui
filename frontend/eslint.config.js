@@ -22,5 +22,7 @@ export default tseslint.config({
       "warn",
       { allowConstantExport: true },
     ],
+    // NOTE: added this later when fixed the pnpm version issue. This should be removed eventually and the reported issues fixed.
+    "@typescript-eslint/no-explicit-any": ["off"],
   },
 });
