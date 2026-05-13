@@ -35,10 +35,10 @@ While you can put any metadata in the header, the following fields are used by t
 
 Title of the registry UI webpage (and some meta tags).
 
-### description
+#### description
 
 Description, used in html meta tags in the registry UI.
 
-### subcategory
+#### subcategory
 
 Subcategory can be used to group resources, which is reflected in the UI sidebar. It adds categories in addition to the default `Resources`, `Datasources`, etc.
