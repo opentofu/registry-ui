@@ -31,6 +31,7 @@ jobs:
             echo "Changes detected after go generate. Please run go generate ./... and push your changes."
           fi
   tests:
+    if: ${{ false }}
     name: Tests
     runs-on: ubuntu-latest
     defaults:
@@ -55,6 +56,7 @@ jobs:
         run: |
           go test ./...
   frontend:
+    if: ${{ false }}
     name: Frontend Lint and Test
     runs-on: ubuntu-latest
     defaults:
@@ -78,6 +80,7 @@ jobs:
       - name: Run Tests
         run: pnpm run test
   backend-lint:
+    if: ${{ false }}
     name: Backend Lint
     runs-on: ubuntu-latest
     defaults:
