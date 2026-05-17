@@ -1,0 +1,80 @@
+name: Index V2 (cron)
+permissions:
+  actions: write
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+concurrency:
+  group: index-v2
+  cancel-in-progress: false
+jobs:
+  sync:
+    name: Run backendv2 sync
+    runs-on: ubuntu-latest
+    environment: backendv2
+    defaults:
+      run:
+        working-directory: backendv2
+    services:
+      datadog-agent:
+        image: gcr.io/datadoghq/agent:7
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: "datadoghq.eu"
+          DD_ENV: "ci"
+          DD_HOSTNAME: "gha-backendv2"
+          DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT: "0.0.0.0:4317"
+          DD_APM_ENABLED: "true"
+          DD_APM_NON_LOCAL_TRAFFIC: "true"
+          DD_LOGS_ENABLED: "true"
+          DD_OTLP_CONFIG_LOGS_ENABLED: "true"
+        ports:
+          - 4317:4317
+    env:
+      REGISTRY_BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      REGISTRY_BUCKET_ACCESSKEYID: ${{ secrets.BUCKET_ACCESSKEYID }}
+      REGISTRY_BUCKET_SECRETACCESSKEY: ${{ secrets.BUCKET_SECRETACCESSKEY }}
+      REGISTRY_BUCKET_ENDPOINT: ${{ secrets.BUCKET_ENDPOINT }}
+      REGISTRY_BUCKET_REGION: "auto"
+      REGISTRY_DB_CONNECTIONSTRING: ${{ secrets.DB_CONNECTIONSTRING }}
+      REGISTRY_GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      REGISTRY_TELEMETRY_ENABLED: "true"
+      REGISTRY_TELEMETRY_LOGGING: "true"
+      REGISTRY_TELEMETRY_EXPORTER: "otlp"
+      REGISTRY_TELEMETRY_ENDPOINT: "localhost:4317"
+      REGISTRY_TELEMETRY_SERVICENAME: "opentofu-registry-backendv2"
+      REGISTRY_TELEMETRY_INSECURE: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: main
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: backendv2/go.mod
+          cache-dependency-path: backendv2/go.sum
+      - name: Download tofu nightly
+        run: go run . dl-tofu-nightly
+      - name: Run DB migrations
+        run: go run . db migrate
+      - name: Sync providers
+        run: go run . sync-providers
+      - name: Sync modules
+        run: go run . sync-modules
+      - name: Rebuild global indexes
+        run: go run . rebuild-global-indexes
+      - name: Keep Cron Alive
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { WORKFLOW_REF } = process.env
+            const workflowId = WORKFLOW_REF.split("@")[0].split('/').pop()
+            github.rest.actions.enableWorkflow({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflowId,
+            })

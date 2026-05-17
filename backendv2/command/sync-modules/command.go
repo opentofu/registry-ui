@@ -29,7 +29,7 @@ func NewCommand() *cli.Command {
 				Name:     "filter",
 				Aliases:  []string{"f"},
 				Usage:    "Module filter pattern (e.g., 'hashicorp/*', '*/vpc', 'hashicorp/vpc/aws'). Supports wildcards.",
-				Required: true,
+				Required: false,
 			},
 			&cli.StringFlag{
 				Name:     "version",
