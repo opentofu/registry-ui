@@ -9,9 +9,16 @@ import { useProviderParams } from "../hooks/useProviderParams";
 import { getProviderDoc } from "../utils/getProviderDoc";
 import { EditLink } from "@/components/EditLink";
 import { reworkRelativePaths } from "./docsProcessor";
+import { useEffect } from "react";
+import { useLocation } from "react-router";
+import { useDocsContext } from "../contexts/DocsContext";
+import { useScrollToAnchor } from "@/hooks/useScrollToAnchor";
 
 export function ProviderDocsContent() {
   const { namespace, provider, type, doc, version, lang } = useProviderParams();
+  const location = useLocation();
+  const { setToc } = useDocsContext();
+  const scrollToAnchor = useScrollToAnchor();
 
   const { data: docs, error } = useQuery({
     ...getProviderDocsQuery(namespace, provider, version, type, doc, lang),
@@ -23,6 +30,24 @@ export function ProviderDocsContent() {
   );
 
   const editLink = getProviderDoc(versionData, type, doc, lang)?.edit_link;
+
+  // Handle hash scrolling after content loads
+  useEffect(() => {
+    if (docs && location.hash) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        const id = location.hash.slice(1);
+        scrollToAnchor(id);
+      }, 100);
+    }
+  }, [docs, location.hash, scrollToAnchor]);
+
+  // Clear TOC when component unmounts
+  useEffect(() => {
+    return () => {
+      setToc([]);
+    };
+  }, [setToc]);
 
   if (error) {
     if (
@@ -49,7 +74,7 @@ export function ProviderDocsContent() {
 
   return (
     <>
-      <Markdown text={finalDocs} />
+      <Markdown text={finalDocs} onTocExtracted={setToc} />
       {editLink && <EditLink url={editLink} />}
     </>
   );

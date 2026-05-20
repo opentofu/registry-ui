@@ -5,6 +5,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useDeferredValue, useState, useTransition } from "react";
 import { To, useHref, useLinkClickHandler } from "react-router";
+import { SearchInput } from "@/components/SearchInput";
 
 import {
   NestedItem,
@@ -36,9 +37,11 @@ function TabLink({ to, label, active }: TabLinkProps) {
         }
       }}
       className={clsx(
-        "flex px-4 py-2 text-left break-all",
-        active && "bg-brand-500 text-brand-600 dark:bg-brand-800 text-inherit",
-        !active && "text-inherit hover:bg-gray-100 dark:hover:bg-blue-900",
+        "flex rounded-md px-3 py-2 text-left text-sm break-all transition-all duration-150",
+        active &&
+          "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200 font-medium",
+        !active &&
+          "text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white",
         isPending && "opacity-50 transition-opacity delay-75",
       )}
     >
@@ -70,14 +73,17 @@ function DocsTreeViewItem({
   if (filteredItems) {
     button = (
       <button
-        className="flex gap-2 px-4 py-2 text-left text-inherit hover:bg-gray-100 dark:hover:bg-blue-900"
+        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-all duration-150 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
         onClick={() => setOpen(!open)}
       >
         <Icon
           path={chevron}
-          className={clsx("mt-1 size-4 shrink-0", open && "rotate-90")}
+          className={clsx(
+            "size-3.5 shrink-0 transition-transform duration-200",
+            open && "rotate-90",
+          )}
         />
-        {item.label}
+        <span className="font-medium">{item.label}</span>
       </button>
     );
   } else {
@@ -94,7 +100,7 @@ function DocsTreeViewItem({
   }
 
   return (
-    <TreeViewItem nested={nested} className={nested ? "ml-2" : ""}>
+    <TreeViewItem nested={nested}>
       {button}
       {open && filteredItems && (
         <TreeView className="ml-4">
@@ -123,12 +129,12 @@ export function ProviderDocsMenu() {
 
   const filterInput = (
     <Suspense>
-      <input
-        type="text"
-        placeholder="Filter..."
-        className="focus:border-brand-700 mb-2 h-9 w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:outline-hidden dark:bg-gray-800"
+      <SearchInput
         value={deferredSearchFilter}
-        onChange={(e) => setSearchFilter(e.target.value.toLocaleLowerCase())}
+        onChange={(value) => setSearchFilter(value.toLowerCase())}
+        placeholder="Filter documentation..."
+        size="small"
+        className="mb-4"
       />
     </Suspense>
   );
@@ -137,33 +143,35 @@ export function ProviderDocsMenu() {
     filterSidebarItem(item, searchFilter),
   );
   return (
-    <TreeView className="mt-4 mr-4">
+    <div className="p-4">
       {filterInput}
-      <TreeViewItem>
-        <TabLink
-          to={{
-            pathname: `.`,
-            search: lang ? `?lang=${lang}` : "",
-          }}
-          label="Overview"
-          active={!type && !doc}
-        />
-      </TreeViewItem>
-      {filteredItems.map((doc) => (
-        <DocsTreeViewItem
-          key={doc.name}
-          item={doc}
-          isOpenByDefault={doc.open}
-          searchFilter={searchFilter}
-        />
-      ))}
-    </TreeView>
+      <TreeView>
+        <TreeViewItem>
+          <TabLink
+            to={{
+              pathname: `.`,
+              search: lang ? `?lang=${lang}` : "",
+            }}
+            label="Overview"
+            active={!type && !doc}
+          />
+        </TreeViewItem>
+        {filteredItems.map((doc) => (
+          <DocsTreeViewItem
+            key={doc.name}
+            item={doc}
+            isOpenByDefault={doc.open}
+            searchFilter={searchFilter}
+          />
+        ))}
+      </TreeView>
+    </div>
   );
 }
 
 export function ProviderDocsMenuSkeleton() {
   return (
-    <div className="mt-4 mr-4 flex animate-pulse flex-col gap-5">
+    <div className="flex animate-pulse flex-col gap-5 p-4">
       <span className="h-em flex w-48 bg-gray-500/25" />
       <span className="h-em flex w-52 bg-gray-500/25" />
       <span className="h-em flex w-36 bg-gray-500/25" />

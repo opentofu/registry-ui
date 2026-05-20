@@ -171,7 +171,16 @@ export function Search({
 
   useEffect(() => {
     const handleSlash = (event: KeyboardEvent) => {
-      if (event.key === "/" && event.target !== inputRef.current) {
+      const target = event.target as HTMLElement;
+      const isInputOrTextarea =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement;
+
+      if (
+        event.key === "/" &&
+        !isInputOrTextarea &&
+        target !== inputRef.current
+      ) {
         event.preventDefault();
         inputRef.current?.focus();
       }
@@ -215,8 +224,10 @@ export function Search({
         <Icon
           path={search}
           className={clsx(
-            "absolute z-10 text-gray-600",
-            size === "small" ? "top-2 left-2 size-5" : "top-3 left-3 size-6",
+            "absolute z-10 text-gray-400",
+            size === "small"
+              ? "top-2.5 left-3 size-4"
+              : "top-3.5 left-4 size-5",
           )}
         />
         <ComboboxInput
@@ -226,14 +237,14 @@ export function Search({
           onKeyDown={(event) => onKeyDown(event, canShowLoadingInfo)}
           placeholder={placeholder}
           className={clsx(
-            "focus:border-brand-700 relative block w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:outline-hidden dark:bg-gray-800",
-            size === "small" ? "h-9 pl-8" : "h-12 pl-10",
+            "focus:ring-brand-500 dark:focus:ring-brand-400 relative block w-full appearance-none rounded-xl border border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:border-transparent focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-blue-900 dark:text-gray-200 dark:placeholder-gray-400",
+            size === "small" ? "h-9 pr-4 pl-9" : "h-14 pr-4 pl-12 shadow-sm",
           )}
         />
 
         <ComboboxOptions
           anchor="bottom start"
-          className="z-10 max-h-96 w-(--input-width) divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
+          className="z-10 mt-1 max-h-96 w-(--input-width) divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white shadow-lg [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-800 dark:border-gray-700 dark:bg-blue-900"
         >
           {canShowResults
             ? filtered.map((item) => (

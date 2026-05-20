@@ -19,41 +19,47 @@ export function ModuleSideMenu() {
   const hasSchemaError = !!data.schema_error;
 
   return (
-    <TreeView className="mt-4 mr-4">
-      <ModuleTabLink to="." end>
-        Readme
-      </ModuleTabLink>
-      <ModuleTabLink to="inputs" count={inputsCount} disabled={hasSchemaError}>
-        Inputs
-      </ModuleTabLink>
-      <ModuleTabLink
-        to="outputs"
-        count={outputsCount}
-        disabled={hasSchemaError}
-      >
-        Outputs
-      </ModuleTabLink>
-      <ModuleTabLink
-        to="dependencies"
-        count={dependenciesCount}
-        disabled={hasSchemaError}
-      >
-        Dependencies
-      </ModuleTabLink>
-      <ModuleTabLink
-        to="resources"
-        count={resourcesCount}
-        disabled={hasSchemaError}
-      >
-        Resources
-      </ModuleTabLink>
-    </TreeView>
+    <div className="p-4">
+      <TreeView>
+        <ModuleTabLink to="." end>
+          Readme
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="inputs"
+          count={inputsCount}
+          disabled={hasSchemaError}
+        >
+          Inputs
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="outputs"
+          count={outputsCount}
+          disabled={hasSchemaError}
+        >
+          Outputs
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="dependencies"
+          count={dependenciesCount}
+          disabled={hasSchemaError}
+        >
+          Dependencies
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="resources"
+          count={resourcesCount}
+          disabled={hasSchemaError}
+        >
+          Resources
+        </ModuleTabLink>
+      </TreeView>
+    </div>
   );
 }
 
 export function ModuleSideMenuSkeleton() {
   return (
-    <div className="mt-4 mr-4 flex animate-pulse flex-col gap-5">
+    <div className="flex animate-pulse flex-col gap-5 p-4">
       <span className="h-em flex w-48 bg-gray-500/25" />
       <span className="h-em flex w-52 bg-gray-500/25" />
       <span className="h-em flex w-36 bg-gray-500/25" />

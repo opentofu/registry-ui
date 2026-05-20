@@ -3,10 +3,10 @@ import styles from "./styles.module.css";
 export default function PatternBg() {
   return (
     <div
-      className="absolute right-0 bottom-0 left-0 -z-10 h-[600px]"
-      aria-hidden
+      className="fixed top-0 right-0 bottom-0 left-0 -z-20"
+      aria-hidden="true"
     >
-      <div className="absolute inset-0 z-10 bg-linear-to-b from-gray-50 to-transparent dark:from-blue-950" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-b from-transparent to-gray-50 dark:to-blue-950" />
       <div className={`${styles.bg} h-full w-full opacity-5`} />
     </div>
   );
