@@ -49,6 +49,8 @@ import { moduleSubmoduleMiddleware } from "./routes/ModuleSubmodule/middleware";
 import { ProviderError } from "./routes/Provider/components/Error";
 import { Docs } from "./routes/Docs";
 import { docsLoader } from "./routes/Docs/loader";
+import { docsMiddleware } from "./routes/Docs/middleware";
+import type { DocsRouteContext } from "./routes/Docs/middleware";
 
 export const router = createBrowserRouter(
   [
@@ -65,18 +67,48 @@ export const router = createBrowserRouter(
           path: "/docs",
           element: <Docs />,
           loader: docsLoader,
-        },
-        {
-          id: "docs-section",
-          path: "/docs/:section",
-          element: <Docs />,
-          loader: docsLoader,
-        },
-        {
-          id: "docs-subsection",
-          path: "/docs/:section/:subsection",
-          element: <Docs />,
-          loader: docsLoader,
+          handle: {
+            crumb: () => createCrumb("/docs", "Docs"),
+          },
+          children: [
+            {
+              index: true,
+              element: <Docs />,
+              loader: docsLoader,
+            },
+            {
+              id: "docs-section",
+              path: ":section",
+              element: <Docs />,
+              loader: docsLoader,
+              handle: {
+                middleware: docsMiddleware,
+                crumb: ({ data }: { data: DocsRouteContext }) =>
+                  createCrumb(`/docs/${data.section}`, data.sectionBreadcrumbLabel)
+              },
+              children: [
+                {
+                  index: true,
+                  element: <Docs />,
+                  loader: docsLoader,
+                },
+                {
+                  id: "docs-subsection",
+                  path: ":subsection",
+                  element: <Docs />,
+                  loader: docsLoader,
+                  handle: {
+                    middleware: docsMiddleware,
+                    crumb: ({ data }: { data: DocsRouteContext }) =>
+                      createCrumb(
+                        `/docs/${data.section}/${data.subsection}`,
+                        data.subsectionBreadcrumbLabel,
+                      ),
+                  },
+                },
+              ],
+            },
+          ],
         },
 
         {

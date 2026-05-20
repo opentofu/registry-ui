@@ -8,13 +8,33 @@ interface GroupVersionsOptions {
   versionLink: (version: string) => string;
 }
 
+interface VersionChild {
+  label: string;
+  published: string;
+  isActive: boolean;
+  id: string;
+  link: string;
+}
+
+interface VersionGroup {
+  label: string;
+  published: string;
+  children: VersionChild[];
+  isActive: boolean;
+  link: string;
+}
+
+interface GroupedVersionsAccumulator {
+  [major: string]: VersionGroup;
+}
+
 export function groupVersions({
   versions,
   currentVersion,
   latestVersion,
   versionLink,
-}: GroupVersionsOptions) {
-  const groupedVersions = versions.reduce((acc, version) => {
+}: GroupVersionsOptions): VersionGroup[] {
+  const groupedVersions = versions.reduce<GroupedVersionsAccumulator>((acc, version) => {
     if (version.id === latestVersion) {
       return acc;
     }
@@ -27,6 +47,7 @@ export function groupVersions({
         published: version.published,
         children: [],
         isActive: false,
+        link: "", // Version groups don't have individual links
       };
     }
 
@@ -45,7 +66,7 @@ export function groupVersions({
     });
 
     return acc;
-  }, []);
+  }, {});
 
   return Object.values(groupedVersions);
 }

@@ -171,7 +171,10 @@ export function Search({
 
   useEffect(() => {
     const handleSlash = (event: KeyboardEvent) => {
-      if (event.key === "/" && event.target !== inputRef.current) {
+      const target = event.target as HTMLElement;
+      const isInputOrTextarea = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      
+      if (event.key === "/" && !isInputOrTextarea && target !== inputRef.current) {
         event.preventDefault();
         inputRef.current?.focus();
       }
@@ -215,8 +218,8 @@ export function Search({
         <Icon
           path={search}
           className={clsx(
-            "absolute z-10 text-gray-600",
-            size === "small" ? "top-2 left-2 size-5" : "top-3 left-3 size-6",
+            "absolute z-10 text-gray-400",
+            size === "small" ? "left-3 top-2.5 size-4" : "left-4 top-3.5 size-5",
           )}
         />
         <ComboboxInput
@@ -226,14 +229,14 @@ export function Search({
           onKeyDown={(event) => onKeyDown(event, canShowLoadingInfo)}
           placeholder={placeholder}
           className={clsx(
-            "focus:border-brand-700 relative block w-full appearance-none border border-transparent bg-gray-200 px-4 text-inherit placeholder:text-gray-500 focus:outline-hidden dark:bg-gray-800",
-            size === "small" ? "h-9 pl-8" : "h-12 pl-10",
+            "relative block w-full appearance-none rounded-xl bg-white border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400",
+            size === "small" ? "h-9 pl-9 pr-4" : "h-14 pl-12 pr-4 shadow-sm",
           )}
         />
 
         <ComboboxOptions
           anchor="bottom start"
-          className="z-10 max-h-96 w-(--input-width) divide-y divide-gray-300 bg-gray-200 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-900 dark:bg-gray-800"
+          className="z-10 mt-1 max-h-96 w-(--input-width) rounded-lg border border-gray-200 bg-white shadow-lg divide-y divide-gray-100 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:border-gray-700 dark:bg-blue-900 dark:divide-gray-800"
         >
           {canShowResults
             ? filtered.map((item) => (
@@ -245,7 +248,7 @@ export function Search({
                     <ComboboxOption
                       key={result.id}
                       value={result}
-                      className="data-focus:bg-brand-500 dark:data-focus:bg-brand-800 cursor-pointer px-4 py-2 data-focus:text-inherit"
+                      className="cursor-pointer px-4 py-2 data-focus:bg-brand-500 data-focus:text-inherit dark:data-focus:bg-brand-800"
                       as="div"
                     >
                       {(item.type === SearchResultType.Provider ||

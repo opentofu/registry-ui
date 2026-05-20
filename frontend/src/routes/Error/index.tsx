@@ -19,7 +19,7 @@ export function Error() {
     <>
       <PatternBg />
       <Header />
-      <main className="container m-auto flex flex-col items-center gap-8 text-center">
+      <main className="container m-auto flex flex-col items-center gap-8 text-center pt-24">
         <h2 className="text-6xl font-bold">{title}</h2>
         <Paragraph className="text-balance">{message}</Paragraph>
         {import.meta.env.DEV && !!routeError.message && (
