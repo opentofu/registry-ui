@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router";
+import { Outlet } from "react-router";
 import { SidebarLayout } from "../../components/SidebarLayout";
 import { SidebarPanel } from "../../components/SidebarPanel";
 import { Suspense } from "react";
@@ -28,9 +28,6 @@ import {
 } from "./components/TableOfContents";
 
 export function Provider() {
-  const location = useLocation();
-  const isDocsPage = location.pathname.includes("/docs/");
-
   return (
     <DocsProvider>
       <SidebarLayout
@@ -54,11 +51,9 @@ export function Provider() {
             >
               <ProviderVersionsSidebarBlock />
               <ProviderInstructionSidebarBlock />
-              {isDocsPage && (
-                <Suspense fallback={<TableOfContentsSkeleton />}>
-                  <TableOfContents />
-                </Suspense>
-              )}
+              <Suspense fallback={<TableOfContentsSkeleton />}>
+                <TableOfContents />
+              </Suspense>
             </Suspense>
           </SidebarPanel>
         }
