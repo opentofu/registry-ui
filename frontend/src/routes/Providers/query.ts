@@ -7,7 +7,9 @@ export const getProvidersQuery = () =>
     queryKey: ["providers"],
     queryFn: async () => {
       const data =
-        await api(`providers/index.json`).json<components["schemas"]["ProviderList"]>();
+        await api(`providers/index.json`).json<
+          components["schemas"]["ProviderList"]
+        >();
 
       return data.providers;
     },

@@ -7,7 +7,9 @@ interface UseSearchKeyboardProps {
   flatResults: components["schemas"]["SearchResultItem"][];
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
-  setSelectedResult: (result: components["schemas"]["SearchResultItem"]) => void;
+  setSelectedResult: (
+    result: components["schemas"]["SearchResultItem"],
+  ) => void;
   resultsContainerRef: React.RefObject<HTMLDivElement>;
   setQuery: (query: string) => void;
   onClearSearch: () => void;

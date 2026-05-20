@@ -7,7 +7,9 @@ export const getModulesQuery = () =>
     queryKey: ["modules"],
     queryFn: async () => {
       const data =
-        await api(`modules/index.json`).json<components["schemas"]["ModuleList"]>();
+        await api(`modules/index.json`).json<
+          components["schemas"]["ModuleList"]
+        >();
 
       return data.modules;
     },

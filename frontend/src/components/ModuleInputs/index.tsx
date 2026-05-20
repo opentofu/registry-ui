@@ -8,8 +8,12 @@ interface ModuleInputsProps {
 }
 
 export function ModuleInputs({ inputs }: ModuleInputsProps) {
-  const requiredInputs: Array<components["schemas"]["Variable"] & { name: string }> = [];
-  const optionalInputs: Array<components["schemas"]["Variable"] & { name: string }> = [];
+  const requiredInputs: Array<
+    components["schemas"]["Variable"] & { name: string }
+  > = [];
+  const optionalInputs: Array<
+    components["schemas"]["Variable"] & { name: string }
+  > = [];
 
   for (const [name, input] of Object.entries(inputs)) {
     const result = { name, ...input };
