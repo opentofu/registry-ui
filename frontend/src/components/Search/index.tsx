@@ -172,9 +172,15 @@ export function Search({
   useEffect(() => {
     const handleSlash = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
-      const isInputOrTextarea = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
-      
-      if (event.key === "/" && !isInputOrTextarea && target !== inputRef.current) {
+      const isInputOrTextarea =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement;
+
+      if (
+        event.key === "/" &&
+        !isInputOrTextarea &&
+        target !== inputRef.current
+      ) {
         event.preventDefault();
         inputRef.current?.focus();
       }
@@ -219,7 +225,9 @@ export function Search({
           path={search}
           className={clsx(
             "absolute z-10 text-gray-400",
-            size === "small" ? "left-3 top-2.5 size-4" : "left-4 top-3.5 size-5",
+            size === "small"
+              ? "top-2.5 left-3 size-4"
+              : "top-3.5 left-4 size-5",
           )}
         />
         <ComboboxInput
@@ -229,14 +237,14 @@ export function Search({
           onKeyDown={(event) => onKeyDown(event, canShowLoadingInfo)}
           placeholder={placeholder}
           className={clsx(
-            "relative block w-full appearance-none rounded-xl bg-white border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 focus:border-transparent dark:bg-blue-900 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400",
-            size === "small" ? "h-9 pl-9 pr-4" : "h-14 pl-12 pr-4 shadow-sm",
+            "focus:ring-brand-500 dark:focus:ring-brand-400 relative block w-full appearance-none rounded-xl border border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:border-transparent focus:ring-2 focus:outline-none dark:border-gray-700 dark:bg-blue-900 dark:text-gray-200 dark:placeholder-gray-400",
+            size === "small" ? "h-9 pr-4 pl-9" : "h-14 pr-4 pl-12 shadow-sm",
           )}
         />
 
         <ComboboxOptions
           anchor="bottom start"
-          className="z-10 mt-1 max-h-96 w-(--input-width) rounded-lg border border-gray-200 bg-white shadow-lg divide-y divide-gray-100 [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:border-gray-700 dark:bg-blue-900 dark:divide-gray-800"
+          className="z-10 mt-1 max-h-96 w-(--input-width) divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white shadow-lg [--anchor-max-height:theme(height.96)] [--anchor-padding:theme(padding.4)] empty:hidden dark:divide-gray-800 dark:border-gray-700 dark:bg-blue-900"
         >
           {canShowResults
             ? filtered.map((item) => (
@@ -248,7 +256,7 @@ export function Search({
                     <ComboboxOption
                       key={result.id}
                       value={result}
-                      className="cursor-pointer px-4 py-2 data-focus:bg-brand-500 data-focus:text-inherit dark:data-focus:bg-brand-800"
+                      className="data-focus:bg-brand-500 dark:data-focus:bg-brand-800 cursor-pointer px-4 py-2 data-focus:text-inherit"
                       as="div"
                     >
                       {(item.type === SearchResultType.Provider ||

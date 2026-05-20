@@ -171,8 +171,8 @@ interface VersionsSidebarBlockProps {
     | definitions["ModuleVersionDescriptor"]
   >;
   latestVersion:
-  | definitions["ProviderVersionDescriptor"]
-  | definitions["ModuleVersionDescriptor"];
+    | definitions["ProviderVersionDescriptor"]
+    | definitions["ModuleVersionDescriptor"];
   currentVersion: string;
   versionLink: (version: string) => string;
 }

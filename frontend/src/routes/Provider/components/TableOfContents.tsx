@@ -13,7 +13,7 @@ export function TableOfContents() {
   const getVisibleTocItems = (items: TocEntry[]): TocEntry[] => {
     // If the top level has H1s, return their children
     if (items.length > 0 && items[0].depth === 1) {
-      return items.flatMap(item => item.children || []);
+      return items.flatMap((item) => item.children || []);
     }
     // Otherwise return the items as-is
     return items;
@@ -39,9 +39,9 @@ export function TableOfContents() {
       <li key={`${item.id}-${index}`}>
         <Link
           to={`#${item.id}`}
-          className={`block py-1 text-sm transition-colors hover:text-primary ${
+          className={`hover:text-primary block py-1 text-sm transition-colors ${
             isActive
-              ? "font-medium text-primary"
+              ? "text-primary font-medium"
               : "text-gray-600 dark:text-gray-400"
           }`}
           style={{ paddingLeft }}
@@ -52,7 +52,7 @@ export function TableOfContents() {
         {item.children && item.children.length > 0 && (
           <ul>
             {item.children.map((child, childIndex) =>
-              renderTocItem(child, childIndex)
+              renderTocItem(child, childIndex),
             )}
           </ul>
         )}

@@ -37,7 +37,7 @@ export function Code({ value, language, className }: CodeProps) {
         </Suspense>
       </pre>
       <button
-        className="absolute right-2 top-2 bg-gray-300 p-2 text-inherit dark:bg-blue-900"
+        className="absolute top-2 right-2 bg-gray-300 p-2 text-inherit dark:bg-blue-900"
         onClick={copyToClipboard}
         aria-label="Copy code to clipboard"
       >

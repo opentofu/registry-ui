@@ -7,22 +7,22 @@ export function WelcomeContent() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
-        <Logo className="mb-8 w-32 h-32" />
+        <Logo className="mb-8 h-32 w-32" />
         <h2 className="mb-4 max-w-2xl text-4xl leading-tight font-bold text-balance">
           Discover Infrastructure Building Blocks
         </h2>
-        <Paragraph className="mb-8 max-w-2xl text-balance text-lg">
+        <Paragraph className="mb-8 max-w-2xl text-lg text-balance">
           Search through <strong>4,000+ providers</strong> and{" "}
           <strong>22,000+ modules</strong> to build and manage your
           infrastructure with OpenTofu
         </Paragraph>
 
-        <div className="w-full max-w-2xl mt-8">
+        <div className="mt-8 w-full max-w-2xl">
           <h3 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
             What can you find here?
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="text-left">
               <h4 className="mb-3 text-lg font-medium text-gray-900 dark:text-gray-100">
                 Providers
@@ -56,7 +56,7 @@ export function WelcomeContent() {
               <div className="flex-shrink-0">
                 <Icon
                   path={info}
-                  className="h-5 w-5 text-sky-600 dark:text-sky-400 mt-0.5"
+                  className="mt-0.5 h-5 w-5 text-sky-600 dark:text-sky-400"
                 />
               </div>
               <div className="flex-1">

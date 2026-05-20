@@ -1,8 +1,10 @@
 import { definitions } from "@/api";
 
-export function getDocumentationUrl(result: definitions["SearchResultItem"]): string {
+export function getDocumentationUrl(
+  result: definitions["SearchResultItem"],
+): string {
   const vars = result.link_variables;
-  
+
   switch (result.type) {
     case "module":
       return `/module/${vars.namespace}/${vars.name}/${vars.target_system}/${vars.version || "latest"}`;

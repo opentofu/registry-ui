@@ -7,32 +7,32 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getModulesQuery } from "../query";
 
 const gridComponents = {
-  List: forwardRef<HTMLDivElement, ComponentProps<"div">>(({ style, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      {...props}
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  )),
+  List: forwardRef<HTMLDivElement, ComponentProps<"div">>(
+    ({ style, children, ...props }, ref) => (
+      <div
+        ref={ref}
+        {...props}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          ...style,
+        }}
+      >
+        {children}
+      </div>
+    ),
+  ),
   Item: ({ children, ...props }: ComponentProps<"div">) => (
     <div
       {...props}
-      className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2 flex"
+      className="flex w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4"
       style={{
-        display: 'flex',
-        flex: 'none',
-        boxSizing: 'border-box',
+        display: "flex",
+        flex: "none",
+        boxSizing: "border-box",
       }}
     >
-      <div className="flex w-full">
-        {children}
-      </div>
+      <div className="flex w-full">{children}</div>
     </div>
   ),
 };
@@ -47,12 +47,13 @@ export function ModulesList({ searchQuery = "" }: ModulesListProps) {
   const filteredModules = modules.filter((module) => {
     // First filter out modules without versions
     if (!module.versions || module.versions.length === 0) return false;
-    
+
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    const fullName = `${module.addr.namespace}/${module.addr.name}/${module.addr.target}`.toLowerCase();
+    const fullName =
+      `${module.addr.namespace}/${module.addr.name}/${module.addr.target}`.toLowerCase();
     const displayName = module.addr.display?.toLowerCase() || fullName;
-    
+
     return (
       fullName.includes(query) ||
       displayName.includes(query) ||
@@ -65,7 +66,7 @@ export function ModulesList({ searchQuery = "" }: ModulesListProps) {
 
   if (filteredModules.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="py-12 text-center">
         <svg
           className="mx-auto h-12 w-12 text-gray-400"
           fill="none"
@@ -79,9 +80,18 @@ export function ModulesList({ searchQuery = "" }: ModulesListProps) {
             d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No modules found</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+          No modules found
+        </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Try adjusting your search terms or <a href="https://github.com/opentofu/registry/issues/new?assignees=&labels=module%2Csubmission&projects=&template=module.yml&title=Module%3A+" className="text-brand-500 hover:text-brand-600">add a new module</a>.
+          Try adjusting your search terms or{" "}
+          <a
+            href="https://github.com/opentofu/registry/issues/new?assignees=&labels=module%2Csubmission&projects=&template=module.yml&title=Module%3A+"
+            className="text-brand-500 hover:text-brand-600"
+          >
+            add a new module
+          </a>
+          .
         </p>
       </div>
     );
@@ -104,28 +114,28 @@ export function ModulesList({ searchQuery = "" }: ModulesListProps) {
 export function ModulesListSkeleton() {
   return (
     <div className="flex flex-wrap">
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2">
+      <div className="w-full p-2 md:w-1/2 lg:w-1/3 xl:w-1/4">
         <ModulesCardItemSkeleton />
       </div>
     </div>

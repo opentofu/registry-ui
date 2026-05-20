@@ -15,14 +15,14 @@ export function Header() {
   const shouldShowSearch = !isHome;
 
   return (
-    <header className="absolute top-12 left-0 right-0 z-50 flex h-20 items-end">
-      <div className="flex items-end justify-between container mx-auto p-4 navbar">
+    <header className="absolute top-12 right-0 left-0 z-50 flex h-20 items-end">
+      <div className="navbar container mx-auto flex items-end justify-between p-4">
         <div className="flex items-end gap-6">
           <h1>
             <Link
               to="/"
               aria-label="OpenTofu Registry"
-              className="flex items-center transition-colors text-gray-900 hover:text-brand-500 dark:text-gray-50 dark:hover:text-brand-500"
+              className="hover:text-brand-500 dark:hover:text-brand-500 flex items-center text-gray-900 transition-colors dark:text-gray-50"
             >
               <HeaderLogo />
               <span className="text-2xl tracking-wide">Registry</span>
@@ -49,13 +49,13 @@ export function Header() {
           </nav>
         </div>
 
-          <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-6">
           {shouldShowSearch && <Search />}
           <a
             href="https://x.com/opentofuorg"
             aria-label="Follow us on X"
             target="_blank"
-            className="transition-colors text-gray-900 hover:text-brand-500 dark:text-gray-50 dark:hover:text-brand-500"
+            className="hover:text-brand-500 dark:hover:text-brand-500 text-gray-900 transition-colors dark:text-gray-50"
           >
             <Icon path={x} className="size-6" />
           </a>
@@ -63,7 +63,7 @@ export function Header() {
             href="https://opentofu.org/slack"
             aria-label="Join us on Slack"
             target="_blank"
-            className="transition-colors text-gray-900 hover:text-brand-500 dark:text-gray-50 dark:hover:text-brand-500"
+            className="hover:text-brand-500 dark:hover:text-brand-500 text-gray-900 transition-colors dark:text-gray-50"
           >
             <Icon path={slack} className="size-6" />
           </a>

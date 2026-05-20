@@ -39,7 +39,7 @@ export function Provider() {
           <SidebarPanel>
             <Suspense fallback={<ProviderDocsMenuSkeleton />}>
               <ProviderDocsMenu />
-            </Suspense> 
+            </Suspense>
           </SidebarPanel>
         }
         after={
@@ -54,11 +54,11 @@ export function Provider() {
             >
               <ProviderVersionsSidebarBlock />
               <ProviderInstructionSidebarBlock />
-            {isDocsPage && (
-              <Suspense fallback={<TableOfContentsSkeleton />}>
-                <TableOfContents />
-              </Suspense>
-            )}
+              {isDocsPage && (
+                <Suspense fallback={<TableOfContentsSkeleton />}>
+                  <TableOfContents />
+                </Suspense>
+              )}
             </Suspense>
           </SidebarPanel>
         }

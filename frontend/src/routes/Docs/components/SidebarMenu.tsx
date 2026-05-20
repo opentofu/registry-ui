@@ -22,7 +22,7 @@ function TabLink({ to, label }: TabLinkProps) {
         clsx(
           "flex px-4 py-2 text-left break-all",
           isActive &&
-          "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200",
+            "bg-brand-300/40 text-brand-800 dark:bg-brand-300/40 dark:text-brand-200",
           !isActive && "text-inherit hover:bg-gray-100 dark:hover:bg-blue-900",
         )
       }

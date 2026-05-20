@@ -51,7 +51,6 @@ export function SearchResults({
           onClear={onClear}
           autoFocus={false}
         />
-
       </div>
 
       {/* Search Results */}
@@ -62,13 +61,16 @@ export function SearchResults({
           </div>
         )}
 
-        {!isLoading && flatResults.length === 0 && query && searchData !== undefined && (
-          <div className="px-4 py-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              No results found for "{query}"
-            </p>
-          </div>
-        )}
+        {!isLoading &&
+          flatResults.length === 0 &&
+          query &&
+          searchData !== undefined && (
+            <div className="px-4 py-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No results found for "{query}"
+              </p>
+            </div>
+          )}
 
         {!isLoading && groupedResults && flatResults.length > 0 && (
           <div className="py-2">

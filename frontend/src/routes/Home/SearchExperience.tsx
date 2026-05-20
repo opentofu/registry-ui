@@ -127,7 +127,7 @@ export function SearchExperience() {
 
       <div className="mx-auto flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24">
         <SearchBreadcrumbs onHomeClick={handleHomeClick} />
-        <div className="flex flex-1 divide-x divide-gray-200 border border-b-0 border-t-0 border-gray-300 dark:divide-gray-800 dark:border-gray-700">
+        <div className="flex flex-1 divide-x divide-gray-200 border border-t-0 border-b-0 border-gray-300 dark:divide-gray-800 dark:border-gray-700">
           <SearchResults
             query={query}
             onQueryChange={handleSearchInput}
@@ -169,19 +169,19 @@ export function SearchExperience() {
           <div className="w-full text-center">
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Use{" "}
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <kbd className="rounded bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 ↑↓
               </kbd>{" "}
               to navigate •
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">
+              <kbd className="mx-1 rounded bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 Enter
               </kbd>{" "}
               to open •
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">
+              <kbd className="mx-1 rounded bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 ESC
               </kbd>{" "}
               to clear •
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300 mx-1">
+              <kbd className="mx-1 rounded bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 /
               </kbd>{" "}
               to focus search

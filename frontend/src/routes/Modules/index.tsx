@@ -26,7 +26,9 @@ export function Modules() {
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <PageTitle className="mb-3">{title}</PageTitle>
-            <Paragraph className="text-gray-600 dark:text-gray-300">{description}</Paragraph>
+            <Paragraph className="text-gray-600 dark:text-gray-300">
+              {description}
+            </Paragraph>
           </div>
           <Button
             target="_blank"

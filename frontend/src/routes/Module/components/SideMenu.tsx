@@ -21,33 +21,37 @@ export function ModuleSideMenu() {
   return (
     <div className="p-4">
       <TreeView>
-      <ModuleTabLink to="." end>
-        Readme
-      </ModuleTabLink>
-      <ModuleTabLink to="inputs" count={inputsCount} disabled={hasSchemaError}>
-        Inputs
-      </ModuleTabLink>
-      <ModuleTabLink
-        to="outputs"
-        count={outputsCount}
-        disabled={hasSchemaError}
-      >
-        Outputs
-      </ModuleTabLink>
-      <ModuleTabLink
-        to="dependencies"
-        count={dependenciesCount}
-        disabled={hasSchemaError}
-      >
-        Dependencies
-      </ModuleTabLink>
-      <ModuleTabLink
-        to="resources"
-        count={resourcesCount}
-        disabled={hasSchemaError}
-      >
-        Resources
-      </ModuleTabLink>
+        <ModuleTabLink to="." end>
+          Readme
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="inputs"
+          count={inputsCount}
+          disabled={hasSchemaError}
+        >
+          Inputs
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="outputs"
+          count={outputsCount}
+          disabled={hasSchemaError}
+        >
+          Outputs
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="dependencies"
+          count={dependenciesCount}
+          disabled={hasSchemaError}
+        >
+          Dependencies
+        </ModuleTabLink>
+        <ModuleTabLink
+          to="resources"
+          count={resourcesCount}
+          disabled={hasSchemaError}
+        >
+          Resources
+        </ModuleTabLink>
       </TreeView>
     </div>
   );
@@ -55,12 +59,12 @@ export function ModuleSideMenu() {
 
 export function ModuleSideMenuSkeleton() {
   return (
-    <div className="p-4 flex animate-pulse flex-col gap-5">
-      <span className="flex h-em w-48 bg-gray-500/25" />
-      <span className="flex h-em w-52 bg-gray-500/25" />
-      <span className="flex h-em w-36 bg-gray-500/25" />
-      <span className="flex h-em w-64 bg-gray-500/25" />
-      <span className="flex h-em w-56 bg-gray-500/25" />
+    <div className="flex animate-pulse flex-col gap-5 p-4">
+      <span className="h-em flex w-48 bg-gray-500/25" />
+      <span className="h-em flex w-52 bg-gray-500/25" />
+      <span className="h-em flex w-36 bg-gray-500/25" />
+      <span className="h-em flex w-64 bg-gray-500/25" />
+      <span className="h-em flex w-56 bg-gray-500/25" />
     </div>
   );
 }

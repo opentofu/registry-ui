@@ -9,7 +9,11 @@ interface CardItemTitleProps {
   className?: string;
 }
 
-export function CardItemTitle({ children, linkProps, className }: CardItemTitleProps) {
+export function CardItemTitle({
+  children,
+  linkProps,
+  className,
+}: CardItemTitleProps) {
   return (
     <h3 className={className}>
       <Link {...linkProps} className="text-xl font-semibold">

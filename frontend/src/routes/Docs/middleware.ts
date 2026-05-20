@@ -10,7 +10,10 @@ export type DocsRouteContext = {
   subsectionBreadcrumbLabel?: string;
 };
 
-const getBreadcrumbLabel = (section?: string, subsection?: string): string | undefined => {
+const getBreadcrumbLabel = (
+  section?: string,
+  subsection?: string,
+): string | undefined => {
   // find the section first
   if (!section) {
     return "Docs";
@@ -20,7 +23,7 @@ const getBreadcrumbLabel = (section?: string, subsection?: string): string | und
   if (!sectionItem) {
     return section;
   }
-  
+
   if (!subsection) {
     return sectionItem.title || section;
   }
@@ -29,7 +32,7 @@ const getBreadcrumbLabel = (section?: string, subsection?: string): string | und
   if (subsectionItem) {
     return subsectionItem.title || subsection;
   }
-  return undefined
+  return undefined;
 };
 
 export const docsMiddleware: LoaderFunction = async ({ params }, context) => {
@@ -40,6 +43,8 @@ export const docsMiddleware: LoaderFunction = async ({ params }, context) => {
   docsContext.section = section;
   docsContext.subsection = subsection;
 
-  docsContext.sectionBreadcrumbLabel = getBreadcrumbLabel(section) || 'BROKEN LINK';
-  docsContext.subsectionBreadcrumbLabel = getBreadcrumbLabel(section, subsection) || 'BROKEN LINK';
-}
+  docsContext.sectionBreadcrumbLabel =
+    getBreadcrumbLabel(section) || "BROKEN LINK";
+  docsContext.subsectionBreadcrumbLabel =
+    getBreadcrumbLabel(section, subsection) || "BROKEN LINK";
+};

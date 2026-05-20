@@ -20,12 +20,16 @@ export function ModuleTabLink({
   count,
   disabled,
 }: ModuleTabLinkProps) {
-  const sharedClasses = "flex px-3 py-2 items-center text-sm rounded-md transition-all duration-150";
+  const sharedClasses =
+    "flex px-3 py-2 items-center text-sm rounded-md transition-all duration-150";
 
   const component = disabled ? (
     <button
       disabled
-      className={clsx(sharedClasses, "justify-between text-gray-400 dark:text-gray-500 cursor-not-allowed")}
+      className={clsx(
+        sharedClasses,
+        "cursor-not-allowed justify-between text-gray-400 dark:text-gray-500",
+      )}
     >
       {children}
       <Icon path={lock} className="size-em" />
@@ -39,7 +43,7 @@ export function ModuleTabLink({
           sharedClasses,
           isActive
             ? "bg-brand-500/10 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400 font-medium"
-            : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white",
+            : "text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white",
         )
       }
     >

@@ -11,7 +11,7 @@ function Block({ children }: { children: ReactNode }) {
     <SidebarBlock title="How to use this module">
       <Paragraph className="my-3 text-sm text-gray-600 dark:text-gray-400">
         Add this to your configuration and run{" "}
-        <code className="px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-mono text-xs">
+        <code className="rounded bg-gray-200 px-1 py-0.5 font-mono text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
           tofu init
         </code>
       </Paragraph>

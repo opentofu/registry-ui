@@ -44,22 +44,22 @@ export function ProviderVersionInfo() {
   return (
     <div className="flex items-center justify-between">
       {version !== latestVersion ? (
-        <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-800 dark:bg-blue-950/50">
           <div className="flex items-center gap-2">
             <span className="text-sm text-blue-700 dark:text-blue-300">
               Viewing version {version}
             </span>
             <span className="text-blue-400 dark:text-blue-600">•</span>
-            <a 
+            <a
               href={latestVersionLink}
-              className="text-sm font-medium text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+              className="text-sm font-medium text-blue-700 transition-colors hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100"
             >
               Switch to latest ({latestVersion})
             </a>
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-800">
+        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 dark:border-green-800 dark:bg-green-950/50">
           <span className="text-sm text-green-700 dark:text-green-300">
             ✓ Latest version
           </span>
@@ -73,8 +73,8 @@ export function ProviderVersionInfo() {
 export function ProviderVersionInfoSkeleton() {
   return (
     <div className="flex items-center justify-between">
-      <span className="h-10 w-64 animate-pulse bg-gray-500/25 rounded-lg" />
-      <span className="h-10 w-48 animate-pulse bg-gray-500/25 rounded" />
+      <span className="h-10 w-64 animate-pulse rounded-lg bg-gray-500/25" />
+      <span className="h-10 w-48 animate-pulse rounded bg-gray-500/25" />
     </div>
   );
 }
