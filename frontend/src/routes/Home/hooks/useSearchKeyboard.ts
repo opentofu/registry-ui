@@ -3,8 +3,6 @@ import { useNavigate } from "react-router";
 import { definitions } from "@/api";
 import { getDocumentationUrl } from "../utils/getDocumentationUrl";
 
-
-
 interface UseSearchKeyboardProps {
   flatResults: definitions["SearchResultItem"][];
   selectedIndex: number;
@@ -17,12 +15,12 @@ interface UseSearchKeyboardProps {
 
 /**
  * Custom hook that handles keyboard navigation for search results.
- * 
+ *
  * Provides keyboard shortcuts for:
  * - Arrow Up/Down: Navigate through search results with visual feedback and auto-scrolling
  * - Enter: Navigate to the full documentation page for the selected result
  * - Escape: Close the search interface and clear the query
- * 
+ *
  * The hook manages result selection state and integrates with React Router for navigation.
  */
 export function useSearchKeyboard({
@@ -31,11 +29,10 @@ export function useSearchKeyboard({
   setSelectedIndex,
   setSelectedResult,
   resultsContainerRef,
-  setQuery,
   onClearSearch,
 }: UseSearchKeyboardProps) {
   const navigate = useNavigate();
-  
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "ArrowDown") {
@@ -56,7 +53,7 @@ export function useSearchKeyboard({
         });
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex((prev) => {
+        setSelectedIndex((prev: number) => {
           const newIndex = Math.max(prev - 1, 0);
           setSelectedResult(flatResults[newIndex]);
           // Scroll to selected item
@@ -89,7 +86,6 @@ export function useSearchKeyboard({
       setSelectedIndex,
       setSelectedResult,
       resultsContainerRef,
-      setQuery,
       onClearSearch,
       navigate,
     ],
@@ -97,3 +93,4 @@ export function useSearchKeyboard({
 
   return { handleKeyDown };
 }
+

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { definitions } from "@/api";
 
 export interface GroupedResults {
@@ -25,7 +25,10 @@ export function useSearchState() {
     }
   };
 
-  const handleResultClick = (result: definitions["SearchResultItem"], flatResults: definitions["SearchResultItem"][]) => {
+  const handleResultClick = (
+    result: definitions["SearchResultItem"],
+    flatResults: definitions["SearchResultItem"][],
+  ) => {
     const index = flatResults.findIndex((r) => r.id === result.id);
     setSelectedIndex(index);
     setSelectedResult(result);
@@ -56,3 +59,4 @@ export function useSearchState() {
     handleHomeClick,
   };
 }
+

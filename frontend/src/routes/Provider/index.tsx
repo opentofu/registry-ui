@@ -21,7 +21,7 @@ import {
   ProviderInstructionSidebarBlockSkeleton,
 } from "./components/InstructionSidebarBlock";
 import { ProviderMetaTags } from "./components/MetaTags";
-import { DocsProvider } from "./contexts/DocsContext";
+import { DocsProvider } from "./contexts/DocsProvider";
 import {
   TableOfContents,
   TableOfContentsSkeleton,

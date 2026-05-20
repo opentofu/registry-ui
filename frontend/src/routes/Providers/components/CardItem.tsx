@@ -1,6 +1,5 @@
 import {
   CardItemFooter,
-  CardItemFooterDetail,
   CardItemFooterDetailSkeleton,
 } from "@/components/CardItem/Footer";
 
@@ -24,54 +23,54 @@ export function ProvidersCardItem({ provider }: ProviderCardItemProps) {
 
   return (
     <CardItem>
-      <div className="flex items-start gap-4 h-full">
-        <Link 
-          to={`/provider/${provider.addr.namespace}/${provider.addr.name}/${latestVersion?.id || 'latest'}`}
+      <div className="flex h-full items-start gap-4">
+        <Link
+          to={`/provider/${provider.addr.namespace}/${provider.addr.name}/${latestVersion?.id || "latest"}`}
           className="flex-shrink-0"
         >
-          <img 
-            src={`https://avatars.githubusercontent.com/${provider.addr.namespace}`} 
+          <img
+            src={`https://avatars.githubusercontent.com/${provider.addr.namespace}`}
             alt={`${provider.addr.namespace} avatar`}
-            className="w-10 h-10 rounded-lg ring-1 ring-gray-200 dark:ring-gray-700"
+            className="h-10 w-10 rounded-lg ring-1 ring-gray-200 dark:ring-gray-700"
             loading="lazy"
             onError={(e) => {
-              e.currentTarget.src = '/favicon.ico'; // Fallback to OpenTofu icon
+              e.currentTarget.src = "/favicon.ico"; // Fallback to OpenTofu icon
             }}
           />
         </Link>
-        
-        <div className="flex-grow min-w-0 flex flex-col">
+
+        <div className="flex min-w-0 flex-grow flex-col">
           <CardItemTitle
             linkProps={{
-              to: `/provider/${provider.addr.namespace}/${provider.addr.name}/${latestVersion?.id || 'latest'}`,
+              to: `/provider/${provider.addr.namespace}/${provider.addr.name}/${latestVersion?.id || "latest"}`,
             }}
             className="line-clamp-1"
           >
             {provider.addr.namespace}/{provider.addr.name}
           </CardItemTitle>
 
-          <Paragraph className="mb-2 mt-1 line-clamp-1 text-sm flex-grow min-h-[1.25rem]">
-            {provider.description || '\u00A0'}
+          <Paragraph className="mt-1 mb-2 line-clamp-1 min-h-[1.25rem] flex-grow text-sm">
+            {provider.description || "\u00A0"}
           </Paragraph>
 
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600 dark:text-gray-300 mt-auto">
+          <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600 dark:text-gray-300">
             {provider.popularity !== undefined && provider.popularity > 0 && (
               <span className="flex items-center gap-1">
-                <Icon path={star} className="w-3 h-3" width={16} height={16} />
+                <Icon path={star} className="h-3 w-3" width={16} height={16} />
                 {provider.popularity.toLocaleString()} stars
               </span>
             )}
-            
+
             {provider.fork_count !== undefined && provider.fork_count > 0 && (
               <span className="flex items-center gap-1">
-                <Icon path={fork} className="w-3 h-3" width={16} height={16} />
+                <Icon path={fork} className="h-3 w-3" width={16} height={16} />
                 {provider.fork_count.toLocaleString()} forks
               </span>
             )}
 
             {provider.fork_of && (
               <span className="flex items-center gap-1">
-                <Icon path={fork} className="w-3 h-3" width={16} height={16} />
+                <Icon path={fork} className="h-3 w-3" width={16} height={16} />
                 Forked
               </span>
             )}
@@ -84,7 +83,7 @@ export function ProvidersCardItem({ provider }: ProviderCardItemProps) {
 
             {latestVersion?.published && (
               <span className="flex items-center gap-1">
-                <Icon path={clock} className="w-3 h-3" width={24} height={24} />
+                <Icon path={clock} className="h-3 w-3" width={24} height={24} />
                 <DateTime value={latestVersion?.published} />
               </span>
             )}
@@ -99,12 +98,12 @@ export function ProvidersCardItemSkeleton() {
   return (
     <CardItem>
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-lg animate-pulse bg-gray-500/25" />
-        
-        <div className="flex-grow">
-          <span className="flex h-em w-48 animate-pulse bg-gray-500/25 text-xl" />
+        <div className="h-10 w-10 animate-pulse rounded-lg bg-gray-500/25" />
 
-          <span className="mb-7 mt-5 flex h-em w-96 animate-pulse bg-gray-500/25" />
+        <div className="flex-grow">
+          <span className="h-em flex w-48 animate-pulse bg-gray-500/25 text-xl" />
+
+          <span className="h-em mt-5 mb-7 flex w-96 animate-pulse bg-gray-500/25" />
 
           <CardItemFooter>
             <CardItemFooterDetailSkeleton />
