@@ -21,7 +21,7 @@ export function ResultItem({ result, isSelected, onClick }: ResultItemProps) {
     >
       <div className="mt-0.5 flex-shrink-0">
         <img
-          src={`https://avatars.githubusercontent.com/${result.link_variables.namespace}`}
+          src={`https://github.com/${result.link_variables.namespace}.png`}
           alt=""
           className="h-5 w-5 rounded"
           loading="lazy"
