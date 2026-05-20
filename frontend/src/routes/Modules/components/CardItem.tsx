@@ -25,7 +25,7 @@ export function ModulesCardItem({ module }: ModulesCardItemProps) {
           className="flex-shrink-0"
         >
           <img
-            src={`https://avatars.githubusercontent.com/${module.addr.namespace}`}
+            src={`https://github.com/${module.addr.namespace}.png`}
             alt={`${module.addr.namespace} avatar`}
             className="h-10 w-10 rounded-lg ring-1 ring-gray-200 dark:ring-gray-700"
             loading="lazy"

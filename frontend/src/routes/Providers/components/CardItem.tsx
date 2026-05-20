@@ -29,7 +29,7 @@ export function ProvidersCardItem({ provider }: ProviderCardItemProps) {
           className="flex-shrink-0"
         >
           <img
-            src={`https://avatars.githubusercontent.com/${provider.addr.namespace}`}
+            src={`https://github.com/${provider.addr.namespace}.png`}
             alt={`${provider.addr.namespace} avatar`}
             className="h-10 w-10 rounded-lg ring-1 ring-gray-200 dark:ring-gray-700"
             loading="lazy"

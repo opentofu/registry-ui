@@ -11,7 +11,7 @@ export function SearchProviderResult({ result }: SearchProviderResultProps) {
     <div className="flex items-start gap-3">
       {namespace && (
         <img
-          src={`https://avatars.githubusercontent.com/${namespace}`}
+          src={`https://github.com/${namespace}.png`}
           alt={`${namespace} avatar`}
           className="h-8 w-8 flex-shrink-0 rounded ring-1 ring-gray-200 dark:ring-gray-700"
           onError={(e) => {
