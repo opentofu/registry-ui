@@ -125,7 +125,7 @@ export function SearchExperience() {
       <div className="fixed inset-0 -z-10 bg-white/50 dark:bg-blue-950/50" />
       <Header />
 
-      <div className="mx-auto flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24">
+      <div className="mx-auto mb-8 flex w-full max-w-(--breakpoint-3xl) grow flex-col px-5 pt-24">
         <SearchBreadcrumbs onHomeClick={handleHomeClick} />
         <div className="flex flex-1 divide-x divide-gray-200 border border-t-0 border-b-0 border-gray-300 dark:divide-gray-800 dark:border-gray-700">
           <SearchResults
