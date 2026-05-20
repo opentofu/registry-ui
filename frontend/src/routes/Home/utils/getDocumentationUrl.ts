@@ -1,7 +1,7 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 
 export function getDocumentationUrl(
-  result: definitions["SearchResultItem"],
+  result: components["schemas"]["SearchResultItem"],
 ): string {
   const vars = result.link_variables;
 

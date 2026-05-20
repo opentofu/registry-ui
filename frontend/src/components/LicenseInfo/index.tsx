@@ -1,11 +1,11 @@
 import { Fragment, useState } from "react";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { Icon } from "../Icon";
 import { info } from "@/icons/info";
 import { groupBy } from "es-toolkit";
 
 interface LicenseInfoProps {
-  license?: definitions["LicenseList"];
+  license?: components["schemas"]["LicenseList"];
 }
 
 export function LicenseInfo({ license }: LicenseInfoProps) {

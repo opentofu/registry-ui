@@ -1,9 +1,9 @@
 import { Paragraph } from "@/components/Paragraph";
 import { EmptyState } from "@/components/EmptyState";
-import { definitions } from "@/api";
+import { components } from "@/api";
 
 interface ModuleResourcesProps {
-  resources: Array<definitions["Resource"]>;
+  resources: Array<components["schemas"]["Resource"]>;
 }
 
 export function ModuleResources({ resources }: ModuleResourcesProps) {

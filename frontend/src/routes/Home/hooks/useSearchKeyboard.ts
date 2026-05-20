@@ -1,13 +1,15 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { getDocumentationUrl } from "../utils/getDocumentationUrl";
 
 interface UseSearchKeyboardProps {
-  flatResults: definitions["SearchResultItem"][];
+  flatResults: components["schemas"]["SearchResultItem"][];
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
-  setSelectedResult: (result: definitions["SearchResultItem"]) => void;
+  setSelectedResult: (
+    result: components["schemas"]["SearchResultItem"],
+  ) => void;
   resultsContainerRef: React.RefObject<HTMLDivElement>;
   setQuery: (query: string) => void;
   onClearSearch: () => void;

@@ -1,11 +1,11 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { ResultItem } from "./ResultItem";
 
 interface ResultGroupProps {
   title: string;
-  results: definitions["SearchResultItem"][];
-  selectedResult: definitions["SearchResultItem"] | null;
-  onResultClick: (result: definitions["SearchResultItem"]) => void;
+  results: components["schemas"]["SearchResultItem"][];
+  selectedResult: components["schemas"]["SearchResultItem"] | null;
+  onResultClick: (result: components["schemas"]["SearchResultItem"]) => void;
 }
 
 export function ResultGroup({

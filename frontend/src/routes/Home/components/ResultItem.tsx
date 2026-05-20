@@ -1,8 +1,8 @@
 import clsx from "clsx";
-import { definitions } from "@/api";
+import { components } from "@/api";
 
 interface ResultItemProps {
-  result: definitions["SearchResultItem"];
+  result: components["schemas"]["SearchResultItem"];
   isSelected: boolean;
   onClick: () => void;
 }

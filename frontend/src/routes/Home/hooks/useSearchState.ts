@@ -1,19 +1,19 @@
 import { useState } from "react";
-import { definitions } from "@/api";
+import { components } from "@/api";
 
 export interface GroupedResults {
-  providers: definitions["SearchResultItem"][];
-  modules: definitions["SearchResultItem"][];
-  resources: definitions["SearchResultItem"][];
-  datasources: definitions["SearchResultItem"][];
-  functions: definitions["SearchResultItem"][];
+  providers: components["schemas"]["SearchResultItem"][];
+  modules: components["schemas"]["SearchResultItem"][];
+  resources: components["schemas"]["SearchResultItem"][];
+  datasources: components["schemas"]["SearchResultItem"][];
+  functions: components["schemas"]["SearchResultItem"][];
 }
 
 export function useSearchState() {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedResult, setSelectedResult] = useState<
-    definitions["SearchResultItem"] | null
+    components["schemas"]["SearchResultItem"] | null
   >(null);
 
   const handleSearchInput = (value: string) => {
@@ -26,8 +26,8 @@ export function useSearchState() {
   };
 
   const handleResultClick = (
-    result: definitions["SearchResultItem"],
-    flatResults: definitions["SearchResultItem"][],
+    result: components["schemas"]["SearchResultItem"],
+    flatResults: components["schemas"]["SearchResultItem"][],
   ) => {
     const index = flatResults.findIndex((r) => r.id === result.id);
     setSelectedIndex(index);

@@ -1,4 +1,4 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { api } from "@/query";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -12,7 +12,7 @@ export const getProviderVersionDataQuery = (
     queryFn: async () => {
       const data = await api(
         `providers/${namespace}/${provider}/${version}/index.json`,
-      ).json<definitions["ProviderVersion"]>();
+      ).json<components["schemas"]["ProviderVersion"]>();
 
       return data;
     },
@@ -85,7 +85,7 @@ export const getProviderDataQuery = (
     queryFn: async () => {
       const data = await api(
         `providers/${namespace}/${provider}/index.json`,
-      ).json<definitions["Provider"]>();
+      ).json<components["schemas"]["Provider"]>();
 
       return data;
     },

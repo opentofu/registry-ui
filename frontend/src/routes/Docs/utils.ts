@@ -7,7 +7,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 export function getSlugPathMap() {
   const docs = import.meta.glob("../../../docs/**/*.md", {
     eager: true,
-    as: "raw",
+    query: "?raw",
+    import: "default",
   });
 
   const processorWithFrontmatter = processor().use(() => {

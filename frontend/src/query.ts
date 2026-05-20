@@ -9,4 +9,4 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const api = ky.create({ prefixUrl: import.meta.env.VITE_DATA_API_URL });
+export const api = ky.create({ prefix: import.meta.env.VITE_DATA_API_URL });

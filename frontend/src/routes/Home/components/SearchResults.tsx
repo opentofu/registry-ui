@@ -1,13 +1,13 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { SearchInput } from "@/components/SearchInput";
 import { ResultGroup } from "./ResultGroup";
 
 interface GroupedResults {
-  providers: definitions["SearchResultItem"][];
-  modules: definitions["SearchResultItem"][];
-  resources: definitions["SearchResultItem"][];
-  datasources: definitions["SearchResultItem"][];
-  functions: definitions["SearchResultItem"][];
+  providers: components["schemas"]["SearchResultItem"][];
+  modules: components["schemas"]["SearchResultItem"][];
+  resources: components["schemas"]["SearchResultItem"][];
+  datasources: components["schemas"]["SearchResultItem"][];
+  functions: components["schemas"]["SearchResultItem"][];
 }
 
 interface SearchResultsProps {
@@ -17,11 +17,11 @@ interface SearchResultsProps {
   onClear: () => void;
   isLoading: boolean;
   groupedResults: GroupedResults | null;
-  flatResults: definitions["SearchResultItem"][];
-  selectedResult: definitions["SearchResultItem"] | null;
-  onResultClick: (result: definitions["SearchResultItem"]) => void;
+  flatResults: components["schemas"]["SearchResultItem"][];
+  selectedResult: components["schemas"]["SearchResultItem"] | null;
+  onResultClick: (result: components["schemas"]["SearchResultItem"]) => void;
   resultsContainerRef: React.RefObject<HTMLDivElement>;
-  searchData?: definitions["SearchResultItem"][];
+  searchData?: components["schemas"]["SearchResultItem"][];
 }
 
 export function SearchResults({

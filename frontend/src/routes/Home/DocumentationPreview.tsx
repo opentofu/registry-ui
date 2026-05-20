@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { Markdown } from "@/components/Markdown";
 import { api } from "@/query";
 import { queryOptions } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { Button } from "@/components/Button";
 import { getDocumentationUrl } from "./utils/getDocumentationUrl";
 
 interface DocumentationPreviewProps {
-  result: definitions["SearchResultItem"];
+  result: components["schemas"]["SearchResultItem"];
 }
 
 const getProviderDocQuery = (

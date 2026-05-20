@@ -3,7 +3,7 @@ import { CardItemTitle } from "@/components/CardItem/Title";
 import { DateTime } from "@/components/DateTime";
 import { Paragraph } from "@/components/Paragraph";
 import { Icon } from "@/components/Icon";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { Link } from "react-router";
 import { star } from "@/icons/star";
 import { fork } from "@/icons/fork";
@@ -11,7 +11,7 @@ import { target } from "@/icons/target";
 import { clock } from "@/icons/clock";
 
 interface ModulesCardItemProps {
-  module: definitions["Module"];
+  module: components["schemas"]["Module"];
 }
 
 export function ModulesCardItem({ module }: ModulesCardItemProps) {

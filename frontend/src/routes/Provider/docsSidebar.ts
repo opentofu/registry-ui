@@ -1,4 +1,4 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 
 export type NestedItem = {
   name: string;
@@ -9,7 +9,7 @@ export type NestedItem = {
   active?: boolean;
 };
 
-export type Docs = Omit<definitions["ProviderDocs"], "index">;
+export type Docs = Omit<components["schemas"]["ProviderDocs"], "index">;
 type Category = keyof Docs;
 
 // categoryLabelMap is a mapping of the keys in the OriginalStructure to a human readable name

@@ -1,9 +1,9 @@
 import { EmptyState } from "@/components/EmptyState";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { ModuleOutput } from "../ModuleOutput";
 
 interface ModuleOutputsProps {
-  outputs: Record<string, definitions["Output"]>;
+  outputs: Record<string, components["schemas"]["Output"]>;
 }
 
 export function ModuleOutputs({ outputs }: ModuleOutputsProps) {

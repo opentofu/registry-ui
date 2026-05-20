@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { api } from "@/query";
 
 export const getProvidersQuery = () =>
@@ -7,7 +7,9 @@ export const getProvidersQuery = () =>
     queryKey: ["providers"],
     queryFn: async () => {
       const data =
-        await api(`providers/index.json`).json<definitions["ProviderList"]>();
+        await api(`providers/index.json`).json<
+          components["schemas"]["ProviderList"]
+        >();
 
       return data.providers;
     },
