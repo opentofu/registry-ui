@@ -1,6 +1,6 @@
 import { queryOptions, skipToken } from "@tanstack/react-query";
 import { api } from "@/query";
-import { definitions } from "./api";
+import { components } from "./api";
 
 export const getSearchQuery = (query: string) =>
   queryOptions({
@@ -10,7 +10,7 @@ export const getSearchQuery = (query: string) =>
         ? async ({ signal }) => {
             return api(`search?q=${encodeURIComponent(query)}`, {
               signal,
-            }).json<definitions["SearchResultItem"][]>();
+            }).json<components["schemas"]["SearchResultItem"][]>();
           }
         : skipToken,
   });

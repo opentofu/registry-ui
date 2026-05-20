@@ -1,9 +1,9 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { isValidDocsType } from "./isValidDocsType";
 import { isValidCDKTFLang } from "./isValidCDKTFLang";
 
 export function getProviderDoc(
-  providerVersionData: definitions["ProviderVersion"],
+  providerVersionData: components["schemas"]["ProviderVersion"],
   type: string | undefined,
   doc: string | undefined,
   lang: string | null,

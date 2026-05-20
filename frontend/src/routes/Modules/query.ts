@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { api } from "@/query";
 
 export const getModulesQuery = () =>
@@ -7,7 +7,7 @@ export const getModulesQuery = () =>
     queryKey: ["modules"],
     queryFn: async () => {
       const data =
-        await api(`modules/index.json`).json<definitions["ModuleList"]>();
+        await api(`modules/index.json`).json<components["schemas"]["ModuleList"]>();
 
       return data.modules;
     },

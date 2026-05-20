@@ -1,4 +1,4 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { NavLink } from "react-router";
@@ -167,12 +167,12 @@ function VersionTreeViewItem({ node }: TreeItemProps) {
 
 interface VersionsSidebarBlockProps {
   versions: Array<
-    | definitions["ProviderVersionDescriptor"]
-    | definitions["ModuleVersionDescriptor"]
+    | components["schemas"]["ProviderVersionDescriptor"]
+    | components["schemas"]["ModuleVersionDescriptor"]
   >;
   latestVersion:
-    | definitions["ProviderVersionDescriptor"]
-    | definitions["ModuleVersionDescriptor"];
+    | components["schemas"]["ProviderVersionDescriptor"]
+    | components["schemas"]["ModuleVersionDescriptor"];
   currentVersion: string;
   versionLink: (version: string) => string;
 }

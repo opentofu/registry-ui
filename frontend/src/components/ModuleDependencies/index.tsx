@@ -1,9 +1,9 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { EmptyState } from "../EmptyState";
 
 interface ModuleDependenciesProps {
-  moduleDependencies: Array<definitions["ModuleDependency"]>;
-  providerDependencies: Array<definitions["ProviderDependency"]>;
+  moduleDependencies: Array<components["schemas"]["ModuleDependency"]>;
+  providerDependencies: Array<components["schemas"]["ProviderDependency"]>;
 }
 
 export function ModuleDependencies({

@@ -13,7 +13,7 @@ import { SearchModuleResult } from "./ModuleResult";
 import { SearchOtherResult } from "./OtherResult";
 import { SearchProviderResult } from "./ProviderResult";
 import clsx from "clsx";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { getSearchQuery } from "../../q";
 import { search } from "../../icons/search";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -67,7 +67,7 @@ function getSearchResultTypeLabel(type: SearchResultType) {
 
 function getSearchResultTypeLink(
   type: SearchResultType,
-  result: definitions["SearchResultItem"],
+  result: components["schemas"]["SearchResultItem"],
 ) {
   switch (type) {
     case SearchResultType.Module:
@@ -87,7 +87,7 @@ function getSearchResultTypeLink(
 
 function getSearchResultDisplayTitle(
   type: SearchResultType,
-  result: definitions["SearchResultItem"],
+  result: components["schemas"]["SearchResultItem"],
 ) {
   switch (type) {
     case SearchResultType.Module:

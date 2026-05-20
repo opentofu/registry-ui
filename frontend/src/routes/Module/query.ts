@@ -1,4 +1,4 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { api } from "@/query";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -13,7 +13,7 @@ export const getModuleVersionDataQuery = (
     queryFn: async () => {
       const data = await api(
         `modules/${namespace}/${name}/${target}/${version}/index.json`,
-      ).json<definitions["ModuleVersion"]>();
+      ).json<components["schemas"]["ModuleVersion"]>();
 
       return data;
     },
@@ -30,7 +30,7 @@ export const getModuleDataQuery = (
     queryFn: async () => {
       const data = await api(
         `modules/${namespace}/${name}/${target}/index.json`,
-      ).json<definitions["Module"]>();
+      ).json<components["schemas"]["Module"]>();
 
       return data;
     },

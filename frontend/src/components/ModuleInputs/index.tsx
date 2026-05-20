@@ -1,15 +1,15 @@
 import { Paragraph } from "@/components/Paragraph";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { EmptyState } from "@/components/EmptyState";
 import { ModuleInput } from "@/components/ModuleInput";
 
 interface ModuleInputsProps {
-  inputs: Record<string, definitions["Variable"]>;
+  inputs: Record<string, components["schemas"]["Variable"]>;
 }
 
 export function ModuleInputs({ inputs }: ModuleInputsProps) {
-  const requiredInputs: Array<definitions["Variable"] & { name: string }> = [];
-  const optionalInputs: Array<definitions["Variable"] & { name: string }> = [];
+  const requiredInputs: Array<components["schemas"]["Variable"] & { name: string }> = [];
+  const optionalInputs: Array<components["schemas"]["Variable"] & { name: string }> = [];
 
   for (const [name, input] of Object.entries(inputs)) {
     const result = { name, ...input };

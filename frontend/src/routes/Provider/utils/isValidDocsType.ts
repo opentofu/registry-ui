@@ -1,6 +1,6 @@
-import { definitions } from "@/api";
+import { components } from "@/api";
 
-type DocType = keyof Omit<definitions["ProviderDocs"], "index">;
+type DocType = keyof Omit<components["schemas"]["ProviderDocs"], "index">;
 
 const docsTypes: Array<DocType> = [
   "resources",

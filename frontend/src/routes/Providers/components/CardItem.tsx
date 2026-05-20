@@ -8,14 +8,14 @@ import { CardItemTitle } from "@/components/CardItem/Title";
 import { DateTime } from "@/components/DateTime";
 import { Paragraph } from "@/components/Paragraph";
 import { Icon } from "@/components/Icon";
-import { definitions } from "@/api";
+import { components } from "@/api";
 import { Link } from "react-router";
 import { star } from "@/icons/star";
 import { fork } from "@/icons/fork";
 import { clock } from "@/icons/clock";
 
 interface ProviderCardItemProps {
-  provider: definitions["Provider"];
+  provider: components["schemas"]["Provider"];
 }
 
 export function ProvidersCardItem({ provider }: ProviderCardItemProps) {
