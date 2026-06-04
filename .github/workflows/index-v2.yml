@@ -22,8 +22,9 @@ jobs:
           DD_APM_ENABLED: true
           DD_APM_NON_LOCAL_TRAFFIC: true
           DD_OTLP_CONFIG_LOGS_ENABLED: true
+          DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT: "0.0.0.0:4317"
           DD_HOSTNAME: "index-v2-github-actions"
-          DD_SITE: "datadoghq.eq"
+          DD_SITE: "datadoghq.eu"
         ports:
           - 4317:4317
     env:
