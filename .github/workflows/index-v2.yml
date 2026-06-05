@@ -1,0 +1,66 @@
+name: Index - backend v2
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: backendv2
+jobs:
+  sync:
+    name: Run V2 Backend Documentation Index
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backendv2
+    services:
+      # Spawn the datadog agent for this, based on https://github.com/DataDog/KubeHound/blob/3df6840dcde9acde35294fb8dece2b8ec6002536/.github/workflows/system-test.yml#L17-L27
+      dd-agent:
+        image: gcr.io/datadoghq/agent:7
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_TRACE_DEBUG: 0
+          DD_LOGS_ENABLED: true
+          DD_APM_ENABLED: true
+          DD_APM_NON_LOCAL_TRAFFIC: true
+          DD_OTLP_CONFIG_LOGS_ENABLED: true
+          DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT: "0.0.0.0:4317"
+          DD_HOSTNAME: "index-v2-github-actions"
+          DD_SITE: "datadoghq.eu"
+        ports:
+          - 4317:4317
+    env:
+      # Env for the steps
+      REGISTRY_BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      REGISTRY_BUCKET_ACCESSKEYID: ${{ secrets.BUCKET_ACCESSKEYID }}
+      REGISTRY_BUCKET_SECRETACCESSKEY: ${{ secrets.BUCKET_SECRETACCESSKEY }}
+      REGISTRY_BUCKET_ENDPOINT: ${{ secrets.BUCKET_ENDPOINT }}
+      REGISTRY_BUCKET_REGION: "auto"
+      REGISTRY_DB_CONNECTIONSTRING: ${{ secrets.DB_CONNECTIONSTRING }}
+      REGISTRY_GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      REGISTRY_TELEMETRY_ENABLED: "true"
+      REGISTRY_TELEMETRY_LOGGING: "true"
+      REGISTRY_TELEMETRY_EXPORTER: "otlp"
+      REGISTRY_TELEMETRY_ENDPOINT: "localhost:4317"
+      REGISTRY_TELEMETRY_SERVICENAME: "opentofu-registry-backendv2"
+      REGISTRY_TELEMETRY_INSECURE: "true"
+    steps:
+      - name: Checkout Git Repo
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: backendv2/go.mod
+          cache: true
+
+      - name: Build CLI
+        run: go build -o backendv2
+
+      - name: Setup OpenTofu - Nightly
+        run: ./backendv2 dl-tofu-nightly
+
+      - name: Migrate the DB
+        run: ./backendv2 db migrate
+
+      - name: Index
+        run: ./backendv2 sync-providers
+        # TODO: Once this runs, introduce other commands
