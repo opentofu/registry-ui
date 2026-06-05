@@ -131,8 +131,7 @@ Manages projects.
 
 	for _, tt := range tests {
 		s := &Scraper{
-			config:   nil,
-			s3Client: nil,
+			config: nil,
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			doc := &DocItem{}
