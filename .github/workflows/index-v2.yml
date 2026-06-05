@@ -62,7 +62,7 @@ jobs:
         run: ./backendv2 dl-tofu-nightly
 
       - name: Migrate the DB
-        run: ./backendv2 db migrate
+        run: ./backendv2 migrate up
 
       - name: Index
         run: ./backendv2 sync-providers
