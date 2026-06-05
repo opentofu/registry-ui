@@ -8,6 +8,7 @@ jobs:
   sync:
     name: Run V2 Backend Documentation Index
     runs-on: ubuntu-latest
+    environment: backendv2
     defaults:
       run:
         working-directory: backendv2
