@@ -30,6 +30,8 @@ jobs:
           - 4317:4317
     env:
       # Env for the steps
+      REGISTRY_WORKDIR: "/tmp/opentofu-registry-backend"
+      REGISTRY_REGISTRYPATH: "/tmp/opentofu-registry-backend/registry"
       REGISTRY_BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
       REGISTRY_BUCKET_ACCESSKEYID: ${{ secrets.BUCKET_ACCESSKEYID }}
       REGISTRY_BUCKET_SECRETACCESSKEY: ${{ secrets.BUCKET_SECRETACCESSKEY }}
