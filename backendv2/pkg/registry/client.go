@@ -22,7 +22,9 @@ func New(path string) (*Client, error) {
 		return nil, fmt.Errorf("repo path cannot be empty")
 	}
 
-	repo, err := git.GetRepo(registryURL, path)
+	// The registry repo is multi-GB with history; we only need the current tree
+	// of main, so clone it shallow.
+	repo, err := git.GetRepo(registryURL, path, git.WithShallow())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create git repo: %w", err)
 	}

@@ -27,9 +27,19 @@ type Repo struct {
 	URL       string
 	LocalPath string
 
+	shallow bool
+
 	// Internal state
 	repository *git.Repository
 	worktrees  sync.Map // ref -> path mapping for worktrees (thread-safe)
+}
+
+// Option configures a Repo at construction time.
+type Option func(*Repo)
+
+// WithShallow makes the repo clone only the tip of the default branch.
+func WithShallow() Option {
+	return func(r *Repo) { r.shallow = true }
 }
 
 // requireCloned requires that the repository is cloned and ready for operations.
@@ -45,7 +55,7 @@ func (r *Repo) requireCloned(ctx context.Context, span trace.Span, action string
 }
 
 // GetRepo creates or returns an existing Repo instance
-func GetRepo(url, localPath string) (*Repo, error) {
+func GetRepo(url, localPath string, opts ...Option) (*Repo, error) {
 	if url == "" {
 		return nil, fmt.Errorf("repository URL cannot be empty")
 	}
@@ -65,6 +75,9 @@ func GetRepo(url, localPath string) (*Repo, error) {
 	repo := &Repo{
 		URL:       url,
 		LocalPath: localPath,
+	}
+	for _, opt := range opts {
+		opt(repo)
 	}
 
 	if _, err := os.Stat(filepath.Join(localPath, ".git")); err != nil {
@@ -108,6 +121,12 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 		URL:        r.URL,
 		Progress:   nil,
 		NoCheckout: true, // Don't checkout working tree
+	}
+	if r.shallow {
+		cloneOptions.Depth = 1
+		cloneOptions.SingleBranch = true
+		cloneOptions.ReferenceName = plumbing.NewBranchReferenceName("main")
+		cloneOptions.Tags = git.NoTags
 	}
 
 	repository, err := git.PlainCloneContext(ctx, r.LocalPath, false, cloneOptions)
