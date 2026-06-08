@@ -147,7 +147,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 			logger := slog.With("provider.namespace", prov.Namespace, "provider.name", prov.Name)
 
-			logger.InfoContext(provCtx, "Syncing provider")
+			logger.DebugContext(provCtx, "Syncing provider")
 			// Sync the provider version(s)
 			var syncErr error
 			if specificVersion != "" {
