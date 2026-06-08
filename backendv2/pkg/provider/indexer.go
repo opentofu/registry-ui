@@ -106,7 +106,7 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 	}
 
 	// Create documentation scraper
-	docScraper := scraper.New(p.config, p.s3Client, p.db)
+	docScraper := scraper.New(p.config, p.uploader, p.db)
 
 	// Initialize doc count and docs
 	var docCount int

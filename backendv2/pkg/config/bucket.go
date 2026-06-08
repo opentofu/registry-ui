@@ -54,7 +54,7 @@ func (c *BucketConfig) GetClient(ctx context.Context) (*s3.Client, error) {
 		// Connection pool settings - critical for performance
 		MaxIdleConns:        200,              // Total max idle connections
 		MaxIdleConnsPerHost: 200,              // Max idle connections per host (default is only 2!)
-		MaxConnsPerHost:     0,                // No limit on connections per host
+		MaxConnsPerHost:     200,              // excess uploads queue here instead of flooding R2 with sockets (R2 refuses connections / throttles under unbounded concurrency)
 		IdleConnTimeout:     90 * time.Second, // Keep connections alive longer
 
 		// Timeouts
@@ -93,6 +93,8 @@ func (c *BucketConfig) GetClient(ctx context.Context) (*s3.Client, error) {
 		if c.Endpoint != "" {
 			o.BaseEndpoint = aws.String(c.Endpoint)
 		}
+		o.RetryMode = aws.RetryModeAdaptive
+		o.RetryMaxAttempts = 10
 	})
 
 	c.client = client

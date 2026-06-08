@@ -75,16 +75,14 @@ type DocItem struct {
 
 type Scraper struct {
 	config   *config.BackendConfig
-	s3Client *s3.Client
 	uploader *manager.Uploader
 	pool     *pgxpool.Pool
 }
 
-func New(cfg *config.BackendConfig, s3Client *s3.Client, pool *pgxpool.Pool) *Scraper {
+func New(cfg *config.BackendConfig, uploader *manager.Uploader, pool *pgxpool.Pool) *Scraper {
 	return &Scraper{
 		config:   cfg,
-		s3Client: s3Client,
-		uploader: manager.NewUploader(s3Client),
+		uploader: uploader,
 		pool:     pool,
 	}
 }
