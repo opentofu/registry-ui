@@ -27,9 +27,31 @@ type Repo struct {
 	URL       string
 	LocalPath string
 
+	shallow bool
+	branch  string
+
 	// Internal state
 	repository *git.Repository
 	worktrees  sync.Map // ref -> path mapping for worktrees (thread-safe)
+}
+
+// Option configures a Repo at construction time.
+type Option func(*Repo)
+
+// WithShallow makes the repo clone only the tip of the branch.
+func WithShallow() Option {
+	return func(r *Repo) { r.shallow = true }
+}
+
+// WithBranch sets the branch this repo clones, checks out, and resets to.
+// Defaults to "main".
+// Note: This only takes effect if you are shallow cloning
+func WithBranch(name string) Option {
+	return func(r *Repo) {
+		if name != "" {
+			r.branch = name
+		}
+	}
 }
 
 // requireCloned requires that the repository is cloned and ready for operations.
@@ -45,7 +67,7 @@ func (r *Repo) requireCloned(ctx context.Context, span trace.Span, action string
 }
 
 // GetRepo creates or returns an existing Repo instance
-func GetRepo(url, localPath string) (*Repo, error) {
+func GetRepo(url, localPath string, opts ...Option) (*Repo, error) {
 	if url == "" {
 		return nil, fmt.Errorf("repository URL cannot be empty")
 	}
@@ -65,6 +87,10 @@ func GetRepo(url, localPath string) (*Repo, error) {
 	repo := &Repo{
 		URL:       url,
 		LocalPath: localPath,
+		branch:    "main",
+	}
+	for _, opt := range opts {
+		opt(repo)
 	}
 
 	if _, err := os.Stat(filepath.Join(localPath, ".git")); err != nil {
@@ -108,6 +134,12 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 		URL:        r.URL,
 		Progress:   nil,
 		NoCheckout: true, // Don't checkout working tree
+	}
+	if r.shallow {
+		cloneOptions.Depth = 1
+		cloneOptions.SingleBranch = true
+		cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(r.branch)
+		cloneOptions.Tags = git.NoTags
 	}
 
 	repository, err := git.PlainCloneContext(ctx, r.LocalPath, false, cloneOptions)
@@ -154,8 +186,8 @@ func (r *Repo) EnsureCloned(ctx context.Context) error {
 	return nil
 }
 
-// Update fetches the latest changes from origin and resets the working tree to origin/main.
-// If any step fails, it removes the local clone and starts fresh.
+// Update fetches the latest changes from origin and resets the working tree to the
+// head of the configured branch. If any step fails, it removes the local clone and starts fresh.
 func (r *Repo) Update(ctx context.Context) error {
 	ctx, span := telemetry.Tracer().Start(ctx, "git.update")
 	defer span.End()
@@ -187,21 +219,21 @@ func (r *Repo) Update(ctx context.Context) error {
 		return r.recloneAndCheckout(ctx)
 	}
 
-	// Checkout main branch
+	// Checkout the configured branch
 	err = w.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.NewBranchReferenceName("main"),
+		Branch: plumbing.NewBranchReferenceName(r.branch),
 		Force:  true,
 	})
 	if err != nil {
-		slog.WarnContext(ctx, "Checkout main failed, re-cloning", "url", r.URL, "error", err)
+		slog.WarnContext(ctx, "Checkout failed, re-cloning", "url", r.URL, "branch", r.branch, "error", err)
 		return r.recloneAndCheckout(ctx)
 	}
-	span.AddEvent("checkout main completed")
+	span.AddEvent("checkout branch completed")
 
-	// Reset hard to origin/main
-	ref, err := r.repository.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+	// Reset hard to origin/<branch>
+	ref, err := r.repository.Reference(plumbing.NewRemoteReferenceName("origin", r.branch), true)
 	if err != nil {
-		slog.WarnContext(ctx, "Failed to resolve origin/main, re-cloning", "url", r.URL, "error", err)
+		slog.WarnContext(ctx, "Failed to resolve origin branch, re-cloning", "url", r.URL, "branch", r.branch, "error", err)
 		return r.recloneAndCheckout(ctx)
 	}
 
@@ -213,13 +245,13 @@ func (r *Repo) Update(ctx context.Context) error {
 		slog.WarnContext(ctx, "Reset failed, re-cloning", "url", r.URL, "error", err)
 		return r.recloneAndCheckout(ctx)
 	}
-	span.AddEvent("reset to origin/main completed")
+	span.AddEvent("reset to origin branch completed")
 
 	slog.DebugContext(ctx, "Successfully updated repository", "url", r.URL, "path", r.LocalPath)
 	return nil
 }
 
-// recloneAndCheckout removes the local clone and re-clones with a working tree checkout of main.
+// recloneAndCheckout removes the local clone and re-clones with a working tree checkout of the branch.
 func (r *Repo) recloneAndCheckout(ctx context.Context) error {
 	os.RemoveAll(r.LocalPath)
 	r.repository = nil
@@ -232,7 +264,7 @@ func (r *Repo) recloneAndCheckout(ctx context.Context) error {
 		return fmt.Errorf("failed to get worktree after re-clone: %w", err)
 	}
 	return w.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.NewBranchReferenceName("main"),
+		Branch: plumbing.NewBranchReferenceName(r.branch),
 		Force:  true,
 	})
 }
