@@ -18,6 +18,7 @@ import (
 	removeproviderversion "github.com/opentofu/registry-ui/command/remove-provider-version"
 	retryversion "github.com/opentofu/registry-ui/command/retry-version"
 	skipversion "github.com/opentofu/registry-ui/command/skip-version"
+	syncallrepostats "github.com/opentofu/registry-ui/command/sync-all-repo-stats"
 	syncmodule "github.com/opentofu/registry-ui/command/sync-module"
 	syncmodules "github.com/opentofu/registry-ui/command/sync-modules"
 	syncprovider "github.com/opentofu/registry-ui/command/sync-provider"
@@ -93,6 +94,7 @@ func main() {
 			syncmodule.NewCommand(),
 			syncmodules.NewCommand(),
 			syncrepostats.NewCommand(),
+			syncallrepostats.NewCommand(),
 			getmodulelicense.NewCommand(),
 			getproviderlicense.NewCommand(),
 			rebuildglobalindexes.NewCommand(),

@@ -3,12 +3,93 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/opentofu/registry-ui/pkg/telemetry"
 )
+
+// ListRepositoriesForStatsSync returns repositories that have no stats datapoint
+// newer than staleAfter ago. i.e. repos that are stale or have never been
+// synced. A staleAfter of <= 0 returns every repository.
+func ListRepositoriesForStatsSync(ctx context.Context, pool *pgxpool.Pool, staleAfter time.Duration) ([]RepoIdentifier, error) {
+	ctx, span := telemetry.Tracer().Start(ctx, "repository.list_for_stats_sync")
+	defer span.End()
+	span.SetAttributes(attribute.Float64("stale_after_seconds", staleAfter.Seconds()))
+
+	rows, err := pool.Query(ctx, `
+		SELECT r.organisation, r.name
+		FROM repositories r
+		WHERE NOT EXISTS (
+			SELECT 1 FROM repository_stats s
+			WHERE s.repo_organisation = r.organisation
+			  AND s.repo_name = r.name
+			  AND s.recorded_at > now() - make_interval(secs => $1)
+		)
+		ORDER BY r.organisation, r.name`, staleAfter.Seconds())
+	if err != nil {
+		span.RecordError(err)
+		return nil, fmt.Errorf("failed to query repositories: %w", err)
+	}
+	defer rows.Close()
+
+	var repos []RepoIdentifier
+	for rows.Next() {
+		var r RepoIdentifier
+		if err := rows.Scan(&r.Owner, &r.Name); err != nil {
+			span.RecordError(err)
+			return nil, fmt.Errorf("failed to scan repository row: %w", err)
+		}
+		repos = append(repos, r)
+	}
+	if err := rows.Err(); err != nil {
+		span.RecordError(err)
+		return nil, fmt.Errorf("error iterating repository rows: %w", err)
+	}
+
+	span.SetAttributes(attribute.Int("repositories.count", len(repos)))
+	return repos, nil
+}
+
+// StoreRepositoryStatsBatch stores repository stats in the database
+func StoreRepositoryStatsBatch(ctx context.Context, pool *pgxpool.Pool, stats map[RepoIdentifier]RepositoryStats) error {
+	ctx, span := telemetry.Tracer().Start(ctx, "repository.store_stats_batch")
+	defer span.End()
+	span.SetAttributes(attribute.Int("repository.batch_size", len(stats)))
+
+	if len(stats) == 0 {
+		return nil
+	}
+
+	batch := &pgx.Batch{}
+	for repo, s := range stats {
+		batch.Queue(`
+			INSERT INTO repository_stats (repo_organisation, repo_name, stars, forks, watchers, open_issues, subscribers, topics, recorded_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+			repo.Owner, repo.Name, s.Stars, s.Forks, s.Watchers, s.OpenIssues, s.Watchers, s.Topics)
+	}
+
+	br := pool.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for range stats {
+		if _, err := br.Exec(); err != nil {
+			span.RecordError(err)
+			return fmt.Errorf("failed to insert repository stats batch: %w", err)
+		}
+	}
+
+	return nil
+}
 
 // StoreRepositoryStats stores repository statistics in the database
 func StoreRepositoryStats(ctx context.Context, pool *pgxpool.Pool, metadata *RepositoryMetadata) error {
+
+	ctx, span := telemetry.Tracer().Start(ctx, "repository.store_stats")
+	defer span.End()
 	query := `
 		INSERT INTO repository_stats (repo_organisation, repo_name, stars, forks, watchers, open_issues, subscribers, topics, recorded_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`

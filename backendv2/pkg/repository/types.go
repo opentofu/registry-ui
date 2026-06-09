@@ -33,3 +33,21 @@ type RepoIdentifier struct {
 	Owner string
 	Name  string
 }
+
+// RepositoryStats holds the point-in-time metrics fetched for a single
+// repository via the GitHub GraphQL API.
+type RepositoryStats struct {
+	Stars      int64
+	Forks      int64
+	Watchers   int64
+	OpenIssues int64
+	Topics     []string
+}
+
+// GraphQLRateLimit mirrors the `rateLimit` object returned by the GitHub
+// GraphQL API. Reading it costs nothing and lets callers self-pace.
+type GraphQLRateLimit struct {
+	Cost      int    `json:"cost"`
+	Remaining int    `json:"remaining"`
+	ResetAt   string `json:"resetAt"`
+}
