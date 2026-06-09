@@ -179,13 +179,13 @@ func (c *Client) DetectLicenseFromGitHub(ctx context.Context, repoURL string) (s
 
 // buildRepositoryStatsQuery constructs a single GraphQL query that fetches
 // stats for many repositories at once using aliases (r0, r1, ...). The whole
-// query shoulod be cheap regardless of batch size because it contains
+// query should be cheap regardless of batch size because it contains
 // no paginated connections.
 func buildRepositoryStatsQuery(repos []RepoIdentifier) string {
 	var b strings.Builder
 	b.WriteString("query {\n")
 	for i, r := range repos {
-		// GitHub caps repositories at 20 topics, so first: 20 captures all of them. If something has more than 20 topics, i think its fine to ignore.
+		// GitHub caps repositories at 20 topics, so first: 20 captures all of them. If something has more than 20 topics, I think its fine to ignore.
 		fmt.Fprintf(&b,
 			"  r%d: repository(owner: %q, name: %q) { stargazerCount forkCount watchers { totalCount } issues(states: OPEN) { totalCount } repositoryTopics(first: 20) { nodes { topic { name } } } }\n",
 			i, r.Owner, r.Name)
@@ -196,7 +196,7 @@ func buildRepositoryStatsQuery(repos []RepoIdentifier) string {
 
 // GetRepositoryStatsBatch fetches stars, forks, watchers, and open-issue counts
 // for a batch of repositories in a single GraphQL request.
-func (c *Client) GetRepositoryStatsBatch(ctx context.Context, repos []RepoIdentifier) (map[RepoIdentifier]RepositoryStats, GraphQLRateLimit, error) {
+func (c *Client) GetRepositoryStatsBatch(ctx context.Context, repos []RepoIdentifier, maxAttempts int) (map[RepoIdentifier]RepositoryStats, GraphQLRateLimit, error) {
 	ctx, span := telemetry.Tracer().Start(ctx, "repository.get_stats_batch")
 	defer span.End()
 	span.SetAttributes(attribute.Int("repository.batch_size", len(repos)))
@@ -212,8 +212,6 @@ func (c *Client) GetRepositoryStatsBatch(ctx context.Context, repos []RepoIdenti
 		return nil, GraphQLRateLimit{}, fmt.Errorf("failed to marshal graphql query: %w", err)
 	}
 
-	// github is flakey
-	const maxAttempts = 5
 	httpResp, err := c.doGraphQLWithRetry(ctx, span, reqBody, maxAttempts)
 	if err != nil {
 		return nil, GraphQLRateLimit{}, err

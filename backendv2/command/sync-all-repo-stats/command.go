@@ -26,6 +26,9 @@ const (
 	defaultBatchSize    = 50
 	defaultPointReserve = 500
 	defaultStaleAfter   = 12 * time.Hour
+	// defaultMaxAttempts retries each GraphQL request a few times because GitHub
+	// is flakey and intermittently returns secondary rate limits.
+	defaultMaxAttempts = 5
 )
 
 func NewCommand() *cli.Command {
@@ -48,6 +51,11 @@ func NewCommand() *cli.Command {
 				Value: defaultStaleAfter,
 				Usage: "Only sync repositories with no stats datapoint newer than this (e.g. 12h). Use 0 to sync all",
 			},
+			&cli.IntFlag{
+				Name:  "max-attempts",
+				Value: defaultMaxAttempts,
+				Usage: "Number of times to attempt each GraphQL request before giving up (GitHub is flakey)",
+			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return run(ctx, cmd)
@@ -64,6 +72,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	batchSize := cmd.Int("batch-size")
 	pointReserve := cmd.Int("point-reserve")
 	staleAfter := cmd.Duration("stale-after")
+	maxAttempts := cmd.Int("max-attempts")
 
 	span.SetAttributes(
 		attribute.String(telemetry.BatchJobIDKey, batchJobID),
@@ -71,14 +80,19 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		attribute.Int("batch_size", batchSize),
 		attribute.Int("point_reserve", pointReserve),
 		attribute.Float64("stale_after_seconds", staleAfter.Seconds()),
+		attribute.Int("max_attempts", maxAttempts),
 	)
 
 	if batchSize <= 0 {
 		batchSize = defaultBatchSize
 	}
+	if maxAttempts <= 0 {
+		maxAttempts = defaultMaxAttempts
+	}
 
 	slog.InfoContext(ctx, "Starting repository stats sync",
-		"batch_size", batchSize, "point_reserve", pointReserve, "stale_after", staleAfter.String())
+		"batch_size", batchSize, "point_reserve", pointReserve,
+		"stale_after", staleAfter.String(), "max_attempts", maxAttempts)
 
 	pool, err := cfg.DB.GetPool(ctx)
 	if err != nil {
@@ -111,7 +125,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		end := min(start+batchSize, len(repos))
 		batch := repos[start:end]
 
-		stats, rl, err := githubClient.GetRepositoryStatsBatch(ctx, batch)
+		stats, rl, err := githubClient.GetRepositoryStatsBatch(ctx, batch, maxAttempts)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
