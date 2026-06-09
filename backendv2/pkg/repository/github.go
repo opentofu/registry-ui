@@ -240,7 +240,11 @@ func (c *Client) GetRepositoryStatsBatch(ctx context.Context, repos []RepoIdenti
 
 	var rl GraphQLRateLimit
 	if raw, ok := gqlResp.Data["rateLimit"]; ok {
-		_ = json.Unmarshal(raw, &rl)
+		err = json.Unmarshal(raw, &rl)
+		if err != nil {
+			span.RecordError(err)
+			return nil, GraphQLRateLimit{}, fmt.Errorf("failed to unmarshal rate limit from graphql response: %w", err)
+		}
 	}
 	span.SetAttributes(
 		attribute.Int("graphql.rate_limit.cost", rl.Cost),
