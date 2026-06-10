@@ -185,7 +185,7 @@ func buildRepositoryStatsQuery(repos []RepoIdentifier) string {
 	var b strings.Builder
 	b.WriteString("query {\n")
 	for i, r := range repos {
-		// GitHub caps repositories at 20 topics, so first: 20 captures all of them. If something has more than 20 topics, I think its fine to ignore.
+		// GitHub caps repositories at 20 topics, so first: 20 captures all of them. If something has more than 20 topics, I think it's fine to ignore.
 		fmt.Fprintf(&b,
 			"  r%d: repository(owner: %q, name: %q) { stargazerCount forkCount watchers { totalCount } issues(states: OPEN) { totalCount } repositoryTopics(first: 20) { nodes { topic { name } } } }\n",
 			i, r.Owner, r.Name)
