@@ -11,7 +11,7 @@ import (
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/bufferedstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/filesystemstorage"
-	"github.com/opentofu/tofutestutils"
+	"github.com/opentofu/registry-ui/internal/testutil"
 )
 
 func TestSimpleCommit(t *testing.T) {
@@ -19,18 +19,28 @@ func TestSimpleCommit(t *testing.T) {
 	const testFile1 = "test.txt"
 
 	backingDir := t.TempDir()
-	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
+	backingStorage, err := filesystemstorage.New(backingDir)
+	if err != nil {
+		t.Fatalf("failed to create backing storage: %v", err)
+	}
 
-	buffer1 := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25))
+	buffer1, err := bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25)
+	if err != nil {
+		t.Fatalf("failed to create buffered storage: %v", err)
+	}
 
-	ctx := tofutestutils.Context(t)
+	ctx := testutil.Context(t)
 
-	tofutestutils.Must(buffer1.WriteFile(ctx, testFile1, []byte(testContent)))
+	if err := buffer1.WriteFile(ctx, testFile1, []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 
 	assertFileDoesNotExist(t, ctx, backingStorage, testFile1)
 	assertFileExists(t, ctx, buffer1, testFile1)
 
-	tofutestutils.Must(buffer1.Commit(ctx))
+	if err := buffer1.Commit(ctx); err != nil {
+		t.Fatalf("failed to commit: %v", err)
+	}
 
 	assertFileExists(t, ctx, buffer1, testFile1)
 	contents := assertFileExists(t, ctx, backingStorage, testFile1)
@@ -47,16 +57,26 @@ func TestDirectoryWipe(t *testing.T) {
 	var testFile2 = indexstorage.Path(path.Join(testDir, "test2.txt"))
 
 	backingDir := t.TempDir()
-	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
-	buffer := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25))
+	backingStorage, err := filesystemstorage.New(backingDir)
+	if err != nil {
+		t.Fatalf("failed to create backing storage: %v", err)
+	}
+	buffer, err := bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25)
+	if err != nil {
+		t.Fatalf("failed to create buffered storage: %v", err)
+	}
 
-	ctx := tofutestutils.Context(t)
+	ctx := testutil.Context(t)
 
 	// Create a file in the test directory
-	tofutestutils.Must(backingStorage.WriteFile(ctx, testFile1, []byte(testContent)))
+	if err := backingStorage.WriteFile(ctx, testFile1, []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 
 	// Remove the directory of the test file
-	tofutestutils.Must(buffer.RemoveAll(ctx, testDir))
+	if err := buffer.RemoveAll(ctx, testDir); err != nil {
+		t.Fatalf("failed to remove directory: %v", err)
+	}
 
 	// Check if it still exists on the backing storage, but not on the local one.
 	assertFileExists(t, ctx, backingStorage, testFile1)
@@ -65,14 +85,18 @@ func TestDirectoryWipe(t *testing.T) {
 	assertFileDoesNotExist(t, ctx, buffer, testFile2)
 
 	// Create a new file on the buffer
-	tofutestutils.Must(buffer.WriteFile(ctx, testFile2, []byte(testContent)))
+	if err := buffer.WriteFile(ctx, testFile2, []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 	assertFileExists(t, ctx, backingStorage, testFile1)
 	assertFileDoesNotExist(t, ctx, backingStorage, testFile2)
 	assertFileDoesNotExist(t, ctx, buffer, testFile1)
 	assertFileExists(t, ctx, buffer, testFile2)
 
 	// Commit the changes
-	tofutestutils.Must(buffer.Commit(ctx))
+	if err := buffer.Commit(ctx); err != nil {
+		t.Fatalf("failed to commit: %v", err)
+	}
 
 	// Check the changes
 	assertFileDoesNotExist(t, ctx, backingStorage, testFile1)
@@ -86,45 +110,79 @@ func TestDeepDirectories(t *testing.T) {
 	var testFile1 = indexstorage.Path(path.Join("test1", "test2", "test3", "test.txt"))
 	var testFile2 = indexstorage.Path(path.Join("test3", "test2", "test1", "test2.txt"))
 	backingDir := t.TempDir()
-	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
-	buffer := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25))
+	backingStorage, err := filesystemstorage.New(backingDir)
+	if err != nil {
+		t.Fatalf("failed to create backing storage: %v", err)
+	}
+	buffer, err := bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25)
+	if err != nil {
+		t.Fatalf("failed to create buffered storage: %v", err)
+	}
 
-	ctx := tofutestutils.Context(t)
+	ctx := testutil.Context(t)
 
-	tofutestutils.Must(buffer.WriteFile(ctx, testFile1, []byte(testContent)))
-	tofutestutils.Must(buffer.WriteFile(ctx, testFile2, []byte(testContent)))
-	tofutestutils.Must(buffer.Commit(ctx))
+	if err := buffer.WriteFile(ctx, testFile1, []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+	if err := buffer.WriteFile(ctx, testFile2, []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+	if err := buffer.Commit(ctx); err != nil {
+		t.Fatalf("failed to commit: %v", err)
+	}
 }
 
 func TestSubdir(t *testing.T) {
 	const testContent = "Hello world!"
 	backingDir := t.TempDir()
-	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
-	buffer := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25))
+	backingStorage, err := filesystemstorage.New(backingDir)
+	if err != nil {
+		t.Fatalf("failed to create backing storage: %v", err)
+	}
+	buffer, err := bufferedstorage.New(logger.NewTestLogger(t), t.TempDir(), backingStorage, 25)
+	if err != nil {
+		t.Fatalf("failed to create buffered storage: %v", err)
+	}
 
-	ctx := tofutestutils.Context(t)
+	ctx := testutil.Context(t)
 
-	subdir := tofutestutils.Must2(buffer.Subdirectory(ctx, "test"))
+	subdir, err := buffer.Subdirectory(ctx, "test")
+	if err != nil {
+		t.Fatalf("failed to create subdirectory: %v", err)
+	}
 
-	tofutestutils.Must(subdir.WriteFile(ctx, "test.txt", []byte(testContent)))
+	if err := subdir.WriteFile(ctx, "test.txt", []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 
 	storedContents := assertFileExists(t, ctx, buffer, "test/test.txt")
 	if string(storedContents) != testContent {
 		t.Fatalf("Incorrect file contents found: %s", storedContents)
 	}
-	tofutestutils.Must(buffer.Commit(ctx))
+	if err := buffer.Commit(ctx); err != nil {
+		t.Fatalf("failed to commit: %v", err)
+	}
 	assertFileExists(t, ctx, backingStorage, "test/test.txt")
 
-	subdir2 := tofutestutils.Must2(subdir.Subdirectory(ctx, "test"))
-	tofutestutils.Must(subdir2.WriteFile(ctx, "test.txt", []byte(testContent)))
+	subdir2, err := subdir.Subdirectory(ctx, "test")
+	if err != nil {
+		t.Fatalf("failed to create subdirectory: %v", err)
+	}
+	if err := subdir2.WriteFile(ctx, "test.txt", []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 	storedContents = assertFileExists(t, ctx, buffer, "test/test/test.txt")
 	if string(storedContents) != testContent {
 		t.Fatalf("Incorrect file contents found: %s", storedContents)
 	}
-	tofutestutils.Must(buffer.Commit(ctx))
+	if err := buffer.Commit(ctx); err != nil {
+		t.Fatalf("failed to commit: %v", err)
+	}
 	assertFileExists(t, ctx, backingStorage, "test/test/test.txt")
 
-	tofutestutils.Must(subdir2.RemoveAll(ctx, ""))
+	if err := subdir2.RemoveAll(ctx, ""); err != nil {
+		t.Fatalf("failed to remove all: %v", err)
+	}
 
 	assertFileDoesNotExist(t, ctx, buffer, "test/test/test.txt")
 	assertFileExists(t, ctx, buffer, "test/test.txt")
@@ -133,14 +191,22 @@ func TestSubdir(t *testing.T) {
 func TestSameContent(t *testing.T) {
 	const testContent = "Hello world!"
 	backingDir := t.TempDir()
-	backingStorage := tofutestutils.Must2(filesystemstorage.New(backingDir))
+	backingStorage, err := filesystemstorage.New(backingDir)
+	if err != nil {
+		t.Fatalf("failed to create backing storage: %v", err)
+	}
 
-	ctx := tofutestutils.Context(t)
+	ctx := testutil.Context(t)
 
-	tofutestutils.Must(backingStorage.WriteFile(ctx, "test.txt", []byte(testContent)))
+	if err := backingStorage.WriteFile(ctx, "test.txt", []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 
 	localDir := t.TempDir()
-	buffer := tofutestutils.Must2(bufferedstorage.New(logger.NewTestLogger(t), localDir, backingStorage, 25))
+	buffer, err := bufferedstorage.New(logger.NewTestLogger(t), localDir, backingStorage, 25)
+	if err != nil {
+		t.Fatalf("failed to create buffered storage: %v", err)
+	}
 	if _, err := os.Stat(path.Join(localDir, "test.txt")); err == nil {
 		t.Fatalf("Test file was present before fetched.")
 	}
@@ -155,11 +221,15 @@ func TestSameContent(t *testing.T) {
 	if _, err = os.Stat(path.Join(localDir, "test.txt")); err != nil {
 		t.Fatalf("Test file was not present before after fetching: %v", err)
 	}
-	tofutestutils.Must(buffer.WriteFile(ctx, "test.txt", []byte(testContent)))
+	if err := buffer.WriteFile(ctx, "test.txt", []byte(testContent)); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 	if buffer.UncommittedFiles() != 0 {
 		t.Fatalf("Uncommitted files despite same content.")
 	}
-	tofutestutils.Must(buffer.WriteFile(ctx, "test.txt", []byte(testContent+"!")))
+	if err := buffer.WriteFile(ctx, "test.txt", []byte(testContent+"!")); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
 	if buffer.UncommittedFiles() != 1 {
 		t.Fatalf("No or multiple uncommitted files despite different content!")
 	}

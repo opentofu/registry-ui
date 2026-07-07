@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/opentofu/registry-ui/internal/indexstorage/s3storage"
+	"github.com/opentofu/registry-ui/internal/testutil"
 	"github.com/opentofu/tofutestutils"
 )
 
@@ -20,7 +21,7 @@ func TestDirect(t *testing.T) {
 	aws := tofutestutils.AWS(t)
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(aws.CACert())
-	storage := tofutestutils.Must2(s3storage.New(
+	storage, err := s3storage.New(
 		context.Background(),
 		s3storage.WithBucket(aws.S3Bucket()),
 		s3storage.WithAccessKey(aws.AccessKey()),
@@ -29,10 +30,13 @@ func TestDirect(t *testing.T) {
 		s3storage.WithEndpoint(aws.S3Endpoint()),
 		s3storage.WithTLSConfig(&tls.Config{RootCAs: certPool}),
 		s3storage.WithPathStyle(aws.S3UsePathStyle()),
-	))
+	)
+	if err != nil {
+		t.Fatalf("failed to create S3 storage: %v", err)
+	}
 
 	t.Run("not-found", func(t *testing.T) {
-		_, err := storage.ReadFile(tofutestutils.Context(t), "non-existent.txt")
+		_, err := storage.ReadFile(testutil.Context(t), "non-existent.txt")
 		if err == nil {
 			t.Fatalf("Reading a non-existent file did not return an error")
 		}
@@ -42,33 +46,45 @@ func TestDirect(t *testing.T) {
 	})
 
 	t.Run("create", func(t *testing.T) {
-		tofutestutils.Must(storage.WriteFile(tofutestutils.Context(t), testFile1, []byte(testContent)))
+		if err := storage.WriteFile(testutil.Context(t), testFile1, []byte(testContent)); err != nil {
+			t.Fatalf("failed to write file: %v", err)
+		}
 	})
 
 	t.Run("read", func(t *testing.T) {
-		readContents := tofutestutils.Must2(storage.ReadFile(tofutestutils.Context(t), testFile1))
+		readContents, err := storage.ReadFile(testutil.Context(t), testFile1)
+		if err != nil {
+			t.Fatalf("failed to read file: %v", err)
+		}
 		if string(readContents) != testContent {
 			t.Fatalf("Incorrect contents returned: %s", readContents)
 		}
 	})
 
 	t.Run("create-subdir", func(t *testing.T) {
-		tofutestutils.Must(storage.WriteFile(tofutestutils.Context(t), testFile2, []byte(testContent)))
+		if err := storage.WriteFile(testutil.Context(t), testFile2, []byte(testContent)); err != nil {
+			t.Fatalf("failed to write file: %v", err)
+		}
 	})
 
 	t.Run("read-subdir", func(t *testing.T) {
-		readContents := tofutestutils.Must2(storage.ReadFile(tofutestutils.Context(t), testFile2))
+		readContents, err := storage.ReadFile(testutil.Context(t), testFile2)
+		if err != nil {
+			t.Fatalf("failed to read file: %v", err)
+		}
 		if string(readContents) != testContent {
 			t.Fatalf("Incorrect contents returned: %s", readContents)
 		}
 	})
 
 	t.Run("remove-subdir", func(t *testing.T) {
-		tofutestutils.Must(storage.RemoveAll(tofutestutils.Context(t), testDir))
+		if err := storage.RemoveAll(testutil.Context(t), testDir); err != nil {
+			t.Fatalf("failed to remove all: %v", err)
+		}
 	})
 
 	t.Run("read-subdir", func(t *testing.T) {
-		_, err := storage.ReadFile(tofutestutils.Context(t), testFile2)
+		_, err := storage.ReadFile(testutil.Context(t), testFile2)
 		if err == nil {
 			t.Fatalf("Reading a non-existent file did not return an error")
 		}
