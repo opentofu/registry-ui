@@ -12,7 +12,6 @@ import (
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/s3storage"
-	"github.com/opentofu/registry-ui/internal/testutil"
 )
 
 func TestDirect(t *testing.T) {
@@ -24,7 +23,7 @@ func TestDirect(t *testing.T) {
 	storage := newTestStorage(t)
 
 	t.Run("not-found", func(t *testing.T) {
-		_, err := storage.ReadFile(testutil.Context(t), "non-existent.txt")
+		_, err := storage.ReadFile(t.Context(), "non-existent.txt")
 		if err == nil {
 			t.Fatalf("Reading a non-existent file did not return an error")
 		}
@@ -34,13 +33,13 @@ func TestDirect(t *testing.T) {
 	})
 
 	t.Run("create", func(t *testing.T) {
-		if err := storage.WriteFile(testutil.Context(t), testFile1, []byte(testContent)); err != nil {
+		if err := storage.WriteFile(t.Context(), testFile1, []byte(testContent)); err != nil {
 			t.Fatalf("failed to write file: %v", err)
 		}
 	})
 
 	t.Run("read", func(t *testing.T) {
-		readContents, err := storage.ReadFile(testutil.Context(t), testFile1)
+		readContents, err := storage.ReadFile(t.Context(), testFile1)
 		if err != nil {
 			t.Fatalf("failed to read file: %v", err)
 		}
@@ -50,13 +49,13 @@ func TestDirect(t *testing.T) {
 	})
 
 	t.Run("create-subdir", func(t *testing.T) {
-		if err := storage.WriteFile(testutil.Context(t), testFile2, []byte(testContent)); err != nil {
+		if err := storage.WriteFile(t.Context(), testFile2, []byte(testContent)); err != nil {
 			t.Fatalf("failed to write file: %v", err)
 		}
 	})
 
 	t.Run("read-subdir", func(t *testing.T) {
-		readContents, err := storage.ReadFile(testutil.Context(t), testFile2)
+		readContents, err := storage.ReadFile(t.Context(), testFile2)
 		if err != nil {
 			t.Fatalf("failed to read file: %v", err)
 		}
@@ -66,13 +65,13 @@ func TestDirect(t *testing.T) {
 	})
 
 	t.Run("remove-subdir", func(t *testing.T) {
-		if err := storage.RemoveAll(testutil.Context(t), testDir); err != nil {
+		if err := storage.RemoveAll(t.Context(), testDir); err != nil {
 			t.Fatalf("failed to remove all: %v", err)
 		}
 	})
 
 	t.Run("read-subdir", func(t *testing.T) {
-		_, err := storage.ReadFile(testutil.Context(t), testFile2)
+		_, err := storage.ReadFile(t.Context(), testFile2)
 		if err == nil {
 			t.Fatalf("Reading a non-existent file did not return an error")
 		}

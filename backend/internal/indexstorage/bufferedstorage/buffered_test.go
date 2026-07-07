@@ -11,7 +11,6 @@ import (
 	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/bufferedstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/filesystemstorage"
-	"github.com/opentofu/registry-ui/internal/testutil"
 )
 
 func TestSimpleCommit(t *testing.T) {
@@ -29,7 +28,7 @@ func TestSimpleCommit(t *testing.T) {
 		t.Fatalf("failed to create buffered storage: %v", err)
 	}
 
-	ctx := testutil.Context(t)
+	ctx := t.Context()
 
 	if err := buffer1.WriteFile(ctx, testFile1, []byte(testContent)); err != nil {
 		t.Fatalf("failed to write file: %v", err)
@@ -66,7 +65,7 @@ func TestDirectoryWipe(t *testing.T) {
 		t.Fatalf("failed to create buffered storage: %v", err)
 	}
 
-	ctx := testutil.Context(t)
+	ctx := t.Context()
 
 	// Create a file in the test directory
 	if err := backingStorage.WriteFile(ctx, testFile1, []byte(testContent)); err != nil {
@@ -119,7 +118,7 @@ func TestDeepDirectories(t *testing.T) {
 		t.Fatalf("failed to create buffered storage: %v", err)
 	}
 
-	ctx := testutil.Context(t)
+	ctx := t.Context()
 
 	if err := buffer.WriteFile(ctx, testFile1, []byte(testContent)); err != nil {
 		t.Fatalf("failed to write file: %v", err)
@@ -144,7 +143,7 @@ func TestSubdir(t *testing.T) {
 		t.Fatalf("failed to create buffered storage: %v", err)
 	}
 
-	ctx := testutil.Context(t)
+	ctx := t.Context()
 
 	subdir, err := buffer.Subdirectory(ctx, "test")
 	if err != nil {
@@ -196,7 +195,7 @@ func TestSameContent(t *testing.T) {
 		t.Fatalf("failed to create backing storage: %v", err)
 	}
 
-	ctx := testutil.Context(t)
+	ctx := t.Context()
 
 	if err := backingStorage.WriteFile(ctx, "test.txt", []byte(testContent)); err != nil {
 		t.Fatalf("failed to write file: %v", err)
