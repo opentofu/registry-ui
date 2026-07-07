@@ -4,12 +4,15 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/johannesboyne/gofakes3"
+	"github.com/johannesboyne/gofakes3/backend/s3mem"
+	"github.com/opentofu/registry-ui/internal/indexstorage"
 	"github.com/opentofu/registry-ui/internal/indexstorage/s3storage"
 	"github.com/opentofu/registry-ui/internal/testutil"
-	"github.com/opentofu/tofutestutils"
 )
 
 func TestDirect(t *testing.T) {
@@ -18,22 +21,7 @@ func TestDirect(t *testing.T) {
 	const testDir = "test"
 	const testFile2 = testDir + "/test.txt"
 
-	aws := tofutestutils.AWS(t)
-	certPool := x509.NewCertPool()
-	certPool.AppendCertsFromPEM(aws.CACert())
-	storage, err := s3storage.New(
-		context.Background(),
-		s3storage.WithBucket(aws.S3Bucket()),
-		s3storage.WithAccessKey(aws.AccessKey()),
-		s3storage.WithSecretKey(aws.SecretKey()),
-		s3storage.WithRegion(aws.Region()),
-		s3storage.WithEndpoint(aws.S3Endpoint()),
-		s3storage.WithTLSConfig(&tls.Config{RootCAs: certPool}),
-		s3storage.WithPathStyle(aws.S3UsePathStyle()),
-	)
-	if err != nil {
-		t.Fatalf("failed to create S3 storage: %v", err)
-	}
+	storage := newTestStorage(t)
 
 	t.Run("not-found", func(t *testing.T) {
 		_, err := storage.ReadFile(testutil.Context(t), "non-existent.txt")
@@ -92,4 +80,35 @@ func TestDirect(t *testing.T) {
 			t.Fatalf("Reading a non-existent file did not return an not-exists error (%T; %v)", err, err)
 		}
 	})
+}
+
+func newTestStorage(t *testing.T) indexstorage.API {
+	t.Helper()
+
+	const bucket = "test-bucket"
+	backing := s3mem.New()
+	if err := backing.CreateBucket(bucket); err != nil {
+		t.Fatalf("failed to create bucket: %v", err)
+	}
+
+	server := httptest.NewTLSServer(gofakes3.New(backing).Server())
+	t.Cleanup(server.Close)
+
+	certPool := x509.NewCertPool()
+	certPool.AddCert(server.Certificate())
+
+	storage, err := s3storage.New(
+		context.Background(),
+		s3storage.WithBucket(bucket),
+		s3storage.WithAccessKey("test"),
+		s3storage.WithSecretKey("test"),
+		s3storage.WithRegion("us-east-1"),
+		s3storage.WithEndpoint(server.URL),
+		s3storage.WithTLSConfig(&tls.Config{RootCAs: certPool}),
+		s3storage.WithPathStyle(true),
+	)
+	if err != nil {
+		t.Fatalf("failed to create S3 storage: %v", err)
+	}
+	return storage
 }
