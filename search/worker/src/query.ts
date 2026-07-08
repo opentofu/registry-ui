@@ -6,7 +6,7 @@ export const query = async (client: DBClient, queryParam: string): Promise<Entit
 };
 
 export const getTopProviders = async (client: DBClient, limit: number): Promise<Entity[]> => {
-	const { rows } = await client.query(topProvidersQuery, [limit]);
+	const { rows } = await client.query(topProvidersQuery, [String(limit)]);
 	return rows;
 };
 

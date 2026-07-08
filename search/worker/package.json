@@ -1,24 +1,24 @@
 {
-  "name": "registry-ui-search",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
-    "test": "vitest",
-    "feed-data": "node scripts/feed-data-r2.js",
-    "cf-typegen": "wrangler types"
-  },
-  "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.4.31",
-    "@cloudflare/workers-types": "^4.20260702.1",
-    "typescript": "^6.0.3",
-    "vitest": "1.5.0",
-    "wrangler": "^4.107.0"
-  },
-  "dependencies": {
-    "@neondatabase/serverless": "^0.9.5",
-    "postgres": "^3.4.9"
-  }
+	"name": "registry-ui-search",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"feed-data": "node scripts/feed-data-r2.js",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.18.2",
+		"@types/node": "^26.1.1",
+		"typescript": "^6.0.3",
+		"vitest": "4.1.10",
+		"wrangler": "^4.107.0"
+	},
+	"dependencies": {
+		"@neondatabase/serverless": "^1.1.0",
+		"postgres": "^3.4.9"
+	}
 }
