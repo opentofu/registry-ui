@@ -10,8 +10,6 @@ export const providerMiddleware: LoaderFunction = async (
 ) => {
   const { namespace, provider, version, type, doc } = params;
 
-  console.log("params", params);
-
   const data = await queryClient.ensureQueryData(
     getProviderDataQuery(namespace, provider),
   );
