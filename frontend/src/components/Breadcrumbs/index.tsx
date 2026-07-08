@@ -16,7 +16,7 @@ export function Breadcrumbs({ className }: BreadcrumbsProps) {
 
   const crumbs = matches
     .filter((match) => Boolean(match.handle?.crumb))
-    .map((match) => match.handle.crumb(match.data))
+    .map((match) => match.handle.crumb(match.loaderData))
     .flat();
 
   return (

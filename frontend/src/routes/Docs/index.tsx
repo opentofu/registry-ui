@@ -12,9 +12,9 @@ export function Docs() {
   const location = useLocation();
 
   // Find the deepest match that has loader data
-  const activeMatch = matches.filter((match) => match.data).reverse()[0];
+  const activeMatch = matches.filter((match) => match.loaderData).reverse()[0];
 
-  const docs = activeMatch?.data as Document;
+  const docs = activeMatch?.loaderData as Document;
 
   return (
     <SidebarLayout
