@@ -1,7 +1,7 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "registry-ui-search"
 main = "src/index.ts"
-compatibility_date = "2024-08-21"
+compatibility_date = "2026-07-08"
 compatibility_flags = ["nodejs_compat"]
 
 [[r2_buckets]]
@@ -9,9 +9,22 @@ binding = "BUCKET"
 bucket_name = "registry-ui-api"
 preview_bucket_name = "registry-ui-api"
 
+[vars]
+ENVIRONMENT = "production"
+
 [observability]
 enabled = true
 head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+
+[cache]
+enabled = true
 
 [dev]
 ip = "0.0.0.0"
