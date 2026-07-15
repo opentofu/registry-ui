@@ -246,6 +246,7 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
+		// Handle individual version deletion
 		removed := map[provider.VersionNumber]struct{}{}
 		for _, v := range versionsToRemove {
 			// store the version we're removing
@@ -260,15 +261,28 @@ func main() {
 		}
 		providerData.Versions = filteredVersions
 
-		// store it
-		if err := providerStorage.StoreProvider(ctx, providerData); err != nil {
-			mainLogger.Error(ctx, "Failed to update provider index: %v", err)
-			os.Exit(1)
-		}
 		if len(providerData.Versions) == 0 {
+			// This was the last version, remove the provider entirely
 			shouldRemoveFromList = true
+			mainLogger.Info(ctx, "Removed last version of provider %s, removing provider entirely", providerAddr)
+
+			if err := providerStorage.DeleteProvider(ctx, providerAddr); err != nil {
+				mainLogger.Error(ctx, "Failed to remove provider: %v", err)
+				os.Exit(1)
+			}
+
+			if err := searchAPI.RemoveItem(ctx, searchtypes.IndexID("providers/"+providerAddr.String())); err != nil {
+				mainLogger.Error(ctx, "Failed to remove provider from search index: %v", err)
+				os.Exit(1)
+			}
+		} else {
+			// Rewrite the provider index without the removed version(s).
+			if err := providerStorage.StoreProvider(ctx, providerData); err != nil {
+				mainLogger.Error(ctx, "Failed to update provider index: %v", err)
+				os.Exit(1)
+			}
+			mainLogger.Info(ctx, "Updated provider %s index, removed %d version(s)", providerAddr, len(versionsToRemove))
 		}
-		mainLogger.Info(ctx, "Updated provider %s index, removed %d version(s)", providerAddr, len(versionsToRemove))
 	}
 
 	// Update the provider list if we removed the entire provider
