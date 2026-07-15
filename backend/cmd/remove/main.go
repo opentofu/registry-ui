@@ -230,11 +230,11 @@ func main() {
 
 	// Check if we need to remove the provider entirely
 	shouldRemoveFromList := false
-	
+
 	if version == "" {
 		// Removing all versions - definitely remove from list
 		shouldRemoveFromList = true
-		
+
 		if err := providerStorage.DeleteProvider(ctx, providerAddr); err != nil {
 			mainLogger.Error(ctx, "Failed to remove provider: %v", err)
 			os.Exit(1)
@@ -246,30 +246,31 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		// Check if this was the last version
-		remainingProvider, err := providerStorage.GetProvider(ctx, providerAddr)
-		if err != nil {
-			mainLogger.Error(ctx, "Failed to check remaining versions: %v", err)
+		removed := map[provider.VersionNumber]struct{}{}
+		for _, v := range versionsToRemove {
+			// store the version we're removing
+			removed[v.Normalize()] = struct{}{}
+		}
+		// filter the list of versions so we can re-store this without the removed item.
+		filteredVersions := providerData.Versions[:0]
+		for _, ver := range providerData.Versions {
+			if _, ok := removed[ver.ID.Normalize()]; !ok {
+				filteredVersions = append(filteredVersions, ver)
+			}
+		}
+		providerData.Versions = filteredVersions
+
+		// store it
+		if err := providerStorage.StoreProvider(ctx, providerData); err != nil {
+			mainLogger.Error(ctx, "Failed to update provider index: %v", err)
 			os.Exit(1)
 		}
-		
-		if len(remainingProvider.Versions) == 0 {
-			// This was the last version, remove the provider entirely
+		if len(providerData.Versions) == 0 {
 			shouldRemoveFromList = true
-			mainLogger.Info(ctx, "Removed last version of provider %s, removing provider entirely", providerAddr)
-			
-			if err := providerStorage.DeleteProvider(ctx, providerAddr); err != nil {
-				mainLogger.Error(ctx, "Failed to remove provider: %v", err)
-				os.Exit(1)
-			}
-			
-			if err := searchAPI.RemoveItem(ctx, searchtypes.IndexID("providers/"+providerAddr.String())); err != nil {
-				mainLogger.Error(ctx, "Failed to remove provider from search index: %v", err)
-				os.Exit(1)
-			}
 		}
+		mainLogger.Info(ctx, "Updated provider %s index, removed %d version(s)", providerAddr, len(versionsToRemove))
 	}
-	
+
 	// Update the provider list if we removed the entire provider
 	if shouldRemoveFromList {
 		mainLogger.Info(ctx, "Updating provider list...")
