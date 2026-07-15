@@ -12,12 +12,6 @@ import (
 	"github.com/opentofu/registry-ui/internal/providerindex/providertypes"
 )
 
-func (s storage) getProviderVersionPath(providerAddr provider.Addr, version provider.VersionNumber) indexstorage.Path {
-	providerAddr = providerAddr.Normalize()
-	version = version.Normalize()
-	return indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version), providerAddr.Name))
-}
-
 func (s storage) getProviderVersionFile(providerAddr provider.Addr, version provider.VersionNumber) indexstorage.Path {
 	providerAddr = providerAddr.Normalize()
 	version = version.Normalize()
@@ -74,5 +68,8 @@ func (s storage) DeleteProviderVersion(ctx context.Context, providerAddr provide
 	if err := version.Validate(); err != nil {
 		return err
 	}
-	return s.indexStorageAPI.RemoveAll(ctx, s.getProviderVersionPath(providerAddr, version))
+	providerAddr = providerAddr.Normalize()
+	version = version.Normalize()
+	versionPath := indexstorage.Path(path.Join(providerAddr.Namespace, providerAddr.Name, string(version)))
+	return s.indexStorageAPI.RemoveAll(ctx, versionPath)
 }
