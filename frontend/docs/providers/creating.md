@@ -28,12 +28,6 @@ In order to start the provider OpenTofu uses [go-plugin](https://github.com/hash
 
 When calling provider-defined functions (introduced in OpenTofu 1.7 and Terraform 1.8), Terraform does not pass any configuration to the provider. This means, your functions cannot make use of provider configuration if you want to support Terraform. OpenTofu configures the provider, so your functions may make use of this configuration.
 
-## Things that don't work in OpenTofu (yet)
-
-### Moving resources between different types ([#1369](https://github.com/opentofu/opentofu/issues/1369))
-
-As of OpenTofu 1.8, OpenTofu does not yet implement using the `moved` block between resources of different types. See issue [#1369](https://github.com/opentofu/opentofu/issues/1369) for details.
-
 ## Next steps
 
 Once you have written your provider code, you can proceed to [write your documentation](/docs/providers/docs).

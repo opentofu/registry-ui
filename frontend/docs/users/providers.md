@@ -33,9 +33,9 @@ For example, you can configure and use the GitHub provider like this:
 ```hcl2
 terraform {
   required_providers {
-    integrations = {
-      source = "integrations/github"
-      version = "v6.2.3"
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
     }
   }
 }
