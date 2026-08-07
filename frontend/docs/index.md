@@ -25,6 +25,3 @@ This section guides you through the steps of creating and publishing an OpenTofu
 This section shows you how to create and publish a module.
 
 - [Overview](/docs/modules)
-- [Creating a module](/docs/modules/creating)
-- [Publishing a module](/docs/modules/publishing)
-- [Adding a module to the OpenTofu Registry](/docs/modules/adding)

@@ -11,7 +11,7 @@ Module addresses have three parts: namespaces, names, and target systems. You ca
 ```hcl2
 module "my_name_for_the_module" {
   source  = "NAMESPACE/NAME/TARGETSYSTEM"
-  version = "v1.2.3"
+  version = "1.2.3"
 
   # Add parameters for the module here.
 }
@@ -21,8 +21,8 @@ Specifying the version tells OpenTofu to fetch the module from the registry. Onc
 
 For more information about modules, see [the OpenTofu documentation](https://opentofu.org/docs/language/modules/sources/).
 
-## Reporting provider issues
+## Reporting module issues
 
-If you find a bug in a module, please report the issue directly to the provider author. The OpenTofu team cannot fix module issues.
+If you find a bug in a module, please report the issue directly to the module author. The OpenTofu team cannot fix module issues.
 
 -> Module namespaces, names and target systems in the OpenTofu registry translate directly to GitHub URLs in the form of `github.com/NAMESPACE/terraform-TARGETSYSTEM-NAME`.

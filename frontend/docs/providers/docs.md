@@ -6,13 +6,18 @@ In order for your provider to show up in the OpenTofu Registry Search properly, 
 
 You can place your documentation in the `docs` folder in your repository. Please create the files using the following naming convention:
 
+- `/docs/index.md` for the provider overview page.
 - `/docs/guides/<guide>.md` for guides.
-- `/docs/resources/<resource>.md` for resources. (Note: if your resource is called `yourprovider_yourresource`, you should only include `yourresource` here.)
-- `/docs/data-sources/<data-source>.md` for resources. (Note: same as for resources)
+- `/docs/resources/<resource>.md` for resources. Name the file after your resource without the provider prefix: if your resource is called `yourprovider_yourresource`, name the file `yourresource.md`. The registry does not strip the provider prefix for you, so a file named `yourprovider_yourresource.md` will show up under that literal name instead.
+- `/docs/data-sources/<data-source>.md` for data sources. (Note: same naming convention as for resources.)
 - `/docs/functions/<function>.md` for functions.
+
+~> If your repository still has a legacy `website/docs` folder (using the `r`/`d`/`f` subfolder names instead of `resources`/`data-sources`/`functions`), the registry will use `website/docs` instead of `docs` whenever both exist, and will ignore `docs` entirely in that case. If your documentation isn't showing up as expected, check whether an old `website/docs` folder is still present in your repository.
 
 Additionally, if you would like to support CDKTF, you can create the following documents:
 
+- `/docs/cdktf/[python|typescript|csharp|java|go]/index.md` for a language-specific overview page.
+- `/docs/cdktf/[python|typescript|csharp|java|go]/guides/<guide>.md` for language-specific guides.
 - `/docs/cdktf/[python|typescript|csharp|java|go]/resources/<resource>.md`
 - `/docs/cdktf/[python|typescript|csharp|java|go]/data-sources/<data-source>.md`
 - `/docs/cdktf/[python|typescript|csharp|java|go]/functions/<function>.md`

@@ -42,4 +42,4 @@ You can use these in conjunction with the following architecture names:
 - `386`
 - `arm`
 
-Once you are done, you can upload your release to GitHub and [submit your provider to the OpenTofu Registry](/docs/providers/adding) and the [Terrafom Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing).
+Once you are done, you can upload your release to GitHub and [submit your provider to the OpenTofu Registry](/docs/providers/adding) and the [Terraform Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing).
