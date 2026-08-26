@@ -510,6 +510,18 @@ func extractLanguage(filePath string) string {
 	return "default" // Regular terraform docs
 }
 
+// sanitizeMetadataValue makes a string safe to use as an S3 object metadata
+// value (which the AWS SDK sends as an X-Amz-Meta-* HTTP header). Provider
+// doc frontmatter is free-form and occasionally contains embedded newlines
+// (e.g. malformed YAML like `subcategory: "Foo\n\n"`), which Go's net/http
+// rejects as an invalid header field value, failing the upload entirely.
+func sanitizeMetadataValue(s string) string {
+	s = strings.ReplaceAll(s, "\r\n", " ")
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", " ")
+	return strings.TrimSpace(s)
+}
+
 // bulkUploadDocs uploads multiple docs concurrently using errgroup
 func (s *Scraper) bulkUploadDocs(ctx context.Context, namespace, name, version string, docs map[string]*DocItem) error {
 	g, gctx := errgroup.WithContext(ctx)
@@ -567,9 +579,9 @@ func (s *Scraper) uploadDocToS3(ctx context.Context, namespace, name, version, f
 		Body:        bytes.NewReader(doc.contents),
 		ContentType: aws.String("text/markdown"),
 		Metadata: map[string]string{
-			"title":       doc.Title,
-			"subcategory": doc.Subcategory,
-			"edit-link":   doc.EditLink,
+			"title":       sanitizeMetadataValue(doc.Title),
+			"subcategory": sanitizeMetadataValue(doc.Subcategory),
+			"edit-link":   sanitizeMetadataValue(doc.EditLink),
 		},
 	})
 	if err != nil {

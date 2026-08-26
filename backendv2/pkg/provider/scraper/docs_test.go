@@ -157,3 +157,50 @@ Manages projects.
 		})
 	}
 }
+
+func TestSanitizeMetadataValue(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "plain_value",
+			input:    "Integrated Caching",
+			expected: "Integrated Caching",
+		},
+		{
+			name: "embedded_newline_from_malformed_frontmatter",
+			// Reproduces citrix/terraform-provider-citrixadc's
+			// `subcategory: "Integrated Caching\n\n"` frontmatter, which YAML
+			// parses into a value with an embedded newline. Left as-is, this
+			// breaks the S3 PutObject call with:
+			// "net/http: invalid header field value for X-Amz-Meta-Subcategory".
+			input:    "Integrated Caching\n",
+			expected: "Integrated Caching",
+		},
+		{
+			name:     "embedded_crlf",
+			input:    "Foo\r\nBar",
+			expected: "Foo Bar",
+		},
+		{
+			name:     "leading_and_trailing_whitespace",
+			input:    "  Foo  ",
+			expected: "Foo",
+		},
+		{
+			name:     "empty_string",
+			input:    "",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := sanitizeMetadataValue(tt.input); got != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, got)
+			}
+		})
+	}
+}
