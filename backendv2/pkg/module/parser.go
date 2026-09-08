@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/license"
 	"github.com/opentofu/registry-ui/pkg/tofu"
 )
@@ -36,7 +37,7 @@ func NewModuleParser(workDir, namespace, name, target, version string, published
 
 // BuildCompleteModuleStructure creates the complete module structure required by the registry API.
 // Submodules and examples should be pre-collected in parallel before calling this function.
-func (p *Parser) BuildCompleteModuleStructure(ctx context.Context, rootDir string, rootModuleData *tofu.Config, rootSchemaError string, submodules map[string]SubmoduleData, examples map[string]ExampleData, licenses []license.License) (ModuleData, error) {
+func (p *Parser) BuildCompleteModuleStructure(ctx context.Context, rootDir string, rootModuleData *tofu.Config, rootSchemaError string, submodules map[string]SubmoduleData, examples map[string]ExampleData, licenses []license.License, licenseConfig config.LicenseConfig) (ModuleData, error) {
 	slog.DebugContext(ctx, "Building complete module structure",
 		"module", fmt.Sprintf("%s/%s/%s", p.namespace, p.name, p.target),
 		"version", p.version)
@@ -66,7 +67,7 @@ func (p *Parser) BuildCompleteModuleStructure(ctx context.Context, rootDir strin
 		Link:                p.buildRepoLink(),
 		VCSRepository:       p.buildVCSRepository(),
 		Licenses:            licensesWithLinks,
-		IncompatibleLicense: p.hasIncompatibleLicense(licenses),
+		IncompatibleLicense: !license.List(licenses).IsRedistributable(licenseConfig),
 		Submodules:          submodules,
 		Examples:            examples,
 	}
@@ -232,15 +233,6 @@ func (p *Parser) buildExampleEditLink(exampleName string) string {
 func (p *Parser) buildLicenseLink(fileName string) string {
 	return fmt.Sprintf("https://github.com/%s/terraform-%s-%s/blob/%s/%s",
 		p.namespace, p.target, p.name, p.version, fileName)
-}
-
-func (p *Parser) hasIncompatibleLicense(licenses []license.License) bool {
-	for _, lic := range licenses {
-		if !lic.IsCompatible {
-			return true
-		}
-	}
-	return false
 }
 
 // formatPublishedDate returns the published date in RFC3339 format.

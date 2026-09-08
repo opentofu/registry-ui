@@ -438,7 +438,9 @@ func StoreProviderLicenses(ctx context.Context, tx pgx.Tx, namespace, name, vers
 		batch.Queue(`
 			INSERT INTO licenses (spdx_id, name, category, redistributable, url)
 			VALUES ($1, $2, $3, $4, $5)
-			ON CONFLICT (spdx_id) DO NOTHING`,
+		ON CONFLICT (spdx_id) DO UPDATE SET
+			redistributable = EXCLUDED.redistributable,
+			updated_at = NOW()`,
 			lic.SPDX, licenseName, "detected", lic.IsCompatible, "")
 		batch.Queue(`
 			INSERT INTO provider_version_licenses (
