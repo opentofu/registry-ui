@@ -3,6 +3,7 @@ module github.com/opentofu/registry-ui
 go 1.26.1
 
 require (
+	buf.build/go/spdx v0.2.0
 	github.com/aws/aws-sdk-go-v2 v1.42.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.28
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.27

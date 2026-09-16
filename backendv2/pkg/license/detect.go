@@ -19,17 +19,11 @@ import (
 
 type Detector struct {
 	config       config.LicenseConfig
-	licenseMap   map[string]struct{}
 	githubClient *repository.Client
 }
 
 func New(licenseConfig config.LicenseConfig, githubClient *repository.Client) (*Detector, error) {
-	licenseMap := map[string]struct{}{}
-	for _, license := range licenseConfig.CompatibleLicenses {
-		licenseMap[strings.ToLower(license)] = struct{}{}
-	}
 	return &Detector{
-		licenseMap:   licenseMap,
 		config:       licenseConfig,
 		githubClient: githubClient,
 	}, nil
@@ -42,15 +36,12 @@ func (d *Detector) Detect(ctx context.Context, directory string, repoURL string)
 	span.SetAttributes(
 		attribute.Float64("license.confidence_threshold", float64(d.config.ConfidenceThreshold)),
 		attribute.Float64("license.confidence_override_threshold", float64(d.config.ConfidenceOverrideThreshold)),
-		attribute.Int("license.compatible_licenses_count", len(d.config.CompatibleLicenses)),
 		attribute.String("license.repo_url", repoURL),
 	)
 
 	slog.DebugContext(ctx, "Starting license detection",
 		"confidence_threshold", d.config.ConfidenceThreshold,
-		"confidence_override_threshold", d.config.ConfidenceOverrideThreshold,
-		"compatible_licenses_count", len(d.config.CompatibleLicenses))
-
+		"confidence_override_threshold", d.config.ConfidenceOverrideThreshold)
 	matches, err := d.detectLicenseInDirectory(ctx, directory)
 	if err != nil {
 		return nil, err
@@ -144,7 +135,7 @@ func (d *Detector) buildLicenseFileMap(matches []licensedb.Match, repoURL string
 			continue
 		}
 
-		_, isCompatible := d.licenseMap[strings.ToLower(match.License)]
+		isCompatible := isOSIApproved(match.License)
 
 		// Store all detected licenses regardless of confidence so the full detection
 		// picture is available for auditing. Threshold filtering is handled at query time

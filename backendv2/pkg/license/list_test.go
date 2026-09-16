@@ -87,3 +87,49 @@ func TestListSelected(t *testing.T) {
 		}
 	})
 }
+
+func TestListIsRedistributable(t *testing.T) {
+	cfg := config.LicenseConfig{
+		ConfidenceThreshold:         0.85,
+		ConfidenceOverrideThreshold: 0.98,
+	}
+
+	tests := []struct {
+		name     string
+		licenses List
+		want     bool
+	}{
+		{name: "no detected licenses", want: false},
+		{
+			name:     "selected approved license",
+			licenses: List{{SPDX: "MIT", Confidence: 0.9, IsCompatible: true}},
+			want:     true,
+		},
+		{
+			name:     "selected unapproved license",
+			licenses: List{{SPDX: "BUSL-1.1", Confidence: 0.9, IsCompatible: false}},
+			want:     false,
+		},
+		{
+			name:     "only low confidence candidates",
+			licenses: List{{SPDX: "MIT", Confidence: 0.7, IsCompatible: true}},
+			want:     false,
+		},
+		{
+			name: "selected license overrides low confidence candidate",
+			licenses: List{
+				{SPDX: "MIT", Confidence: 0.99, IsCompatible: true},
+				{SPDX: "BUSL-1.1", Confidence: 0.7, IsCompatible: false},
+			},
+			want: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := test.licenses.IsRedistributable(cfg); got != test.want {
+				t.Errorf("IsRedistributable() = %t, want %t", got, test.want)
+			}
+		})
+	}
+}
