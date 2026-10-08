@@ -607,7 +607,7 @@ func (s *Scraper) buildProviderVersionJSON(namespace, name, version string, docs
 		Docs:                providerDocs,
 		CDKTFDocs:           cdktfDocs,
 		License:             licenses,
-		IncompatibleLicense: !licenses.IsRedistributable(),
+		IncompatibleLicense: !licenses.IsRedistributable(s.config.License),
 		Link:                fmt.Sprintf("https://github.com/%s/terraform-provider-%s", namespace, name),
 	}
 }

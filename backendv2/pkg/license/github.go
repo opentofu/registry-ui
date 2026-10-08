@@ -49,7 +49,7 @@ func (d *Detector) detectLicenseFromGitHub(ctx context.Context, repoURL string) 
 		return nil, fmt.Errorf("failed to detect license from GitHub: %w", err)
 	}
 
-	_, isCompatible := d.licenseMap[strings.ToLower(spdxID)]
+	isCompatible := isOSIApproved(spdxID)
 
 	license := &License{
 		SPDX:         spdxID,

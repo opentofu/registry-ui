@@ -71,26 +71,25 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 		return nil, fmt.Errorf("failed to detect licenses: %w", err)
 	}
 
-	// Determine if version should be skipped due to license issues
+	// Determine whether the selected authoritative licenses allow indexing.
+	selectedLicenses := licenses.Selected(r.config.License)
 	var shouldSkip bool
 	var skipReason string
 
-	// Handle no license found - mark for skip
-	if len(licenses) == 0 {
+	if len(selectedLicenses) == 0 {
 		shouldSkip = true
 		skipReason = "no_license"
-		slog.WarnContext(ctx, "Module version has no license, will store with skipped status",
+		slog.WarnContext(ctx, "Module version has no acceptable license, will store with skipped status",
 			"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
 			"version", version)
 		span.SetAttributes(
 			attribute.String("module.skip_reason", "no_license"),
 			attribute.Bool("module.version_skipped", true),
 		)
-	} else if selected := licenses.Selected(r.config.License); selected.HasIncompatible() {
-		// Validate licenses - mark for skip if incompatible licenses found
+	} else if selectedLicenses.HasIncompatible() {
 		shouldSkip = true
 		skipReason = "incompatible_license"
-		incompatibleList := selected.String()
+		incompatibleList := selectedLicenses.String()
 		slog.WarnContext(ctx, "Module has incompatible license(s), will store with skipped status",
 			"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
 			"version", version,
@@ -542,7 +541,7 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 		return nil, fmt.Errorf("failed to collect module data: %w", err)
 	}
 
-	completeStructure, err := parser.BuildCompleteModuleStructure(ctx, workDir, rootModuleData, rootSchemaError, submodules, examples, licenses)
+	completeStructure, err := parser.BuildCompleteModuleStructure(ctx, workDir, rootModuleData, rootSchemaError, submodules, examples, licenses, r.config.License)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

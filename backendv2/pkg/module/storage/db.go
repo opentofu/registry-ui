@@ -181,7 +181,9 @@ func StoreModuleVersionLicenses(ctx context.Context, tx pgx.Tx, namespace, name,
 		batch.Queue(`
 			INSERT INTO licenses (spdx_id, name, category, redistributable, url)
 			VALUES ($1, $2, $3, $4, $5)
-			ON CONFLICT (spdx_id) DO NOTHING`,
+		ON CONFLICT (spdx_id) DO UPDATE SET
+			redistributable = EXCLUDED.redistributable,
+			updated_at = NOW()`,
 			lic.SPDX, licenseName, "detected", lic.IsCompatible, "")
 
 		// Then store the module_version_licenses record linking to the license

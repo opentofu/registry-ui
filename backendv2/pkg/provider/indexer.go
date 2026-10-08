@@ -76,22 +76,22 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 		return nil, fmt.Errorf("failed to detect licenses: %w", err)
 	}
 
-	// Determine if licenses are acceptable for documentation scraping
-	// No license (nil/empty) or incompatible licenses = skip documentation but store version
+	// Determine whether the selected authoritative licenses allow documentation scraping.
+	selectedLicenses := licenses.Selected(p.config.License)
 	var licenseAccepted bool
 
-	if len(licenses) == 0 {
+	if len(selectedLicenses) == 0 {
 		licenseAccepted = false
-		slog.WarnContext(ctx, "Provider has no license, will store version but skip documentation",
+		slog.WarnContext(ctx, "Provider has no acceptable license, will store version but skip documentation",
 			"provider", fmt.Sprintf("%s/%s", namespace, name),
 			"version", version)
 		span.SetAttributes(
 			attribute.String("provider.skip_reason", "no_license"),
 			attribute.Bool("provider.docs_skipped", true),
 		)
-	} else if selected := licenses.Selected(p.config.License); selected.HasIncompatible() {
+	} else if selectedLicenses.HasIncompatible() {
 		licenseAccepted = false
-		incompatibleList := selected.String()
+		incompatibleList := selectedLicenses.String()
 		slog.WarnContext(ctx, "Provider has incompatible license(s), will store version but skip documentation",
 			"provider", fmt.Sprintf("%s/%s", namespace, name),
 			"version", version,
@@ -150,18 +150,17 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 			"version", version, "error", err)
 	}
 
-	// Determine scrape status and skip reason
+	// Determine scrape status and skip reason.
 	var scrapeStatus, skipReason string
 	if !licenseAccepted {
 		scrapeStatus = "skipped"
-		if len(licenses) == 0 {
+		if len(selectedLicenses) == 0 {
 			skipReason = "no_license"
 		} else {
 			skipReason = "incompatible_license"
 		}
 	} else {
 		scrapeStatus = "completed"
-		skipReason = ""
 	}
 
 	// Store provider version in database

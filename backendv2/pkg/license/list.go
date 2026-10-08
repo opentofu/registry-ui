@@ -18,10 +18,10 @@ func (l List) HasIncompatible() bool {
 	return false
 }
 
-func (l List) IsRedistributable() bool {
-	// We check for incompatible licenses to avoid mistaking a license in a subdirectory for the main license
-	// of the project.
-	return len(l) > 0 && !l.HasIncompatible()
+// IsRedistributable reports whether the selected authoritative licenses are all OSI-approved.
+func (l List) IsRedistributable(cfg config.LicenseConfig) bool {
+	selected := l.Selected(cfg)
+	return len(selected) > 0 && !selected.HasIncompatible()
 }
 
 // Selected returns the authoritative subset of licenses:
