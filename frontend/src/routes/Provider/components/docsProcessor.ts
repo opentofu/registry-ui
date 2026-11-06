@@ -109,9 +109,9 @@ export const reworkRelativePaths = (
       return `${prefix}${strippedPath}${suffix}`;
     }
 
-    let docsPath = path.startsWith("/docs/providers/");
-    let cleanedGuidesPath = path.replace(/^(\.\/)/,"") // remove leading './' if it exists
-    let guidesPath = cleanedGuidesPath.startsWith("guides/")
+    const docsPath = path.startsWith("/docs/providers/");
+    const cleanedGuidesPath = path.replace(/^(\.\/)/,"") // remove leading './' if it exists
+    const guidesPath = cleanedGuidesPath.startsWith("guides/")
 
     // otherwise, we only care about links to /docs/providers and guides/
     if (!docsPath && !guidesPath) {
