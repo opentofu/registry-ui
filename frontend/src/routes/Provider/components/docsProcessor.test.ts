@@ -184,4 +184,26 @@ describe("reworkRelativePaths", () => {
     expect(output).not.toContain("README.md");
     expect(output).not.toContain("CHANGELOG.html");
   });
+  test("should handle correctly relative guides/ paths", () => {
+    const input = `
+      # Documentation with guides in the links
+      
+      See [README](./guides/README.md) for instructions.
+      Also check [CHANGELOG](guides/CHANGELOG.html) for recent changes.
+      And [LICENSE](./guides/LICENSE) doesn't need any changes.
+      Note this [anchor test](guides/README.md#installation) should keep the anchor.
+    `;
+
+    const output = reworkRelativePaths(input, "hashicorp", "aws", "v1.0.0");
+
+    // Extensions should be stripped but filenames preserved
+    expect(output).toContain("[README](/provider/hashicorp/aws/v1.0.0/docs/guides/README)");
+    expect(output).toContain("[CHANGELOG](/provider/hashicorp/aws/v1.0.0/docs/guides/CHANGELOG)");
+    expect(output).toContain("[LICENSE](/provider/hashicorp/aws/v1.0.0/docs/guides/LICENSE)");
+    expect(output).toContain("[anchor test](/provider/hashicorp/aws/v1.0.0/docs/guides/README#user-content-installation)");
+
+    // Original extensions should be removed
+    expect(output).not.toContain("README.md");
+    expect(output).not.toContain("CHANGELOG.html");
+  });
 });

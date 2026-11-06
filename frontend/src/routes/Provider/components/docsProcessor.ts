@@ -109,38 +109,44 @@ export const reworkRelativePaths = (
       return `${prefix}${strippedPath}${suffix}`;
     }
 
-    // otherwise, we only care about links to /docs/providers
-    if (!path.startsWith("/docs/providers/")) {
-      // If the path doesn't start with /docs/providers/, return the original link
-      return match;
-    }
+    let docsPath = path.startsWith("/docs/providers/");
+    let cleanedGuidesPath = path.replace(/^(\.\/)/,"") // remove leading './' if it exists
+    let guidesPath = cleanedGuidesPath.startsWith("guides/")
 
-    // extract the provider names from the path
-    const providerRegex = /\/docs\/providers\/([^/]+)/;
-    const providerMatch = path.match(providerRegex);
-    if (providerMatch) {
-      // Only transform links for the current provider,
-      // if the path is for a different provider, return the original link
-      // its best to not mess with it for now
-      if (providerMatch[1] !== provider) {
-        return match;
+    // otherwise, we only care about links to /docs/providers and guides/
+    if (!docsPath && !guidesPath) {
+      // If the path doesn't start with /docs/providers/ or guides/, return the original link
+      return match;
+    } else if (guidesPath) {
+      // if the path contains guides/, then
+      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${stripExtension(cleanedGuidesPath)}${suffix}`
+    } else { // then it's docsPath
+      // extract the provider names from the path
+      const providerRegex = /\/docs\/providers\/([^/]+)/;
+      const providerMatch = path.match(providerRegex);
+      if (providerMatch) {
+        // Only transform links for the current provider,
+        // if the path is for a different provider, return the original link
+        // its best to not mess with it for now
+        if (providerMatch[1] !== provider) {
+          return match;
+        }
+      }
+
+      const parts = path.split("/");
+      if (parts.length >= 4) {
+        const remainingPath = parts.slice(4).join("/");
+        const processedPath = processPath(
+          `${remainingPath}`,
+          namespace,
+          provider,
+          version,
+        );
+
+        // Transform to registry path structure
+        return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${processedPath}${suffix}`;
       }
     }
-
-    const parts = path.split("/");
-    if (parts.length >= 4) {
-      const remainingPath = parts.slice(4).join("/");
-      const processedPath = processPath(
-        `${remainingPath}`,
-        namespace,
-        provider,
-        version,
-      );
-
-      // Transform to registry path structure
-      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${processedPath}${suffix}`;
-    }
-
     // Return unmodified if it doesn't match our patterns
     return prefix + path + suffix;
   });
