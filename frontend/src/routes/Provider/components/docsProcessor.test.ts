@@ -197,10 +197,18 @@ describe("reworkRelativePaths", () => {
     const output = reworkRelativePaths(input, "hashicorp", "aws", "v1.0.0");
 
     // Extensions should be stripped but filenames preserved
-    expect(output).toContain("[README](/provider/hashicorp/aws/v1.0.0/docs/guides/README)");
-    expect(output).toContain("[CHANGELOG](/provider/hashicorp/aws/v1.0.0/docs/guides/CHANGELOG)");
-    expect(output).toContain("[LICENSE](/provider/hashicorp/aws/v1.0.0/docs/guides/LICENSE)");
-    expect(output).toContain("[anchor test](/provider/hashicorp/aws/v1.0.0/docs/guides/README#user-content-installation)");
+    expect(output).toContain(
+      "[README](/provider/hashicorp/aws/v1.0.0/docs/guides/README)",
+    );
+    expect(output).toContain(
+      "[CHANGELOG](/provider/hashicorp/aws/v1.0.0/docs/guides/CHANGELOG)",
+    );
+    expect(output).toContain(
+      "[LICENSE](/provider/hashicorp/aws/v1.0.0/docs/guides/LICENSE)",
+    );
+    expect(output).toContain(
+      "[anchor test](/provider/hashicorp/aws/v1.0.0/docs/guides/README#user-content-installation)",
+    );
 
     // Original extensions should be removed
     expect(output).not.toContain("README.md");

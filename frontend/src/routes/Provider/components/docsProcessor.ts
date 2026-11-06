@@ -110,8 +110,8 @@ export const reworkRelativePaths = (
     }
 
     const docsPath = path.startsWith("/docs/providers/");
-    const cleanedGuidesPath = path.replace(/^(\.\/)/,"") // remove leading './' if it exists
-    const guidesPath = cleanedGuidesPath.startsWith("guides/")
+    const cleanedGuidesPath = path.replace(/^(\.\/)/, ""); // remove leading './' if it exists
+    const guidesPath = cleanedGuidesPath.startsWith("guides/");
 
     // otherwise, we only care about links to /docs/providers and guides/
     if (!docsPath && !guidesPath) {
@@ -119,8 +119,9 @@ export const reworkRelativePaths = (
       return match;
     } else if (guidesPath) {
       // if the path contains guides/, then
-      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${stripExtension(cleanedGuidesPath)}${suffix}`
-    } else { // then it's docsPath
+      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${stripExtension(cleanedGuidesPath)}${suffix}`;
+    } else {
+      // then it's docsPath
       // extract the provider names from the path
       const providerRegex = /\/docs\/providers\/([^/]+)/;
       const providerMatch = path.match(providerRegex);
