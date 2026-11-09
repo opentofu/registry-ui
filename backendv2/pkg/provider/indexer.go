@@ -106,7 +106,7 @@ func (p *ProviderReader) IndexVersion(ctx context.Context, provider *registry.Pr
 	}
 
 	// Create documentation scraper
-	docScraper := scraper.New(p.config, p.uploader, p.db)
+	docScraper := scraper.New(p.config, p.s3Client, p.db)
 
 	// Initialize doc count and docs
 	var docCount int
@@ -486,7 +486,7 @@ func (p *ProviderReader) RegenerateProviderVersionIndex(ctx context.Context, nam
 		return
 	}
 
-	err = index.UploadProviderVersionIndex(ctx, p.uploader, p.config.Bucket.BucketName, providerIndex)
+	err = index.UploadProviderVersionIndex(ctx, p.s3Client, p.config.Bucket.BucketName, providerIndex)
 	if err != nil {
 		slog.WarnContext(ctx, "Failed to upload provider version index",
 			"provider", fmt.Sprintf("%s/%s", namespace, name),

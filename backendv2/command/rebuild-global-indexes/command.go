@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/opentofu/registry-ui/pkg/config"
@@ -77,12 +77,9 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to create S3 client: %w", err)
 	}
 
-	// Create uploader
-	uploader := manager.NewUploader(s3Client)
-
 	// Rebuild provider index if requested
 	if rebuildProviders {
-		if err := rebuildProviderIndex(ctx, pool, uploader, cfg.Bucket.BucketName); err != nil {
+		if err := rebuildProviderIndex(ctx, pool, s3Client, cfg.Bucket.BucketName); err != nil {
 			span.RecordError(err)
 			return fmt.Errorf("failed to rebuild provider index: %w", err)
 		}
@@ -90,7 +87,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	// Rebuild module index if requested
 	if rebuildModules {
-		if err := rebuildModuleIndex(ctx, pool, uploader, cfg.Bucket.BucketName); err != nil {
+		if err := rebuildModuleIndex(ctx, pool, s3Client, cfg.Bucket.BucketName); err != nil {
 			span.RecordError(err)
 			return fmt.Errorf("failed to rebuild module index: %w", err)
 		}
@@ -100,7 +97,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func rebuildProviderIndex(ctx context.Context, pool *pgxpool.Pool, uploader *manager.Uploader, bucketName string) error {
+func rebuildProviderIndex(ctx context.Context, pool *pgxpool.Pool, s3Client *s3.Client, bucketName string) error {
 	ctx, span := telemetry.Tracer().Start(ctx, "cmd.rebuild_global_indexes.providers")
 	defer span.End()
 
@@ -119,7 +116,7 @@ func rebuildProviderIndex(ctx context.Context, pool *pgxpool.Pool, uploader *man
 
 	// Upload to S3
 	key := "providers/index.json"
-	if err := index.UploadGlobalProviderIndex(ctx, uploader, bucketName, key, globalIndex); err != nil {
+	if err := index.UploadGlobalProviderIndex(ctx, s3Client, bucketName, key, globalIndex); err != nil {
 		span.RecordError(err)
 		return fmt.Errorf("failed to upload provider index to S3: %w", err)
 	}
@@ -131,7 +128,7 @@ func rebuildProviderIndex(ctx context.Context, pool *pgxpool.Pool, uploader *man
 	return nil
 }
 
-func rebuildModuleIndex(ctx context.Context, pool *pgxpool.Pool, uploader *manager.Uploader, bucketName string) error {
+func rebuildModuleIndex(ctx context.Context, pool *pgxpool.Pool, s3Client *s3.Client, bucketName string) error {
 	ctx, span := telemetry.Tracer().Start(ctx, "cmd.rebuild_global_indexes.modules")
 	defer span.End()
 
@@ -150,7 +147,7 @@ func rebuildModuleIndex(ctx context.Context, pool *pgxpool.Pool, uploader *manag
 
 	// Upload to S3
 	key := "modules/index.json"
-	if err := index.UploadGlobalModuleIndex(ctx, uploader, bucketName, key, globalIndex); err != nil {
+	if err := index.UploadGlobalModuleIndex(ctx, s3Client, bucketName, key, globalIndex); err != nil {
 		span.RecordError(err)
 		return fmt.Errorf("failed to upload module index to S3: %w", err)
 	}

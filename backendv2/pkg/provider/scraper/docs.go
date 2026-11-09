@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -75,14 +74,14 @@ type DocItem struct {
 
 type Scraper struct {
 	config   *config.BackendConfig
-	uploader *manager.Uploader
+	s3Client *s3.Client
 	pool     *pgxpool.Pool
 }
 
-func New(cfg *config.BackendConfig, uploader *manager.Uploader, pool *pgxpool.Pool) *Scraper {
+func New(cfg *config.BackendConfig, s3Client *s3.Client, pool *pgxpool.Pool) *Scraper {
 	return &Scraper{
 		config:   cfg,
-		uploader: uploader,
+		s3Client: s3Client,
 		pool:     pool,
 	}
 }
@@ -258,7 +257,7 @@ func (s *Scraper) GenerateAndStoreIndex(ctx context.Context, namespace, name, ve
 	}
 
 	key := fmt.Sprintf("providers/%s/%s/%s/index.json", namespace, name, version)
-	_, err = s.uploader.Upload(ctx, &s3.PutObjectInput{
+	_, err = s.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(s.config.Bucket.BucketName),
 		Key:         aws.String(key),
 		Body:        bytes.NewReader(jsonData),
@@ -573,7 +572,7 @@ func (s *Scraper) uploadDocToS3(ctx context.Context, namespace, name, version, f
 		}
 	}
 
-	_, err := s.uploader.Upload(ctx, &s3.PutObjectInput{
+	_, err := s.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(s.config.Bucket.BucketName),
 		Key:         aws.String(key),
 		Body:        bytes.NewReader(doc.contents),

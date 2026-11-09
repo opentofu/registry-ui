@@ -128,7 +128,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 		moduleData = &collectedData.ModuleData
 
 		// Store registryModule data in S3 and capture checksum
-		indexChecksum, err = storage.StoreModuleInS3(ctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, moduleData)
+		indexChecksum, err = storage.StoreModuleInS3(ctx, r.s3Client, r.config.Bucket.BucketName, namespace, name, target, version, moduleData)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
@@ -136,7 +136,7 @@ func (r *Reader) IndexVersion(ctx context.Context, namespace, name, target, vers
 		}
 
 		// Store registryModule README in S3 and capture checksum
-		readmeChecksum, err = storage.StoreModuleREADME(ctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, workDir)
+		readmeChecksum, err = storage.StoreModuleREADME(ctx, r.s3Client, r.config.Bucket.BucketName, namespace, name, target, version, workDir)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
@@ -479,7 +479,7 @@ func (r *Reader) IndexAllVersions(ctx context.Context, registryModule *registry.
 			"error", err)
 	} else {
 		// Upload module version index to S3
-		err = index.UploadModuleVersionIndex(ctx, r.uploader, r.config.Bucket.BucketName, moduleIndex)
+		err = index.UploadModuleVersionIndex(ctx, r.s3Client, r.config.Bucket.BucketName, moduleIndex)
 		if err != nil {
 			slog.WarnContext(ctx, "Failed to upload module version index",
 				"module", fmt.Sprintf("%s/%s/%s", namespace, name, target),
@@ -746,7 +746,7 @@ func (r *Reader) storeSubmodulesWithTx(ctx context.Context, tx pgx.Tx, namespace
 			submodulePath := filepath.Join("modules", submoduleName)
 
 			// Store submodule data in S3 and capture checksums
-			indexChecksum, readmeChecksum, err := storage.StoreModuleSubmoduleInS3(gctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, submoduleName, submoduleData, workDir)
+			indexChecksum, readmeChecksum, err := storage.StoreModuleSubmoduleInS3(gctx, r.s3Client, r.config.Bucket.BucketName, namespace, name, target, version, submoduleName, submoduleData, workDir)
 			if err != nil {
 				slog.ErrorContext(gctx, "Failed to store submodule in S3",
 					"submodule", submoduleName, "error", err)
@@ -808,7 +808,7 @@ func (r *Reader) storeExamplesWithTx(ctx context.Context, tx pgx.Tx, namespace, 
 			examplePath := filepath.Join("examples", exampleName)
 
 			// Store example data in S3 and capture checksums
-			indexChecksum, readmeChecksum, err := storage.StoreModuleExampleInS3(gctx, r.uploader, r.config.Bucket.BucketName, namespace, name, target, version, exampleName, exampleData, workDir)
+			indexChecksum, readmeChecksum, err := storage.StoreModuleExampleInS3(gctx, r.s3Client, r.config.Bucket.BucketName, namespace, name, target, version, exampleName, exampleData, workDir)
 			if err != nil {
 				slog.ErrorContext(gctx, "Failed to store example in S3",
 					"example", exampleName, "error", err)

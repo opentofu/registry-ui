@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel/attribute"
@@ -26,7 +25,6 @@ type ProviderReader struct {
 	config       *config.BackendConfig
 	db           *pgxpool.Pool
 	s3Client     *s3.Client
-	uploader     *manager.Uploader
 	githubClient *repository.Client
 }
 
@@ -38,9 +36,6 @@ func NewProviderReader(ctx context.Context, cfg *config.BackendConfig, db *pgxpo
 		return nil, fmt.Errorf("failed to initialize S3 client: %w", err)
 	}
 
-	// Initialize S3 uploader
-	uploader := manager.NewUploader(s3Client)
-
 	// Initialize GitHub client if configured
 	var githubClient *repository.Client
 	if cfg.GitHub.Token != "" {
@@ -51,7 +46,6 @@ func NewProviderReader(ctx context.Context, cfg *config.BackendConfig, db *pgxpo
 		config:       cfg,
 		db:           db,
 		s3Client:     s3Client,
-		uploader:     uploader,
 		githubClient: githubClient,
 	}, nil
 }

@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.opentelemetry.io/otel/attribute"
 
@@ -20,7 +19,7 @@ import (
 )
 
 // StoreModuleInS3 stores module data in S3 and returns the MD5 checksum
-func StoreModuleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version string, moduleData any) (string, error) {
+func StoreModuleInS3(ctx context.Context, s3Client *s3.Client, bucketName, namespace, name, target, version string, moduleData any) (string, error) {
 	// Convert module data to JSON
 	jsonData, err := json.MarshalIndent(moduleData, "", "  ")
 	if err != nil {
@@ -28,7 +27,7 @@ func StoreModuleInS3(ctx context.Context, uploader *manager.Uploader, bucketName
 	}
 
 	key := fmt.Sprintf("modules/%s/%s/%s/%s/index.json", namespace, name, target, version)
-	md5Hash, err := uploadToS3(ctx, uploader, bucketName, key, jsonData, "application/json")
+	md5Hash, err := uploadToS3(ctx, s3Client, bucketName, key, jsonData, "application/json")
 	if err != nil {
 		return "", fmt.Errorf("failed to upload module index.json: %w", err)
 	}
@@ -43,7 +42,7 @@ func StoreModuleInS3(ctx context.Context, uploader *manager.Uploader, bucketName
 }
 
 // StoreModuleSubmoduleInS3 stores submodule data and README in S3, returns (indexChecksum, readmeChecksum, error)
-func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, submoduleName string, tofuJSON any, workDir string) (string, string, error) {
+func StoreModuleSubmoduleInS3(ctx context.Context, s3Client *s3.Client, bucketName, namespace, name, target, version, submoduleName string, tofuJSON any, workDir string) (string, string, error) {
 	// Upload submodule index.json
 	jsonData, err := json.MarshalIndent(tofuJSON, "", "  ")
 	if err != nil {
@@ -51,7 +50,7 @@ func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, b
 	}
 
 	indexKey := fmt.Sprintf("modules/%s/%s/%s/%s/submodules/%s/index.json", namespace, name, target, version, submoduleName)
-	indexChecksum, err := uploadToS3(ctx, uploader, bucketName, indexKey, jsonData, "application/json")
+	indexChecksum, err := uploadToS3(ctx, s3Client, bucketName, indexKey, jsonData, "application/json")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to upload submodule index.json: %w", err)
 	}
@@ -61,7 +60,7 @@ func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, b
 	readmePath := filepath.Join(workDir, "modules", submoduleName, "README.md")
 	if readmeContent, err := os.ReadFile(readmePath); err == nil {
 		readmeKey := fmt.Sprintf("modules/%s/%s/%s/%s/submodules/%s/README.md", namespace, name, target, version, submoduleName)
-		readmeChecksum, err = uploadToS3(ctx, uploader, bucketName, readmeKey, readmeContent, "text/markdown")
+		readmeChecksum, err = uploadToS3(ctx, s3Client, bucketName, readmeKey, readmeContent, "text/markdown")
 		if err != nil {
 			slog.WarnContext(ctx, "Failed to upload submodule README", "error", err, "submodule", submoduleName)
 		} else {
@@ -80,7 +79,7 @@ func StoreModuleSubmoduleInS3(ctx context.Context, uploader *manager.Uploader, b
 }
 
 // StoreModuleExampleInS3 stores example data and README in S3, returns (indexChecksum, readmeChecksum, error)
-func StoreModuleExampleInS3(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, exampleName string, tofuJSON any, workDir string) (string, string, error) {
+func StoreModuleExampleInS3(ctx context.Context, s3Client *s3.Client, bucketName, namespace, name, target, version, exampleName string, tofuJSON any, workDir string) (string, string, error) {
 	// Upload example index.json
 	jsonData, err := json.MarshalIndent(tofuJSON, "", "  ")
 	if err != nil {
@@ -88,7 +87,7 @@ func StoreModuleExampleInS3(ctx context.Context, uploader *manager.Uploader, buc
 	}
 
 	indexKey := fmt.Sprintf("modules/%s/%s/%s/%s/examples/%s/index.json", namespace, name, target, version, exampleName)
-	indexChecksum, err := uploadToS3(ctx, uploader, bucketName, indexKey, jsonData, "application/json")
+	indexChecksum, err := uploadToS3(ctx, s3Client, bucketName, indexKey, jsonData, "application/json")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to upload example index.json: %w", err)
 	}
@@ -98,7 +97,7 @@ func StoreModuleExampleInS3(ctx context.Context, uploader *manager.Uploader, buc
 	readmePath := filepath.Join(workDir, "examples", exampleName, "README.md")
 	if readmeContent, err := os.ReadFile(readmePath); err == nil {
 		readmeKey := fmt.Sprintf("modules/%s/%s/%s/%s/examples/%s/README.md", namespace, name, target, version, exampleName)
-		readmeChecksum, err = uploadToS3(ctx, uploader, bucketName, readmeKey, readmeContent, "text/markdown")
+		readmeChecksum, err = uploadToS3(ctx, s3Client, bucketName, readmeKey, readmeContent, "text/markdown")
 		if err != nil {
 			slog.WarnContext(ctx, "Failed to upload example README", "error", err, "example", exampleName)
 		} else {
@@ -117,7 +116,7 @@ func StoreModuleExampleInS3(ctx context.Context, uploader *manager.Uploader, buc
 }
 
 // StoreModuleREADME stores the main module README in S3 and returns the MD5 checksum
-func StoreModuleREADME(ctx context.Context, uploader *manager.Uploader, bucketName, namespace, name, target, version, workDir string) (string, error) {
+func StoreModuleREADME(ctx context.Context, s3Client *s3.Client, bucketName, namespace, name, target, version, workDir string) (string, error) {
 	readmePath := filepath.Join(workDir, "README.md")
 	readmeContent, err := os.ReadFile(readmePath)
 	if err != nil {
@@ -130,7 +129,7 @@ func StoreModuleREADME(ctx context.Context, uploader *manager.Uploader, bucketNa
 	}
 
 	readmeKey := fmt.Sprintf("modules/%s/%s/%s/%s/README.md", namespace, name, target, version)
-	md5Hash, err := uploadToS3(ctx, uploader, bucketName, readmeKey, readmeContent, "text/markdown")
+	md5Hash, err := uploadToS3(ctx, s3Client, bucketName, readmeKey, readmeContent, "text/markdown")
 	if err != nil {
 		return "", fmt.Errorf("failed to upload module README: %w", err)
 	}
@@ -145,7 +144,7 @@ func StoreModuleREADME(ctx context.Context, uploader *manager.Uploader, bucketNa
 }
 
 // uploadToS3 uploads data to S3 with the specified content type and returns the MD5 checksum
-func uploadToS3(ctx context.Context, uploader *manager.Uploader, bucketName, key string, data []byte, contentType string) (string, error) {
+func uploadToS3(ctx context.Context, s3Client *s3.Client, bucketName, key string, data []byte, contentType string) (string, error) {
 	// TODO: find a centralized way to upload files with decent OTEL in there, for now we'll just keep this method in this package
 	ctx, span := telemetry.Tracer().Start(ctx, "module_storage.upload_to_s3")
 	defer span.End()
@@ -167,7 +166,7 @@ func uploadToS3(ctx context.Context, uploader *manager.Uploader, bucketName, key
 		attribute.String("md5_checksum", checksum),
 	)
 
-	_, err := uploader.Upload(ctx, toUpload)
+	_, err := s3Client.PutObject(ctx, toUpload)
 	if err != nil {
 		span.RecordError(err)
 		return "", err
