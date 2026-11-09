@@ -31,6 +31,7 @@ concurrency:
   provider: 10
   version: 5
   upload: 100
+  tofu: 25
 
 license:
   confidencethreshold: 0.85

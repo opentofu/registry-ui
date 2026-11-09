@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/opentofu/registry-ui/pkg/config"
 	"github.com/opentofu/registry-ui/pkg/git"
@@ -26,12 +28,13 @@ import (
 
 // Reader is the main entry point for all module operations
 type Reader struct {
-	config       *config.BackendConfig
-	db           *pgxpool.Pool
-	s3Client     *s3.Client
-	uploader     *manager.Uploader
-	githubClient *repository.Client
-	tofuPath     string
+	config         *config.BackendConfig
+	db             *pgxpool.Pool
+	s3Client       *s3.Client
+	uploader       *manager.Uploader
+	githubClient   *repository.Client
+	tofuPath       string
+	tofuExecutions *semaphore.Weighted
 }
 
 // NewModuleReader creates a new Reader with all dependencies initialized
@@ -64,14 +67,31 @@ func NewModuleReader(ctx context.Context, cfg *config.BackendConfig, db *pgxpool
 	}
 
 	return &Reader{
-		config:       cfg,
-		db:           db,
-		s3Client:     s3Client,
-		uploader:     uploader,
-		githubClient: githubClient,
-
-		tofuPath: tofuPath,
+		config:         cfg,
+		db:             db,
+		s3Client:       s3Client,
+		uploader:       uploader,
+		githubClient:   githubClient,
+		tofuPath:       tofuPath,
+		tofuExecutions: semaphore.NewWeighted(int64(cfg.Concurrency.Tofu)),
 	}, nil
+}
+
+// show applies the process-wide tofu.Show concurrency lock.
+func (r *Reader) show(ctx context.Context, moduleDir string) (*tofu.Config, string, error) {
+	ctx, span := telemetry.Tracer().Start(ctx, "tofu.show_limited")
+	defer span.End()
+
+	waitStarted := time.Now()
+	if err := r.tofuExecutions.Acquire(ctx, 1); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, "", fmt.Errorf("waiting for tofu execution slot: %w", err)
+	}
+	span.SetAttributes(attribute.Float64("tofu.semaphore.wait_ms", float64(time.Since(waitStarted))/float64(time.Millisecond)))
+	defer r.tofuExecutions.Release(1)
+
+	return tofu.Show(ctx, moduleDir)
 }
 
 // ScrapeVersion scrapes a specific version of a module

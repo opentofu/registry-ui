@@ -521,7 +521,7 @@ func (r *Reader) buildCompleteModuleData(ctx context.Context, namespace, name, t
 	g, gctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		rootModuleData, rootSchemaError, rootErr = tofu.Show(gctx, workDir)
+		rootModuleData, rootSchemaError, rootErr = r.show(gctx, workDir)
 		return rootErr
 	})
 
@@ -599,7 +599,7 @@ func (r *Reader) collectSubmodulesDataParallel(ctx context.Context, namespace, n
 			fullSubmodulePath := filepath.Join(workDir, "modules", submoduleName)
 
 			// Run tofu show on the submodule
-			tofuConfig, schemaError, err := tofu.Show(gctx, fullSubmodulePath)
+			tofuConfig, schemaError, err := r.show(gctx, fullSubmodulePath)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to run tofu show on submodule",
 					"submodule", submoduleName, "error", err)
@@ -681,7 +681,7 @@ func (r *Reader) collectExamplesDataParallel(ctx context.Context, namespace, nam
 			fullExamplePath := filepath.Join(workDir, "examples", exampleName)
 
 			// Run tofu show on the example
-			tofuConfig, schemaError, err := tofu.Show(gctx, fullExamplePath)
+			tofuConfig, schemaError, err := r.show(gctx, fullExamplePath)
 			if err != nil {
 				slog.WarnContext(gctx, "Failed to run tofu show on example",
 					"example", exampleName, "error", err)
