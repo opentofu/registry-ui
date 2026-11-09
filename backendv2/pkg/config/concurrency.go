@@ -9,6 +9,7 @@ type ConcurrencyConfig struct {
 	Upload    int `koanf:"upload"`
 	Submodule int `koanf:"submodule"`
 	Example   int `koanf:"example"`
+	Tofu      int `koanf:"tofu"`
 }
 
 func (c *ConcurrencyConfig) Validate() error {
@@ -30,6 +31,9 @@ func (c *ConcurrencyConfig) Validate() error {
 	}
 	if c.Example < 0 {
 		return fmt.Errorf("example concurrency must be greater than or equal to 0")
+	}
+	if c.Tofu < 0 {
+		return fmt.Errorf("tofu concurrency must be greater than or equal to 0")
 	}
 
 	// Set defaults for zero values
@@ -59,6 +63,12 @@ func (c *ConcurrencyConfig) Validate() error {
 	if c.Example == 0 {
 		// Examples run tofu show which is expensive, so use conservative default
 		c.Example = 5
+	}
+
+	if c.Tofu == 0 {
+		// Tofu executions are expensive and nested below module, version, submodule, and example work.
+		// Cap their combined concurrency within the process so those independent limits cannot exhaust the host.
+		c.Tofu = 25
 	}
 
 	return nil
