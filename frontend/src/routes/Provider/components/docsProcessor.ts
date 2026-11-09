@@ -49,6 +49,7 @@ export const shortToLongPath = (path: string): string => {
   const shortToLongMap: Record<string, string> = {
     r: "resources",
     d: "datasources",
+    "data-sources": "datasources",
     f: "functions",
   };
 
@@ -95,6 +96,7 @@ export const reworkRelativePaths = (
   namespace: string,
   provider: string,
   version: string,
+  isOverview = false,
 ): string => {
   // Long links!
   const linkRegex = /(\[.*?\]\()([^)]+)(\))/g;
@@ -103,53 +105,53 @@ export const reworkRelativePaths = (
   const reworked = doc.replace(linkRegex, (match, prefix, path, suffix) => {
     path = prefixAnchors(path);
 
-    // its just a simple file link, let's not mess with it but just strip the extension
-    if (!path.includes("/")) {
-      const strippedPath = stripExtension(path);
-      return `${prefix}${strippedPath}${suffix}`;
+    if (path.startsWith("#")) {
+      return `${prefix}${path}${suffix}`;
     }
 
     const docsPath = path.startsWith("/docs/providers/");
-    const cleanedGuidesPath = path.replace(/^(\.\/)/, ""); // remove leading './' if it exists
-    const guidesPath = cleanedGuidesPath.startsWith("guides/");
+    const relativePath =
+      !path.startsWith("/") && !/^[a-z][a-z\d+.-]*:/i.test(path);
 
-    // otherwise, we only care about links to /docs/providers and guides/
-    if (!docsPath && !guidesPath) {
-      // If the path doesn't start with /docs/providers/ or guides/, return the original link
-      return match;
-    } else if (guidesPath) {
-      // if the path contains guides/, then
-      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${stripExtension(cleanedGuidesPath)}${suffix}`;
-    } else {
-      // then it's docsPath
-      // extract the provider names from the path
-      const providerRegex = /\/docs\/providers\/([^/]+)/;
-      const providerMatch = path.match(providerRegex);
-      if (providerMatch) {
-        // Only transform links for the current provider,
-        // if the path is for a different provider, return the original link
-        // its best to not mess with it for now
-        if (providerMatch[1] !== provider) {
-          return match;
-        }
+    if (relativePath) {
+      const processedPath = processPath(path);
+      if (!isOverview) {
+        return `${prefix}${processedPath}${suffix}`;
       }
 
-      const parts = path.split("/");
-      if (parts.length >= 4) {
-        const remainingPath = parts.slice(4).join("/");
-        const processedPath = processPath(
-          `${remainingPath}`,
-          namespace,
-          provider,
-          version,
-        );
+      const docsRelativePath = processedPath.replace(/^\.\//, "");
+      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${docsRelativePath}${suffix}`;
+    }
 
-        // Transform to registry path structure
-        return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${processedPath}${suffix}`;
+    // Otherwise, we only care about links to /docs/providers.
+    if (!docsPath) {
+      return match;
+    }
+
+    // Extract the provider names from the path.
+    const providerRegex = /\/docs\/providers\/([^/]+)/;
+    const providerMatch = path.match(providerRegex);
+    if (providerMatch) {
+      // Only transform links for the current provider.
+      if (providerMatch[1] !== provider) {
+        return match;
       }
     }
-    // Return unmodified if it doesn't match our patterns
-    return prefix + path + suffix;
+
+    const parts = path.split("/");
+    if (parts.length >= 4) {
+      const remainingPath = parts.slice(4).join("/");
+      const processedPath = processPath(
+        remainingPath,
+        namespace,
+        provider,
+        version,
+      );
+
+      return `${prefix}/provider/${namespace}/${provider}/${version}/docs/${processedPath}${suffix}`;
+    }
+
+    return match;
   });
 
   return reworked;
