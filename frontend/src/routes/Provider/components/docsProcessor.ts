@@ -7,14 +7,19 @@
   - /docs/overview.md -> /docs/overview
   - /docs/overview.html -> /docs/overview
 
-  anchor links
-  - /docs/overview.md#section -> /docs/overview#section
-  - /docs/overview.html#section -> /docs/overview#section
+  anchor links:
+  - #section -> #user-content-section
+  - /docs/overview.md#section -> /docs/overview#user-content-section
 
-  directory structure changes:ro
-  - docs/providers/<providername> -> /provider/<namespace>/<providername>/<version>/docs/
-  - docs/providers/<providername>/r/<resource> -> /provider/<namespace>/<providername>/<version>/docs/resources/<resource>
-  - docs/providers/<providername>/d/<data> -> /provider/<namespace>/<providername>/<version>/docs/datasources/<data>
+  directory structure changes:
+  - /docs/providers/<provider> -> /provider/<namespace>/<provider>/<version>/docs/
+  - /docs/providers/<provider>/r/<resource> -> /provider/<namespace>/<provider>/<version>/docs/resources/<resource>
+  - /docs/providers/<provider>/d/<data> -> /provider/<namespace>/<provider>/<version>/docs/datasources/<data>
+  - data-sources/<data> -> datasources/<data>
+
+  relative links:
+  - overview: resources/<resource>.md -> /provider/<namespace>/<provider>/<version>/docs/resources/<resource>
+  - documentation page: ../data-sources/<data>.md -> ../datasources/<data>
 */
 
 type DocProcessor = (
@@ -105,6 +110,7 @@ export const reworkRelativePaths = (
   const reworked = doc.replace(linkRegex, (match, prefix, path, suffix) => {
     path = prefixAnchors(path);
 
+    // If we're looking at an anchor path, keep it relative to this document, not other docs.
     if (path.startsWith("#")) {
       return `${prefix}${path}${suffix}`;
     }
