@@ -99,6 +99,10 @@ export function ProvidersList({ searchQuery = "" }: ProvidersListProps) {
       useWindowScroll
       data={filteredProviders}
       totalCount={filteredProviders.length}
+      computeItemKey={(index) => {
+        const p = filteredProviders[index];
+        return `${p.addr.namespace}/${p.addr.name}`;
+      }}
       components={gridComponents}
       itemContent={(index) => {
         const provider = filteredProviders[index];

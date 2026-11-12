@@ -54,14 +54,14 @@ export function ModulesCardItem({ module }: ModulesCardItemProps) {
             {module.popularity !== undefined && module.popularity > 0 && (
               <span className="flex items-center gap-1">
                 <Icon path={star} className="h-3 w-3" width={16} height={16} />
-                {module.popularity.toLocaleString()} stars
+                {module.popularity.toLocaleString()} {module.popularity === 1 ? "star" : "stars"}
               </span>
             )}
 
             {module.fork_count !== undefined && module.fork_count > 0 && (
               <span className="flex items-center gap-1">
                 <Icon path={fork} className="h-3 w-3" width={16} height={16} />
-                {module.fork_count.toLocaleString()} forks
+                {module.fork_count.toLocaleString()} {module.fork_count === 1 ? "fork" : "forks"}
               </span>
             )}
 

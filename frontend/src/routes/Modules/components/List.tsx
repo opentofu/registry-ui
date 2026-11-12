@@ -102,6 +102,10 @@ export function ModulesList({ searchQuery = "" }: ModulesListProps) {
       useWindowScroll
       data={filteredModules}
       totalCount={filteredModules.length}
+      computeItemKey={(index) => {
+        const m = filteredModules[index];
+        return `${m.addr.namespace}/${m.addr.name}/${m.addr.target}`;
+      }}
       components={gridComponents}
       itemContent={(index) => {
         const module = filteredModules[index];
