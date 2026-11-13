@@ -69,7 +69,13 @@ export function ProviderDocsContent() {
 
   let finalDocs = docs;
   if (namespace && provider && version) {
-    finalDocs = reworkRelativePaths(docs || "", namespace, provider, version);
+    finalDocs = reworkRelativePaths(
+      docs || "",
+      namespace,
+      provider,
+      version,
+      type === undefined,
+    );
   }
 
   return (

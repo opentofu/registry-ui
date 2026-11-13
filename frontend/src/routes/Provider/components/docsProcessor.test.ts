@@ -50,6 +50,12 @@ describe("shortToLongPath", () => {
     );
   });
 
+  test("should convert /data-sources/ to /datasources/", () => {
+    expect(shortToLongPath("/docs/data-sources/data_source_name")).toBe(
+      "/docs/datasources/data_source_name",
+    );
+  });
+
   test("should convert /f/ to /functions/", () => {
     expect(shortToLongPath("/docs/f/function_name")).toBe(
       "/docs/functions/function_name",
@@ -184,34 +190,50 @@ describe("reworkRelativePaths", () => {
     expect(output).not.toContain("README.md");
     expect(output).not.toContain("CHANGELOG.html");
   });
-  test("should handle correctly relative guides/ paths", () => {
+  test("should resolve relative links from the overview against /docs/", () => {
     const input = `
-      # Documentation with guides in the links
-      
-      See [README](./guides/README.md) for instructions.
-      Also check [CHANGELOG](guides/CHANGELOG.html) for recent changes.
-      And [LICENSE](./guides/LICENSE) doesn't need any changes.
-      Note this [anchor test](guides/README.md#installation) should keep the anchor.
+      [Data source](data-sources/project.md)
+      [Resource](./resources/schema.html)
+      [Function](functions/parse.markdown#usage)
+      [Guide](guides/README)
     `;
 
-    const output = reworkRelativePaths(input, "hashicorp", "aws", "v1.0.0");
-
-    // Extensions should be stripped but filenames preserved
-    expect(output).toContain(
-      "[README](/provider/hashicorp/aws/v1.0.0/docs/guides/README)",
-    );
-    expect(output).toContain(
-      "[CHANGELOG](/provider/hashicorp/aws/v1.0.0/docs/guides/CHANGELOG)",
-    );
-    expect(output).toContain(
-      "[LICENSE](/provider/hashicorp/aws/v1.0.0/docs/guides/LICENSE)",
-    );
-    expect(output).toContain(
-      "[anchor test](/provider/hashicorp/aws/v1.0.0/docs/guides/README#user-content-installation)",
+    const output = reworkRelativePaths(
+      input,
+      "hashicorp",
+      "aws",
+      "v1.0.0",
+      true,
     );
 
-    // Original extensions should be removed
-    expect(output).not.toContain("README.md");
-    expect(output).not.toContain("CHANGELOG.html");
+    expect(output).toContain(
+      "[Data source](/provider/hashicorp/aws/v1.0.0/docs/datasources/project)",
+    );
+    expect(output).toContain(
+      "[Resource](/provider/hashicorp/aws/v1.0.0/docs/resources/schema)",
+    );
+    expect(output).toContain(
+      "[Function](/provider/hashicorp/aws/v1.0.0/docs/functions/parse#user-content-usage)",
+    );
+    expect(output).toContain(
+      "[Guide](/provider/hashicorp/aws/v1.0.0/docs/guides/README)",
+    );
+  });
+
+  test("should process relative links from a documentation page", () => {
+    const input = `
+      [Data source](../data-sources/tables.md)
+      [Resource](../resources/schema.html)
+    `;
+
+    const output = reworkRelativePaths(
+      input,
+      "databricks",
+      "databricks",
+      "v1.0.0",
+    );
+
+    expect(output).toContain("[Data source](../datasources/tables)");
+    expect(output).toContain("[Resource](../resources/schema)");
   });
 });
