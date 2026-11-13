@@ -51,7 +51,7 @@ When detecting licenses, we follow these rules:
 2. **License File Evaluation**:
    - Each license file is evaluated with a confidence score for various license types
    - Only license types with confidence scores above our threshold (default: 0.85) are considered
-   - For a repository to be redistributable, all detected license types (that meet the threshold) must be in our approved license list
+   - For a repository to be redistributable, every detected identifier that meets the threshold must be known to the pinned SPDX dataset and marked OSI-approved; unknown and non-OSI identifiers are incompatible
 
 3. **No Valid License**:
    - If no license files meet our confidence threshold, we do not scrape the documentation
@@ -80,14 +80,14 @@ When detecting licenses, we follow these rules:
 A repository is redistributable if:
 
 1. At least one license file is found with confidence above our threshold
-2. ALL license types detected (that meet the threshold) are in our compatible license list
+2. ALL license identifiers detected (that meet the threshold) are known to the pinned SPDX dataset and marked OSI-approved; unknown and non-OSI identifiers are incompatible
 3. If multiple license files exist, we respect the directory hierarchy (docs/ overrides root)
 
 ## Reporting and Handling
 
 When licenses are detected, we:
 
-1. Check each license type against our allowlist of compatible licenses (`licenses.json`)
+1. Check that each license identifier is known to the pinned SPDX dataset and marked OSI-approved; unknown and non-OSI identifiers are incompatible
 2. Mark the module/provider as redistributable only if all detected license types are compatible
 3. Include links to the license files in the repository when available
 4. For non-redistributable content, display a "451 Unavailable for Legal Reasons" message

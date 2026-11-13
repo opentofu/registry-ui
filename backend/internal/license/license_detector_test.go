@@ -140,7 +140,6 @@ func TestDetectIntegration(t *testing.T) {
 	}
 
 	detector, err := New(
-		WithCompatibleLicenses("Apache-2.0", "MIT"),
 		WithConfidenceThreshold(0.5),
 	)
 	if err != nil {
@@ -156,9 +155,7 @@ func TestDetectIntegration(t *testing.T) {
 func TestDetectEmptyRepository(t *testing.T) {
 	testFS := fstest.MapFS{}
 
-	detector, err := New(
-		WithCompatibleLicenses("Apache-2.0", "MIT"),
-	)
+	detector, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create detector: %v", err)
 	}

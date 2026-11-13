@@ -14,7 +14,7 @@ type ProviderVersion struct {
 
 	Licenses license.List `json:"license"`
 
-	// IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
+	// IncompatibleLicense is true when no license was detected or at least one detected license is not OSI-approved.
 	IncompatibleLicense bool `json:"incompatible_license"`
 
 	Link string `json:"link"`

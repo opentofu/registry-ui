@@ -639,7 +639,7 @@ components:
           $ref: '#/components/schemas/ModuleVersionNumber'
         incompatible_license:
           type: boolean
-          description: IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved
+          description: IncompatibleLicense indicates that no license was detected or at least one detected license is not OSI-approved
         licenses:
           $ref: '#/components/schemas/LicenseList'
         link:
@@ -925,7 +925,7 @@ components:
           $ref: '#/components/schemas/ProviderVersionNumber'
         incompatible_license:
           type: boolean
-          description: IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved
+          description: IncompatibleLicense indicates that no license was detected or at least one detected license is not OSI-approved
         license:
           $ref: '#/components/schemas/LicenseList'
         link:
@@ -1031,7 +1031,7 @@ components:
           description: File holds the file in the repository where the license was detected
         is_compatible:
           type: boolean
-          description: IsCompatible signals if the license is compatible with the OpenTofu project
+          description: IsCompatible signals whether the SPDX identifier is OSI-approved under the backend policy
         link:
           type: string
           description: Link may contain a link to the license file for humans to view. This may be empty

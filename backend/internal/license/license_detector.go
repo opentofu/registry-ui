@@ -26,7 +26,7 @@ type License struct {
 	SPDX string `json:"spdx"`
 	// Confidence indicates how accurate the license detection is.
 	Confidence float32 `json:"confidence"`
-	// IsCompatible signals if the license is compatible with the OpenTofu project.
+	// IsCompatible signals whether the SPDX identifier is OSI-approved under the backend policy.
 	IsCompatible bool `json:"is_compatible"`
 	// File holds the file in the repository where the license was detected.
 	File string `json:"file"`
@@ -56,15 +56,7 @@ func WithConfidenceOverrideThreshold(threshold float32) Opt {
 	}
 }
 
-func WithCompatibleLicenses(licenses ...string) Opt {
-	return func(config *Config) error {
-		config.CompatibleLicenses = append(config.CompatibleLicenses, licenses...)
-		return nil
-	}
-}
-
 type Config struct {
-	CompatibleLicenses  []string
 	ConfidenceThreshold float32
 	// ConfidenceOverrideThreshold is the limit at which a detected license overrides all other detected licenses.
 	// Defaults to 98%.
@@ -82,9 +74,6 @@ func (c *Config) ApplyDefaults() error {
 }
 
 func (c *Config) Validate() error {
-	if len(c.CompatibleLicenses) == 0 {
-		return fmt.Errorf("no licenses configured")
-	}
 	if c.ConfidenceOverrideThreshold < c.ConfidenceThreshold {
 		return fmt.Errorf("the confidence override threshold (%f) is lower than the confidence threshold (%f)", c.ConfidenceOverrideThreshold, c.ConfidenceThreshold)
 	}
@@ -129,19 +118,13 @@ func New(
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	licenseMap := map[string]struct{}{}
-	for _, license := range config.CompatibleLicenses {
-		licenseMap[strings.ToLower(license)] = struct{}{}
-	}
 	return &detector{
-		licenseMap: licenseMap,
-		config:     config,
+		config: config,
 	}, nil
 }
 
 type detector struct {
-	config     Config
-	licenseMap map[string]struct{}
+	config Config
 }
 
 func (d detector) Detect(_ context.Context, repository fs.ReadDirFS, detectOptions ...DetectOpt) (List, error) {
@@ -169,7 +152,7 @@ func (d detector) Detect(_ context.Context, repository fs.ReadDirFS, detectOptio
 			continue
 		}
 
-		_, isCompatible := d.licenseMap[strings.ToLower(license)]
+		isCompatible := isOSIApproved(license)
 
 		for file, confidence := range match.Files {
 			if confidence >= d.config.ConfidenceThreshold {

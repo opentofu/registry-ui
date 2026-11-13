@@ -63,7 +63,6 @@ type BackendFactory interface {
 		s3Params S3Parameters,
 		parallelism int,
 		tofuBinaryPath string,
-		approvedLicenses []string,
 	) (internal.Backend, error)
 }
 
@@ -81,9 +80,8 @@ func (b backendFactory) Create(
 	s3Params S3Parameters,
 	parallelism int,
 	tofuBinaryPath string,
-	approvedLicenses []string,
 ) (internal.Backend, error) {
-	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath, approvedLicenses, b.githubToken)
+	return getBackend(ctx, b.logger, registryDir, workDir, destinationDir, blocklist, s3Params, parallelism, tofuBinaryPath, b.githubToken)
 }
 
 func getBackend(
@@ -96,7 +94,6 @@ func getBackend(
 	s3Params S3Parameters,
 	parallelism int,
 	tofuBinaryPath string,
-	approvedLicenses []string,
 	githubToken string,
 ) (internal.Backend, error) {
 	if err := os.MkdirAll(workDir, 0700); err != nil {
@@ -108,9 +105,7 @@ func getBackend(
 		return nil, err
 	}
 
-	licenseDetector, err := license.New(
-		license.WithCompatibleLicenses(approvedLicenses...),
-	)
+	licenseDetector, err := license.New()
 	if err != nil {
 		return nil, err
 	}

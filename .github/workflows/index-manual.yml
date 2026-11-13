@@ -1,32 +1,37 @@
 name: Index (manual)
+run-name: Reindex ${{ inputs.content_type }} ${{ inputs.namespace }} ${{ inputs.name }} ${{ inputs.target_system }}
 permissions: {}
 on:
   workflow_dispatch:
     inputs:
+      content_type:
+        description: "Content to reindex"
+        required: true
+        type: choice
+        default: both
+        options:
+          - both
+          - provider
+          - module
       namespace:
-        description: "Namespace to regenerate"
+        description: "Namespace, e.g. hashicorp (provider) or terraform-aws-modules (module)"
         required: true
         type: string
       name:
-        description: "Name of the provider or module to regenerate"
+        description: "Name only, e.g. aws (provider) or vpc (module); empty reindexes the namespace"
         required: false
         type: string
         default: ""
       target_system:
-        description: "Target system of the module to regenerate"
+        description: "Module target system, e.g. aws in terraform-aws-modules/vpc/aws; requires module content and a name"
         required: false
         type: string
         default: ""
-      force_regenerate:
-        type: string
-        required: false
-        default: ""
-        description: "Force regenerating a namespace, name, or target system. This parameter is a comma-separate list consisting of either a namespace, a namespace and a name separated by a /, or a namespace, name and target system separated by a /. Example: namespace/name/targetsystem,othernamespace/othername"
       force_repo_data_update:
         type: boolean
         required: false
         default: false
-        description: Force updating GitHub repository data even if no new version was found. (Use with care!)
+        description: "Also refresh GitHub repository metadata"
 concurrency:
   group: index
   cancel-in-progress: false
@@ -59,14 +64,51 @@ jobs:
           AWS_ENDPOINT_URL_S3: ${{secrets.AWS_ENDPOINT_URL_S3}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
           S3_BUCKET: ${{secrets.S3_BUCKET}}
+          CONTENT_TYPE: ${{inputs.content_type}}
           NAMESPACE: ${{inputs.namespace}}
           NAME: ${{inputs.name}}
           TARGET_SYSTEM: ${{inputs.target_system}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          FORCE_REGENERATE: ${{inputs.force_regenerate}}
-          FORCE_REPO_DATA_UPDATE_ARG: ${{inputs.force_repo_data_update && '--force-repodata-update' || ''}}
+          FORCE_REPO_DATA_UPDATE: ${{inputs.force_repo_data_update}}
         run: |
-          go run github.com/opentofu/registry-ui/cmd/generate --log-level=trace --s3-bucket=${S3_BUCKET} --blocklist ../blocklist.json --licenses-file ../licenses.json --namespace="${NAMESPACE}" --name="${NAME}" --target-system="${TARGET_SYSTEM}" --force-regenerate="${FORCE_REGENERATE}" "${FORCE_REPO_DATA_UPDATE_ARG}"
+          if [[ -n "${TARGET_SYSTEM}" && -z "${NAME}" ]]; then
+            echo "::error::A target system requires a module name."
+            exit 1
+          fi
+          if [[ -n "${TARGET_SYSTEM}" && "${CONTENT_TYPE}" != "module" ]]; then
+            echo "::error::A target system requires module content."
+            exit 1
+          fi
+
+          force_target="${NAMESPACE}"
+          if [[ -n "${NAME}" ]]; then
+            force_target+="/${NAME}"
+          fi
+          if [[ -n "${TARGET_SYSTEM}" ]]; then
+            force_target+="/${TARGET_SYSTEM}"
+          fi
+
+          scope_args=()
+          case "${CONTENT_TYPE}" in
+            provider) scope_args+=(--skip-update-modules) ;;
+            module) scope_args+=(--skip-update-providers) ;;
+          esac
+
+          repo_data_args=()
+          if [[ "${FORCE_REPO_DATA_UPDATE}" == "true" ]]; then
+            repo_data_args+=(--force-repodata-update)
+          fi
+
+          go run github.com/opentofu/registry-ui/cmd/generate \
+            --log-level=trace \
+            --s3-bucket="${S3_BUCKET}" \
+            --blocklist ../blocklist.json \
+            --namespace="${NAMESPACE}" \
+            --name="${NAME}" \
+            --target-system="${TARGET_SYSTEM}" \
+            --force-regenerate="${force_target}" \
+            "${scope_args[@]}" \
+            "${repo_data_args[@]}"
       - name: Update search index
         working-directory: search/pg-indexer
         env:

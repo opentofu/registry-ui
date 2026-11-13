@@ -526,8 +526,8 @@ definitions:
         type: string
       is_compatible:
         description: >-
-          IsCompatible signals if the license is compatible with the OpenTofu
-          project
+          IsCompatible signals whether the SPDX identifier is OSI-approved under
+          the backend policy
         type: boolean
       link:
         description: >-
@@ -693,8 +693,8 @@ definitions:
         $ref: '#/definitions/ModuleVersionNumber'
       incompatible_license:
         description: >-
-          IncompatibleLicense indicates that there are no licenses or there is
-          one or more license that are not approved
+          IncompatibleLicense indicates that no license was detected or at least
+          one detected license is not OSI-approved
         type: boolean
       licenses:
         $ref: '#/definitions/LicenseList'
@@ -962,8 +962,8 @@ definitions:
         $ref: '#/definitions/ProviderVersionNumber'
       incompatible_license:
         description: >-
-          IncompatibleLicense indicates that there are no licenses or there is
-          one or more license that are not approved
+          IncompatibleLicense indicates that no license was detected or at least
+          one detected license is not OSI-approved
         type: boolean
       license:
         $ref: '#/definitions/LicenseList'
