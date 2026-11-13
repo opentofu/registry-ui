@@ -51,9 +51,10 @@ npm install -g api-spec-converter
 
 #### General options
 
+License compatibility is derived automatically from OSI approval in the pinned SPDX dataset.
+
 | Option                    | Description                                                                                                                                                                                                                                                                                             |
 |---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--licenses-file`         | JSON file containing a list SPDX codes of approved licenses to index. (Required)                                                                                                                                                                                                                        |                                                                                                                                                                                                                       |
 | `--skip-update-providers` | Do not update providers, only update modules (if enabled) and regenerate the search index.                                                                                                                                                                                                              |
 | `--skip-update-modules`   | Do not update modules, only update providers (if enabled) and regenerate the search index.                                                                                                                                                                                                              |
 | `--namespace`             | Limit updates to a namespace.                                                                                                                                                                                                                                                                           |
@@ -153,5 +154,5 @@ requires the following secrets to be set up:
 - `AWS_ENDPOINT_URL_S3`
 - `S3_BUCKET`
 
-Additionally, the `Index (manual)` workflow allows you to manually trigger the generation for a namespace, name, or
-target system, including an option to force the regeneration from scratch.
+The `Index (manual)` workflow force-regenerates the selected namespace, provider, or module and then refreshes the
+search index. Choose whether to process providers, modules, or both. A module target system requires module content and a module name.

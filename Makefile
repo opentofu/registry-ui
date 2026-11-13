@@ -2,7 +2,7 @@
 # since it's a high number of files, we are limiting to opentofu namespace.
 # If more providers are needed, tweak the arguments on this command
 generate-registry:
-	@cd "$(CURDIR)/backend" && go generate ./... && go run ./cmd/generate/ --licenses-file ../licenses.json --destination-dir /tmp/registry --namespace opentofu --name ad
+	@cd "$(CURDIR)/backend" && go generate ./... && go run ./cmd/generate/ --destination-dir /tmp/registry --namespace opentofu --name ad
 
 # remove-provider removes a provider from the registry
 # Example: make remove-provider PROVIDER=hashicorp/aws

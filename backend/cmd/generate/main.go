@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 	"path"
-	"regexp"
 	"runtime"
 	"strings"
 
@@ -21,7 +19,6 @@ import (
 )
 
 func main() {
-	licensesFile := ""
 	skipUpdateProviders := false
 	skipUpdateModules := false
 	namespacePrefix := ""
@@ -54,7 +51,6 @@ func main() {
 		s3Params.Endpoint = os.Getenv("AWS_ENDPOINT_URL")
 	}
 
-	flag.StringVar(&licensesFile, "licenses-file", licensesFile, "JSON file containing a list of approved licenses to include when indexing. (required)")
 	flag.BoolVar(&skipUpdateProviders, "skip-update-providers", skipUpdateProviders, "Skip updating provider indexes.")
 	flag.BoolVar(&skipUpdateModules, "skip-update-modules", skipUpdateModules, "Skip updating module indexes.")
 	flag.StringVar(&namespacePrefix, "namespace-prefix", namespace, "Limit updates to a namespace prefix.")
@@ -94,12 +90,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	approvedLicenses, err := readLicensesFile(ctx, licensesFile)
-	if err != nil {
-		mainLogger.Error(ctx, err.Error())
-		os.Exit(1)
-	}
-
 	mainLogger.Info(ctx, "Initializing metadata system...")
 
 	blockList := blocklist.New()
@@ -125,7 +115,6 @@ func main() {
 		s3Params,
 		commitParallelism,
 		tofuBinaryPath,
-		approvedLicenses,
 	)
 	if err != nil {
 		mainLogger.Error(ctx, err.Error())
@@ -157,29 +146,6 @@ func main() {
 	}
 
 	mainLogger.Info(ctx, "Done!")
-}
-
-func readLicensesFile(_ context.Context, licensesFile string) ([]string, error) {
-	if licensesFile == "" {
-		return nil, fmt.Errorf("the --licenses-file parameter is required")
-	}
-
-	licensesFileContent, err := os.ReadFile(licensesFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read licenses file: %w", err)
-	}
-
-	re := regexp.MustCompile(`//.*?\n`)
-	licensesFileContent = re.ReplaceAll(licensesFileContent, nil)
-
-	var approvedLicenses []string
-	if err := json.Unmarshal(licensesFileContent, &approvedLicenses); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal licenses file: %w", err)
-	}
-	if len(approvedLicenses) == 0 {
-		return nil, fmt.Errorf("the licenses file contains no licenses")
-	}
-	return approvedLicenses, nil
 }
 
 func parseForceOpts(regenerate string) ([]backend.GenerateOpt, error) {

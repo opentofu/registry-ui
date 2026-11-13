@@ -81,7 +81,7 @@ website/docs/cdktf/[python|typescript]/
 
 When scraping documentation, we follow these steps:
 
-1. **License Check**: Documentation is only processed if the repository has compatible licenses
+1. **License Check**: Documentation is only processed if the repository has OSI-approved licenses
 2. **Directory Location**: Check for documentation in `website/docs/` first, then `docs/`
 3. **Root Document**: Extract the provider overview from an `index.*` file in the root of the docs directory
 4. **Document Types**: Scrape the following document types:

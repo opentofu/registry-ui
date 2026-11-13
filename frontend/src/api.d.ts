@@ -360,7 +360,7 @@ export interface components {
         [key: string]: components["schemas"]["ModuleExample"];
       };
       id: components["schemas"]["ModuleVersionNumber"];
-      /** @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved */
+      /** @description IncompatibleLicense indicates that no license was detected or at least one detected license is not OSI-approved */
       incompatible_license: boolean;
       licenses: components["schemas"]["LicenseList"];
       /** @description Link holds the link to the repository browse URL */
@@ -511,7 +511,7 @@ export interface components {
       };
       docs: components["schemas"]["ProviderDocs"];
       id: components["schemas"]["ProviderVersionNumber"];
-      /** @description IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved */
+      /** @description IncompatibleLicense indicates that no license was detected or at least one detected license is not OSI-approved */
       incompatible_license: boolean;
       license: components["schemas"]["LicenseList"];
       link?: string;
@@ -561,7 +561,7 @@ export interface components {
       confidence: number;
       /** @description File holds the file in the repository where the license was detected */
       file: string;
-      /** @description IsCompatible signals if the license is compatible with the OpenTofu project */
+      /** @description IsCompatible signals whether the SPDX identifier is OSI-approved under the backend policy */
       is_compatible: boolean;
       /** @description Link may contain a link to the license file for humans to view. This may be empty */
       link?: string;

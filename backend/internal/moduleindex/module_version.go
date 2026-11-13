@@ -16,7 +16,7 @@ type ModuleVersion struct {
 	VCSRepository string `json:"vcs_repository"`
 	// Licenses is a list of licenses detected in the project.
 	Licenses license.List `json:"licenses"`
-	// IncompatibleLicense indicates that there are no licenses or there is one or more license that are not approved.
+	// IncompatibleLicense is true when no license was detected or at least one detected license is not OSI-approved.
 	IncompatibleLicense bool `json:"incompatible_license"`
 	// Examples lists all examples for this version.
 	Examples map[string]Example `json:"examples"`
